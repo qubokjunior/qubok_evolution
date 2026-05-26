@@ -25,7 +25,7 @@ Implemented runtime foundations:
 - low-resolution environmental flow field with movement integration and debug overlay metrics;
 - environmental field render snapshot and Pixi vector debug layer;
 - render debug controls, keyboard layer toggles, and grouped overlay metrics;
-- m42 milestone setup for field decay/diffusion foundation.
+- field decay/diffusion foundation with deterministic dynamics, scratch buffers, metrics, benchmark, demo wiring, and overlay labels.
 
 ## Commands
 
@@ -41,6 +41,8 @@ Targeted checks:
 ```powershell
 npm run test:repo-status
 npm run test:roadmap-status
+npm run test:field-dynamics
+npm run test:field-dynamics-integration
 npm run test:field
 npm run test:field-render-snapshot
 npm run test:movement
@@ -54,6 +56,7 @@ npm run test:terrain-reproduction-placement
 npm run test:death-path-audit
 npm run test:lifecycle-pressure
 npm run test:debug-overlay-groups
+npm run bench:field-dynamics
 npm run bench:world-free-list
 npm run bench:terrain-render-snapshot
 ```
@@ -76,7 +79,7 @@ http://127.0.0.1:5173/
 - `docs/integration_m39.md` — environmental flow field milestone.
 - `docs/integration_m40.md` — environmental field render snapshot and Pixi vector debug layer.
 - `docs/integration_m41.md` — render debug controls and overlay grouping milestone.
-- `docs/integration_m42.md` — field decay/diffusion foundation milestone setup.
+- `docs/integration_m42.md` — field decay/diffusion foundation milestone.
 
 ## Boundary rule
 
