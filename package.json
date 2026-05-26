@@ -1,7 +1,7 @@
 {
   "name": "qubok_evolve",
   "private": true,
-  "version": "0.1.0-milestone.34",
+  "version": "0.1.0-milestone.35",
   "type": "module",
   "scripts": {
     "preview": "vite preview --host 127.0.0.1",
@@ -25,6 +25,7 @@
     "test:terrain": "node scripts/test-terrain.mjs",
     "test:terrain-render-snapshot": "node scripts/test-terrain-render-snapshot.mjs",
     "test:terrain-debug-render-layer": "node scripts/test-terrain-debug-render-layer.mjs",
+    "test:terrain-movement-query": "node scripts/test-terrain-movement-query.mjs",
     "test:movement": "node scripts/test-movement.mjs",
     "test:obstacle-response": "node scripts/test-obstacle-response.mjs",
     "test:spawn-validation": "node scripts/test-spawn-validation.mjs",
@@ -51,7 +52,7 @@
     "test:sensors": "node scripts/test-sensors.mjs",
     "bench:sensors": "node scripts/bench-sensors.mjs",
     "test:demo-integration": "node scripts/test-demo-integration.mjs",
-    "test": "npm run check:boundaries && npm run test:repo-status && npm run test:roadmap-status && npm run test:rng && npm run test:world && npm run test:terrain && npm run test:terrain-render-snapshot && npm run test:terrain-debug-render-layer && npm run test:world-free-list && npm run test:world-slot-telemetry && npm run test:lifecycle-pressure && npm run test:death-path-audit && npm run test:movement && npm run test:obstacle-response && npm run test:spawn-validation && npm run test:lifecycle-telemetry && npm run test:obstacle-render-snapshot && npm run test:render-snapshot && npm run test:perf-metrics && npm run test:spatial-hash && npm run test:neighbor-query && npm run test:resources && npm run test:obstacle-mask && npm run test:energy && npm run test:reproduction && npm run test:mutation && npm run test:predator-prey && npm run test:sensors && npm run test:demo-integration",
+    "test": "npm run check:boundaries && npm run test:repo-status && npm run test:roadmap-status && npm run test:rng && npm run test:world && npm run test:terrain && npm run test:terrain-render-snapshot && npm run test:terrain-debug-render-layer && npm run test:terrain-movement-query && npm run test:world-free-list && npm run test:world-slot-telemetry && npm run test:lifecycle-pressure && npm run test:death-path-audit && npm run test:movement && npm run test:obstacle-response && npm run test:spawn-validation && npm run test:lifecycle-telemetry && npm run test:obstacle-render-snapshot && npm run test:render-snapshot && npm run test:perf-metrics && npm run test:spatial-hash && npm run test:neighbor-query && npm run test:resources && npm run test:obstacle-mask && npm run test:energy && npm run test:reproduction && npm run test:mutation && npm run test:predator-prey && npm run test:sensors && npm run test:demo-integration",
     "test:world-free-list": "node scripts/test-world-free-list.mjs",
     "bench:world-free-list": "node scripts/bench-world-free-list.mjs",
     "test:world-slot-telemetry": "node scripts/test-world-slot-telemetry.mjs",
