@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+﻿import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { execFileSync } from "node:child_process";
 
@@ -64,7 +64,7 @@ function patchReadme() {
   let text = read("README.md");
   text = text.replaceAll("0.1.0-milestone.30", "0.1.0-milestone.31").replaceAll("Current status: m30", "Current status: m31");
   if (!text.includes("docs/roadmap.md")) {
-    text = text.replace("- `docs/milestones.md` — compact milestone index through m30.", "- `docs/milestones.md` — compact milestone index through m30.\n- `docs/roadmap.md` — development tracks after m31.\n- `docs/architecture_tracks.md` — boundary contracts for future work.");
+    text = text.replace("- `docs/milestones.md` â€” compact milestone index through m30.", "- `docs/milestones.md` â€” compact milestone index through m30.\n- `docs/roadmap.md` â€” development tracks after m31.\n- `docs/architecture_tracks.md` â€” boundary contracts for future work.");
   }
   write("README.md", text);
 }
@@ -274,7 +274,7 @@ assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m31"'), "appVersion must 
 assert(readme.includes("docs/roadmap.md"), "README.md must link docs/roadmap.md.");
 assert(readme.includes("docs/architecture_tracks.md"), "README.md must link docs/architecture_tracks.md.");
 for (const token of ["terrain/material track", "fluid-like field track", "morphology/entity editor track", "controller/brain track", "render/performance track", "worker/WebGPU track"]) {
-  assert(roadmap.includes(token), `roadmap missing track token: ${token}`);
+  assert(roadmap.includes(token), "roadmap missing track token: " + token);
 }
 assert(architectureTracks.includes("renderer must not own authoritative simulation state"), "architecture tracks must preserve render boundary.");
 assert(integrationM31.includes("roadmap architecture tracks"), "integration_m31 must describe roadmap architecture tracks.");
@@ -293,6 +293,7 @@ function sanity() {
 }
 
 function read(relativePath) { return readFileSync(path(relativePath), "utf8"); }
-function write(relativePath, text) { mkdirSync(dirname(path(relativePath)), { recursive: true }); writeFileSync(path(relativePath), text, "utf8"); }
+function write(relativePath, text) { const target = relativePath.includes(":\") ? relativePath : path(relativePath); mkdirSync(dirname(target), { recursive: true }); writeFileSync(target, text, "utf8"); }
 function path(relativePath) { return join(root, relativePath); }
 function remove(relativePath) { if (existsSync(path(relativePath))) rmSync(path(relativePath), { force: true, recursive: true }); }
+
