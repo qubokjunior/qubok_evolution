@@ -1,5 +1,6 @@
 import { applyEnergySurvival, type EnergySurvivalStats } from "./energy";
 import { createEnvironmentalFieldLayer, setFieldCell, type EnvironmentalFieldLayer } from "./field";
+import { createFieldDynamicsScratch, stepEnvironmentalFieldDynamics, type FieldDynamicsStepMetrics } from "./fieldDynamics";
 import { makeFieldRenderSnapshot, type FieldRenderSnapshot } from "./fieldRenderSnapshot";
 import { createRng, type DeterministicRng, type RngSeed } from "./rng";
 import { addForce, stepMovement, type MovementStepMetrics } from "./movement";
@@ -73,6 +74,9 @@ export type DemoSimulationConfig = {
   readonly fieldRenderStride?: number;
   readonly fieldRenderMaxVectors?: number;
   readonly fieldRenderMinMagnitude?: number;
+  readonly fieldDecayPerSecond?: number;
+  readonly fieldDiffusionRatePerSecond?: number;
+  readonly fieldDynamicsMinActiveMagnitude?: number;
   readonly spawnMaxAttempts?: number;
   readonly spawnClearanceRadius?: number;
   readonly sensorRadiusScale?: number;
@@ -90,6 +94,7 @@ export type DemoSimulationStepResult = {
   readonly obstacleMaskSnapshot: ObstacleMaskRenderSnapshot;
   readonly terrainRenderSnapshot: TerrainRenderSnapshot;
   readonly fieldRenderSnapshot: FieldRenderSnapshot;
+  readonly fieldDynamicsStats: FieldDynamicsStepMetrics;
   readonly snapshotStats: RenderSnapshotStats;
   readonly movementMetrics: MovementStepMetrics;
   readonly obstacleResponseStats: ObstacleSoftResponseStats;
@@ -114,6 +119,7 @@ export type DemoSimulationStepResult = {
   readonly resourceMs: number;
   readonly energyMs: number;
   readonly reproductionMs: number;
+  readonly fieldDynamicsMs: number;
   readonly simMsPerTick: number;
 };
 
@@ -146,6 +152,9 @@ const DEFAULT_FIELD_FORCE_SCALE = 2.5;
 const DEFAULT_FIELD_RENDER_STRIDE = 2;
 const DEFAULT_FIELD_RENDER_MAX_VECTORS = 192;
 const DEFAULT_FIELD_RENDER_MIN_MAGNITUDE = 0.05;
+const DEFAULT_FIELD_DECAY_PER_SECOND = 0.025;
+const DEFAULT_FIELD_DIFFUSION_RATE_PER_SECOND = 0.08;
+const DEFAULT_FIELD_DYNAMICS_MIN_ACTIVE_MAGNITUDE = 0.0001;
 const DEFAULT_OBSTACLE_RESPONSE_RADIUS = 42;
 const DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE = 140;
 const DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE = 220;
@@ -176,6 +185,9 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const fieldRenderStride = config.fieldRenderStride ?? DEFAULT_FIELD_RENDER_STRIDE;
   const fieldRenderMaxVectors = config.fieldRenderMaxVectors ?? DEFAULT_FIELD_RENDER_MAX_VECTORS;
   const fieldRenderMinMagnitude = config.fieldRenderMinMagnitude ?? DEFAULT_FIELD_RENDER_MIN_MAGNITUDE;
+  const fieldDecayPerSecond = config.fieldDecayPerSecond ?? DEFAULT_FIELD_DECAY_PER_SECOND;
+  const fieldDiffusionRatePerSecond = config.fieldDiffusionRatePerSecond ?? DEFAULT_FIELD_DIFFUSION_RATE_PER_SECOND;
+  const fieldDynamicsMinActiveMagnitude = config.fieldDynamicsMinActiveMagnitude ?? DEFAULT_FIELD_DYNAMICS_MIN_ACTIVE_MAGNITUDE;
   const obstacleResponseRadius = config.obstacleResponseRadius ?? DEFAULT_OBSTACLE_RESPONSE_RADIUS;
   const obstacleResponseForceScale = config.obstacleResponseForceScale ?? DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE;
   const obstacleResponseMaxForce = config.obstacleResponseMaxForce ?? DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE;
@@ -199,6 +211,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const obstacleMask = createObstacleMask({ worldWidth, worldHeight, cellSize: config.obstacleCellSize ?? DEFAULT_OBSTACLE_CELL_SIZE });
   const terrain = createTerrainLayer({ worldWidth, worldHeight, cellSize: DEFAULT_TERRAIN_CELL_SIZE });
   const field = createEnvironmentalFieldLayer({ worldWidth, worldHeight, cellSize: config.fieldCellSize ?? DEFAULT_FIELD_CELL_SIZE });
+  const fieldDynamicsScratch = createFieldDynamicsScratch(field);
 
   const rng = createRng(config.seed ?? "qubok_evolve:demo:m40");
   seedDemoObstacleMask(obstacleMask);
@@ -222,6 +235,10 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     const obstacleResponseStart = performance.now();
     const obstacleResponseStats = applyObstacleSoftResponse(world, obstacleMask, { responseRadius: obstacleResponseRadius, forceScale: obstacleResponseForceScale, maxForcePerAgent: obstacleResponseMaxForce, includeWorldBounds: true, boundsOnly: obstacleResponseBoundsOnly, cellStride: obstacleResponseCellStride, maxObstacleCellChecksPerAgent: obstacleResponseMaxCellChecksPerAgent });
     const obstacleResponseMs = performance.now() - obstacleResponseStart;
+
+    const fieldDynamicsStart = performance.now();
+    const fieldDynamicsStats = stepEnvironmentalFieldDynamics(field, safeDeltaSeconds, { decayPerSecond: fieldDecayPerSecond, diffusionRatePerSecond: fieldDiffusionRatePerSecond, minActiveMagnitude: fieldDynamicsMinActiveMagnitude }, fieldDynamicsScratch);
+    const fieldDynamicsMs = performance.now() - fieldDynamicsStart;
 
     const movementMetrics = stepMovement(world, { deltaSeconds: safeDeltaSeconds, boundsMode: "wrap", clearForces: true, minimumEnergy: -1_000_000, terrain, field, fieldForceScale });
 
@@ -285,7 +302,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     const snapshotStats = analyzeRenderSnapshot(snapshot);
     const simMsPerTick = performance.now() - start;
 
-    return { snapshot, obstacleMaskSnapshot, terrainRenderSnapshot, fieldRenderSnapshot, snapshotStats, movementMetrics, obstacleResponseStats, obstacleLifecycleTelemetry, energyStats, spatialBuildStats, neighborQueryStats, sensorStats, predatorPreyStats, reproductionStats, resourceBuildStats, resourcePickupStats, resourceRespawnStats, resourceAliveCount: resources.aliveCount, resourceTargetCount, resourceRespawnedCount, gridBuildMs, neighborQueryMs, sensorMs, obstacleResponseMs, predatorPreyMs, resourceMs, energyMs, reproductionMs, simMsPerTick };
+    return { snapshot, obstacleMaskSnapshot, terrainRenderSnapshot, fieldRenderSnapshot, fieldDynamicsStats, snapshotStats, movementMetrics, obstacleResponseStats, obstacleLifecycleTelemetry, energyStats, spatialBuildStats, neighborQueryStats, sensorStats, predatorPreyStats, reproductionStats, resourceBuildStats, resourcePickupStats, resourceRespawnStats, resourceAliveCount: resources.aliveCount, resourceTargetCount, resourceRespawnedCount, gridBuildMs, neighborQueryMs, sensorMs, obstacleResponseMs, predatorPreyMs, resourceMs, energyMs, reproductionMs, fieldDynamicsMs, simMsPerTick };
   };
 
   return { world, spatialGrid, resources, obstacleMask, terrain, field, initialAgentSpawnStats, initialResourceSpawnStats, step, getSnapshot: () => makeRenderSnapshot(world) };
