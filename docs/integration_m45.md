@@ -79,10 +79,22 @@ M45-K3 polishes debug/config preset UX: preset controls move into a named subsec
 
 M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel change event when damping checkboxes are toggled.
 
-## Validation target
+## Final status
+
+M45 is closed as a documentation/status milestone. The milestone now covers field damping core + demo integration, damping metrics/readouts, editable damping controls, agent field visual debug, right-side editable panel stack and persistence, left telemetry grouping/resize, render layers and field vector controls, render/damping config persistence, and debug/config preset export/import/UX polish.
+
+M45-L1 does not add simulation or UI features. It only records milestone closure and keeps repo/roadmap status tests aligned with the completed state.
+
+## Final validation set
 
 - npm run test:repo-status
 - npm run test:roadmap-status
+- npm run test:demo-integration
+- npm run test
+- npm run build
+
+## M45 targeted validation coverage
+
 - npm run test:field-damping
 - npm run test:field-damping-integration
 - npm run test:field-damping-controls
