@@ -51,6 +51,8 @@ M45-H2 splits right-side editable panels into named subsections. Field damping i
 
 M45-H3 adds horizontal resizing for right-side editable panels. Panels resize from the left edge while remaining anchored to the right, clamp to safe min/max widths, and persist width per panel in localStorage.
 
+M45-H4 adds horizontal resizing for the left read-only telemetry overlay. The overlay resizes from its right edge, clamps to safe min/max widths, and persists width in localStorage.
+
 M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel change event when damping checkboxes are toggled.
 
 ## Validation target
@@ -64,6 +66,7 @@ M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel ch
 - npm run test:agent-field-visual-debug
 - npm run test:agent-field-visual-controls
 - npm run test:overlay-collapse
+- npm run test:overlay-resize
 - npm run test:editable-panel-collapse
 - npm run test:control-panel-primitives
 - npm run test:editable-panel-modules

@@ -13,6 +13,10 @@ export type PerfOverlaySink = {
 
 type OverlayGroupId = "runtime" | "field" | "terrain" | "obstacle" | "movement" | "spatial" | "sensors" | "combat" | "resources" | "reproduction" | "worldSlots" | "other";
 
+const PERF_OVERLAY_WIDTH_STORAGE_KEY = "qubok_evolve.perf_overlay_width";
+const PERF_OVERLAY_MIN_WIDTH = 196;
+const PERF_OVERLAY_MAX_WIDTH = 640;
+
 const DISPLAY_ORDER = [
   "fps", "frameMs", "renderMsPerFrame", "simMsPerTick", "gridBuildMs", "neighborQueryMs", "sensorMs",
   "fieldMovementSampleCount", "fieldFlowXSum", "fieldFlowYSum", "fieldFlowMagnitudeSum",
@@ -275,6 +279,16 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
   root.className = "qubok_evolve-perf-overlay";
   root.setAttribute("aria-label", `${PROJECT_NAME} performance overlay`);
 
+  const storedWidth = readStoredPerfOverlayWidth();
+  if (storedWidth !== undefined) {
+    root.style.width = `${storedWidth}px`;
+  }
+
+  const resizeHandle = document.createElement("div");
+  resizeHandle.className = "qubok_evolve-perf-resize-handle";
+  resizeHandle.setAttribute("aria-hidden", "true");
+  attachPerfOverlayHorizontalResize(root, resizeHandle);
+
   const title = document.createElement("div");
   title.className = "qubok_evolve-perf-title";
   const titleText = document.createElement("span");
@@ -283,7 +297,7 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
   badge.className = "qubok_evolve-perf-badge";
   badge.textContent = PROJECT_MILESTONE_LABEL;
   title.append(titleText, badge);
-  root.append(title);
+  root.append(title, resizeHandle);
 
   const rows = new Map<string, HTMLElement>();
   const groups = new Map<OverlayGroupId, HTMLElement>();
@@ -369,6 +383,58 @@ function createValueRow(root: HTMLElement, label: string): HTMLElement {
   row.append(labelElement, valueElement);
   root.append(row);
   return valueElement;
+}
+
+function attachPerfOverlayHorizontalResize(panel: HTMLElement, handle: HTMLElement): void {
+  handle.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const startX = event.clientX;
+    const startWidth = panel.getBoundingClientRect().width;
+    panel.dataset.resizing = "true";
+    handle.setPointerCapture(event.pointerId);
+
+    const onMove = (moveEvent: PointerEvent): void => {
+      const nextWidth = clampOverlayWidth(startWidth + (moveEvent.clientX - startX));
+      panel.style.width = `${nextWidth}px`;
+    };
+
+    const onEnd = (): void => {
+      delete panel.dataset.resizing;
+      const finalWidth = clampOverlayWidth(panel.getBoundingClientRect().width);
+      panel.style.width = `${finalWidth}px`;
+      try {
+        localStorage.setItem(PERF_OVERLAY_WIDTH_STORAGE_KEY, String(Math.round(finalWidth)));
+      } catch {
+        // localStorage can be unavailable in restricted contexts.
+      }
+      handle.removeEventListener("pointermove", onMove);
+      handle.removeEventListener("pointerup", onEnd);
+      handle.removeEventListener("pointercancel", onEnd);
+    };
+
+    handle.addEventListener("pointermove", onMove);
+    handle.addEventListener("pointerup", onEnd);
+    handle.addEventListener("pointercancel", onEnd);
+  });
+}
+
+function readStoredPerfOverlayWidth(): number | undefined {
+  try {
+    const rawValue = localStorage.getItem(PERF_OVERLAY_WIDTH_STORAGE_KEY);
+    if (rawValue === null) return undefined;
+    const value = Number(rawValue);
+    return Number.isFinite(value) ? clampOverlayWidth(value) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function clampOverlayWidth(value: number): number {
+  return Math.max(PERF_OVERLAY_MIN_WIDTH, Math.min(PERF_OVERLAY_MAX_WIDTH, value));
 }
 
 function formatValue(key: string, value: number): string {
