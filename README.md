@@ -2,7 +2,7 @@
 
 High-performance realtime 2D artificial-life ecosystem simulator.
 
-Current status: m43 / 0.1.0-milestone.43.
+Current status: m44 / 0.1.0-milestone.44.
 
 ## What exists now
 
@@ -26,7 +26,8 @@ Implemented runtime foundations:
 - environmental field render snapshot and Pixi vector debug layer;
 - render debug controls, keyboard layer toggles, and grouped overlay metrics;
 - field decay/diffusion foundation with deterministic dynamics, scratch buffers, metrics, benchmark, demo wiring, and overlay labels;
-- field sources/sinks foundation with deterministic resource-driven vector emission, agent absorption, demo wiring, metrics, overlay labels, tests, and benchmark.
+- field sources/sinks foundation with deterministic resource-driven vector emission, agent absorption, demo wiring, metrics, overlay labels, tests, and benchmark;
+- m44 in progress: field source semantics tuning and visualization QA.
 
 ## Commands
 
@@ -42,24 +43,11 @@ Targeted checks:
 ```powershell
 npm run test:repo-status
 npm run test:roadmap-status
-npm run test:field-dynamics
-npm run test:field-dynamics-integration
-npm run test:field
-npm run test:field-render-snapshot
-npm run test:movement
-npm run test:terrain
-npm run test:terrain-render-snapshot
-npm run test:terrain-debug-render-layer
-npm run test:terrain-movement-query
-npm run test:terrain-resource-affinity
-npm run test:terrain-sensor-sampling
-npm run test:terrain-reproduction-placement
-npm run test:death-path-audit
-npm run test:lifecycle-pressure
+npm run test:field-sources
+npm run test:field-sources-integration
 npm run test:debug-overlay-groups
-npm run bench:field-dynamics
-npm run bench:world-free-list
-npm run bench:terrain-render-snapshot
+npm run test:demo-integration
+npm run build
 ```
 
 Open the local URL printed by Vite, usually:
@@ -70,8 +58,8 @@ http://127.0.0.1:5173/
 
 ## Milestones and docs
 
-- `docs/milestones.md` — compact milestone index through m43.
-- `docs/roadmap.md` — development tracks after m43.
+- `docs/milestones.md` — compact milestone index through m44.
+- `docs/roadmap.md` — development tracks after m44.
 - `docs/architecture_tracks.md` — boundary contracts for future work.
 - `docs/world_state.md` — typed-array world state and lifecycle slot contract.
 - `docs/integration_m36.md` — terrain resource-affinity milestone.
@@ -82,6 +70,7 @@ http://127.0.0.1:5173/
 - `docs/integration_m41.md` — render debug controls and overlay grouping milestone.
 - `docs/integration_m42.md` — field decay/diffusion foundation milestone.
 - `docs/integration_m43.md` — field sources/sinks foundation milestone.
+- `docs/integration_m44.md` — field source semantics tuning and visualization QA milestone setup.
 
 ## Boundary rule
 
