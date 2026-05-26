@@ -57,7 +57,11 @@ export type PixiRendererOptions = {
   renderDebugConfig?: RenderDebugConfigPatch;
 };
 
-export type PixiRendererHandle = { destroy: () => void };
+export type PixiRendererHandle = {
+  destroy: () => void;
+  updateRenderDebugConfig: (patch: RenderDebugConfigPatch) => void;
+  getRenderDebugConfig: () => RenderDebugConfig;
+};
 
 type AgentGlyph = { readonly graphic: Graphics; colorRGBA: number };
 
@@ -82,7 +86,7 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
   app.canvas.className = "qubok_evolve-canvas";
   options.host.append(app.canvas);
 
-  const renderDebugConfig = makeRenderDebugConfig(options.renderDebugConfig);
+  let renderDebugConfig = makeRenderDebugConfig(options.renderDebugConfig);
   const world = new Container();
   const backgroundLayer = new Graphics();
   const gridLayer = new Graphics();
@@ -98,6 +102,11 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
   const glyphs: AgentGlyph[] = [];
   const metrics = createPerfMetricsBus();
   let frameIndex = 0;
+
+  const updateRenderDebugConfig = (patch: RenderDebugConfigPatch): void => {
+    renderDebugConfig = makeRenderDebugConfig({ ...renderDebugConfig, ...patch });
+    applyRenderDebugVisibility(renderDebugConfig, gridLayer, terrainLayer, fieldLayer, obstacleLayer, agentLayer);
+  };
 
   const drawStaticLayers = (): void => {
     drawBackground(backgroundLayer, options.host.clientWidth, options.host.clientHeight);
@@ -346,6 +355,8 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
   });
 
   return {
+    updateRenderDebugConfig,
+    getRenderDebugConfig: () => renderDebugConfig,
     destroy: () => {
       resizeObserver.disconnect();
       app.destroy({ removeView: true }, { children: true, texture: false, textureSource: false });
