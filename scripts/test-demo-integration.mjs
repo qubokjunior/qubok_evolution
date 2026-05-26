@@ -27,6 +27,7 @@ const obstacleRenderSnapshot = readText("src/sim/obstacleRenderSnapshot.ts");
 const terrain = readText("src/sim/terrain.ts");
 const terrainRenderSnapshot = readText("src/sim/terrainRenderSnapshot.ts");
 const pixiRenderer = readText("src/render/pixiRenderer.ts");
+const renderDebugConfig = readText("src/render/renderDebugConfig.ts");
 const debugOverlay = readText("src/render/debugOverlay.ts");
 const perfMetrics = readText("src/shared/perfMetrics.ts");
 const energy = readText("src/sim/energy.ts");
@@ -59,6 +60,7 @@ assert(roadmapStatusTest.includes("fieldRenderVectorCount"), "roadmap status tes
 for (const [scriptName, command] of [
   ["test:repo-status", "node scripts/test-repo-status.mjs"],
   ["test:roadmap-status", "node scripts/test-roadmap-status.mjs"],
+  ["test:render-debug-config", "node scripts/test-render-debug-config.mjs"],
   ["test:demo-integration", "node scripts/test-demo-integration.mjs"],
   ["test:field", "node scripts/test-field.mjs"],
   ["test:field-render-snapshot", "node scripts/test-field-render-snapshot.mjs"],
@@ -110,6 +112,13 @@ for (const requiredToken of ["REPRODUCTION_SYSTEM_VERSION", "offspringTerrainMax
   assert(reproduction.includes(requiredToken), "reproduction missing token: " + requiredToken);
 }
 
+for (const requiredToken of ["RENDER_DEBUG_CONFIG_VERSION", "DEFAULT_RENDER_DEBUG_CONFIG", "makeRenderDebugConfig", "toggleRenderDebugLayer", "showGrid", "showTerrainLayer", "showObstacleLayer", "showFieldVectorLayer", "showAgents", "fieldVectorAlpha", "fieldVectorScale", "fieldVectorStride", "fieldVectorMinMagnitude"]) {
+  assert(renderDebugConfig.includes(requiredToken), "renderDebugConfig missing token: " + requiredToken);
+}
+
+for (const requiredToken of ["renderDebugConfig?: RenderDebugConfigPatch", "makeRenderDebugConfig(options.renderDebugConfig)", "applyRenderDebugVisibility", "gridLayer.visible", "terrainLayer.visible", "fieldLayer.visible", "obstacleLayer.visible", "agentLayer.visible", "renderFieldVectorLayer(fieldLayer", "fieldVectorAlpha", "fieldVectorScale", "fieldVectorStride", "fieldVectorMinMagnitude", "config.showTerrainLayer", "config.showFieldVectorLayer", "config.showObstacleLayer", "config.showAgents"]) {
+  assert(pixiRenderer.includes(requiredToken), "pixiRenderer missing render debug wiring token: " + requiredToken);
+}
 for (const requiredToken of ["fieldLayer", "renderFieldVectorLayer", "fieldRenderVectorCount", "terrainLayer", "renderTerrainLayer", "obstacleLayer", "renderObstacleMask", "reusableSlotCount", "spawnReusedSlotCount", "spawnAppendedSlotCount"]) {
   assert(pixiRenderer.includes(requiredToken), "pixiRenderer missing token: " + requiredToken);
 }
