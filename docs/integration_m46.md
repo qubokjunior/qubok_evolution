@@ -104,3 +104,24 @@ Add a focused benchmark before UI integration:
 - M46-A4: overlay metrics/readouts;
 - M46-A5: editable advection controls for enabled, strength, substeps, and minimum active magnitude.
 - M46-A6: persisted field advection controls using localStorage and debug layout reset clearing.
+
+## Final status
+
+M46 is closed. It delivered deterministic CPU semi-Lagrangian environmental field advection with core tests, benchmark coverage, demo wiring, overlay/readout metrics, editable controls, localStorage persistence, and debug reset integration.
+
+Runtime order is explicit and guarded: sources/sinks -> damping -> advection -> dynamics. Field force remains separate and out of scope, so M46 transports environmental fields without directly changing agent movement semantics.
+
+## Final validation set
+
+- `npm run test:field-advection`
+- `npm run bench:field-advection`
+- `npm run test:field-advection-integration`
+- `npm run test:field-advection-overlay-qa`
+- `npm run test:field-advection-panel`
+- `npm run test:field-advection-config-persistence`
+- `npm run test:demo-integration`
+- `npm run test:repo-status`
+- `npm run test:roadmap-status`
+- `npm run build`
+
+The Vite chunk-size warning is non-blocking for M46 and belongs to a later render/performance or code-splitting pass.

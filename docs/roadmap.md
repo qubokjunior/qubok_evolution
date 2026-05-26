@@ -1,6 +1,6 @@
 # qubok_evolve roadmap
 
-Current status: m46 planning / field transport-advection track.
+Current status: m46 complete / field transport-advection shipped.
 
 m34 shipped: terrain Pixi debug render layer.
 
@@ -26,7 +26,7 @@ m44 shipped: field source semantics tuning and visualization QA.
 
 m45 shipped: obstacle/terrain damping sources, editable debug parameters, panel stack persistence, render layer controls, and debug config preset import/export UX.
 
-m46 planned: deterministic environmental field transport/advection before controller/brain work.
+m46 shipped: deterministic environmental field advection with tests, benchmark, demo wiring, overlay/readouts, editable controls, and persistence.
 
 ## terrain/material track
 
@@ -55,12 +55,13 @@ Shipped sequence:
 - deterministic field decay/diffusion step with scratch buffers, metrics, benchmark, demo wiring, and overlay labels;
 - deterministic field sources/sinks with resource-driven vector emission, agent absorption, demo wiring, metrics, benchmark, and overlay labels;
 - field source semantics tuning with resource energy/radius scaling, agent radius/energy-pressure absorption, runtime visual QA, and overlay/readout guards;
-- obstacle/terrain damping sources with runtime metrics, editable damping controls, persisted debug config, render layer/vector controls, and preset import/export UX.
+- obstacle/terrain damping sources with runtime metrics, editable damping controls, persisted debug config, render layer/vector controls, and preset import/export UX;
+- deterministic environmental field advection with core tests, benchmark, demo wiring, overlay/readouts, editable controls, and persisted config.
 
 Current milestone:
 - m46 planning: deterministic field transport/advection using a CPU semi-Lagrangian pass.
 
-M46 planned scope:
+M46 shipped scope:
 - define advection separately from diffusion, sources/sinks, damping, and field force;
 - keep first pass CPU, deterministic, low-resolution, and renderer-agnostic;
 - add core advection API and deterministic tests before demo wiring;

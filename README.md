@@ -2,7 +2,7 @@
 
 High-performance realtime 2D artificial-life ecosystem simulator.
 
-Current status: m46 planning / environmental field transport-advection track.
+Current status: m46 complete / environmental field transport-advection shipped.
 
 ## What exists now
 
@@ -29,7 +29,7 @@ Implemented runtime foundations:
 - field sources/sinks foundation with deterministic resource-driven vector emission, agent absorption, demo wiring, metrics, overlay labels, tests, and benchmark;
 - field source semantics tuning and visualization QA with resource energy/radius source scaling, agent radius/energy-pressure absorption, runtime visual QA, and overlay/readout guards;
 - m45 complete: obstacle/terrain damping sources, editable debug parameters, panel persistence, render layer controls, and debug config preset import/export UX;
-- m46 planned: deterministic environmental field transport/advection before controller/brain work.
+- m46 complete: deterministic environmental field advection with core tests, benchmark, demo wiring, overlay/readouts, editable controls, and persistence.
 
 ## Commands
 
@@ -71,7 +71,7 @@ http://127.0.0.1:5173/
 - `docs/integration_m43.md` — field sources/sinks foundation milestone.
 - `docs/integration_m44.md` — field source semantics tuning and visualization QA milestone.
 - `docs/integration_m45.md` — completed obstacle/terrain damping sources and editable debug parameters milestone.
-- `docs/integration_m46.md` — environmental field transport/advection planning milestone.
+- `docs/integration_m46.md` — completed environmental field transport/advection milestone.
 
 ## Boundary rule
 

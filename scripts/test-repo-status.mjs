@@ -20,11 +20,11 @@ const integrationM46 = readText("docs/integration_m46.md");
 const fieldDamping = readText("src/sim/fieldDamping.ts");
 const fieldAdvection = readText("src/sim/fieldAdvection.ts");
 
-assert(packageJson.version === "0.1.0-milestone.45", "package.json must keep 0.1.0-milestone.45 until m46 runtime integration bumps version.");
-assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.45\""), "appVersion must keep milestone.45 until m46 runtime integration bumps version.");
-assert(appVersion.includes("PROJECT_MILESTONE = 45"), "appVersion must keep milestone number 45 until m46 runtime integration bumps version.");
-assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m45\""), "appVersion must keep m45 label until m46 runtime integration bumps version.");
-assert(readme.includes("m46 planning"), "README.md must expose current m46 planning status.");
+assert(packageJson.version === "0.1.0-milestone.46", "package.json must keep 0.1.0-milestone.46 until m46 runtime integration bumps version.");
+assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.46\""), "appVersion must keep milestone.46 until m46 runtime integration bumps version.");
+assert(appVersion.includes("PROJECT_MILESTONE = 46"), "appVersion must keep milestone number 45 until m46 runtime integration bumps version.");
+assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m45\""), "appVersion must keep m46 label until m46 runtime integration bumps version.");
+assert(readme.includes("m46 complete"), "README.md must expose current m46 complete status.");
 assert(readme.includes("environmental field transport/advection"), "README.md must expose current field advection track.");
 for (const marker of ["| m32 |", "| m33 |", "| m34 |", "| m35 |", "| m36 |", "| m37 |", "| m38 |", "| m39 |", "| m40 |", "| m41 |", "| m42 |", "| m43 |", "| m44 |", "| m45 |", "| m46 |"]) assert(milestones.includes(marker), "docs/milestones.md missing marker: " + marker);
 assert(integrationM40.includes("environmental field render snapshot"), "integration_m40 must describe environmental field render snapshot.");
@@ -56,5 +56,11 @@ assert(integrationM46.includes("environmental field transport") && integrationM4
 assert(fieldAdvection.includes("FIELD_ADVECTION_VERSION") && fieldAdvection.includes("advectEnvironmentalField"), "fieldAdvection must expose m46 core advection API.");
 assert(packageJson.scripts["test:field-advection"] === "node scripts/test-field-advection.mjs", "package.json must expose test:field-advection.");
 assert(packageJson.scripts.test.includes("test:field-advection"), "npm run test must include test:field-advection.");
+assert(packageJson.scripts["bench:field-advection"] === "node scripts/bench-field-advection.mjs", "package.json must expose bench:field-advection.");
+assert(packageJson.scripts["test:field-advection-integration"] === "node scripts/test-field-advection-integration.mjs", "package.json must expose test:field-advection-integration.");
+assert(packageJson.scripts["test:field-advection-overlay-qa"] === "node scripts/test-field-advection-overlay-qa.mjs", "package.json must expose test:field-advection-overlay-qa.");
+assert(packageJson.scripts["test:field-advection-panel"] === "node scripts/test-field-advection-panel.mjs", "package.json must expose test:field-advection-panel.");
+assert(packageJson.scripts["test:field-advection-config-persistence"] === "node scripts/test-field-advection-config-persistence.mjs", "package.json must expose test:field-advection-config-persistence.");
+assert(integrationM46.includes("M46 is closed") && integrationM46.includes("Final validation set"), "integration_m46 must document m46 closed status and validation set.");
 
 console.log("repo status tests passed");

@@ -40,13 +40,13 @@ const perfMetrics = readText("src/shared/perfMetrics.ts");
 const energy = readText("src/sim/energy.ts");
 const predatorPrey = readText("src/sim/predatorPrey.ts");
 
-assert(packageJson.version === "0.1.0-milestone.45", "package.json version must be 0.1.0-milestone.45.");
-assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.45"'), "appVersion must expose milestone.45.");
-assert(appVersion.includes("PROJECT_MILESTONE = 45"), "appVersion must expose milestone number 45.");
-assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m45"'), "appVersion must expose m42 overlay label.");
+assert(packageJson.version === "0.1.0-milestone.46", "package.json version must be 0.1.0-milestone.46.");
+assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.46"'), "appVersion must expose milestone.46.");
+assert(appVersion.includes("PROJECT_MILESTONE = 46"), "appVersion must expose milestone number 45.");
+assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m46"'), "appVersion must expose m42 overlay label.");
 
-assert(readme.includes("m46 planning"), "README must expose current m46 planning status.");
-assert(readme.includes("environmental field transport-advection"), "README must expose the current m46 field track.");
+assert(readme.includes("m46 complete"), "README must expose current m46 complete status.");
+assert(readme.includes("environmental field transport-advection"), "README must expose the current m46 shipped field track.");
 assert(readme.includes("docs/milestones.md"), "README must link the milestone index.");
 assert(readme.includes("docs/roadmap.md"), "README must link roadmap docs.");
 assert(readme.includes("docs/integration_m40.md"), "README must keep m40 integration doc link.");
@@ -64,7 +64,7 @@ assert(integrationM40.includes("environmental field render snapshot"), "integrat
 assert(integrationM41.includes("render debug controls"), "integration_m41 must describe render debug controls.");
 assert(integrationM41.includes("overlay grouping"), "integration_m41 must describe overlay grouping.");
 assert(integrationM42.includes("M42"), "integration_m42 must describe m42.");
-assert(repoStatusTest.includes("0.1.0-milestone.45"), "repo status test must validate m41 status sync.");
+assert(repoStatusTest.includes("0.1.0-milestone.46"), "repo status test must validate m41 status sync.");
 assert(roadmapStatusTest.includes("fieldRenderVectorCount"), "roadmap status test must preserve field render metric assertion.");
 
 for (const [scriptName, command] of [

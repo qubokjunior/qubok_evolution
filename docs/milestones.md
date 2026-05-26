@@ -49,7 +49,7 @@ Compact milestone index through m46. Older early milestones are summarized at th
 | m43 | Field sources/sinks foundation for deterministic emission and absorption into environmental fields, demo wiring, overlay metrics, tests, and benchmark. | complete |
 | m44 | Field source semantics tuning and visualization QA with runtime visual and overlay/readout guards. | complete |
 | m45 | Obstacle/terrain damping sources, editable debug parameters, panel persistence, render layer controls, and debug config preset import/export UX. | complete |
-| m46 | Deterministic environmental field transport/advection planning and implementation track. | planned |
+| m46 | Deterministic environmental field transport/advection core, benchmark, demo wiring, overlay/readouts, editable controls, and persistence. | complete |
 
 ## Current next-step candidates
 
