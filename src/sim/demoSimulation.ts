@@ -21,11 +21,16 @@ import {
   type ResourceLayer,
   type ResourcePickupStats
 } from "./resources";
+import {
+  createObstacleMask,
+  seedDemoObstacleMask,
+  type ObstacleMask
+} from "./obstacleMask";
 import { applyAgentSensors, type SensorPassStats } from "./sensors";
 import { buildSpatialHashGrid, createSpatialHashGrid, type SpatialHashBuildStats, type SpatialHashGrid } from "./spatialHash";
 import { createWorldState, spawnRandomAgents, type WorldState } from "./world";
 
-export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v9" as const;
+export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v10" as const;
 
 export type DemoSimulationConfig = {
   readonly seed?: RngSeed;
@@ -39,6 +44,7 @@ export type DemoSimulationConfig = {
   readonly targetResourceCount?: number;
   readonly resourceCellSize?: number;
   readonly resourcePickupRadius?: number;
+  readonly obstacleCellSize?: number;
   readonly sensorRadiusScale?: number;
   readonly sensorFoodTickInterval?: number;
   readonly sensorObstacleTickInterval?: number;
@@ -75,6 +81,7 @@ export type DemoSimulationHandle = {
   readonly world: WorldState;
   readonly spatialGrid: SpatialHashGrid;
   readonly resources: ResourceLayer;
+  readonly obstacleMask: ObstacleMask;
   readonly step: (deltaSeconds: number) => DemoSimulationStepResult;
   readonly getSnapshot: () => RenderSnapshot;
 };
@@ -88,6 +95,7 @@ const DEFAULT_NEIGHBOR_RADIUS = 96;
 const DEFAULT_RESOURCE_CAPACITY = 4096;
 const DEFAULT_TARGET_RESOURCE_COUNT = 2400;
 const DEFAULT_RESOURCE_PICKUP_RADIUS = 8;
+const DEFAULT_OBSTACLE_CELL_SIZE = 64;
 const DEFAULT_SENSOR_RADIUS_SCALE = 1;
 const DEFAULT_SENSOR_FOOD_TICK_INTERVAL = 4;
 const DEFAULT_SENSOR_OBSTACLE_TICK_INTERVAL = 8;
@@ -134,9 +142,16 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     cellSize: config.resourceCellSize ?? config.spatialCellSize ?? DEFAULT_SPATIAL_CELL_SIZE
   });
 
-  const rng = createRng(config.seed ?? "qubok_evolve:demo:m18");
+  const obstacleMask = createObstacleMask({
+    worldWidth,
+    worldHeight,
+    cellSize: config.obstacleCellSize ?? DEFAULT_OBSTACLE_CELL_SIZE
+  });
+
+  const rng = createRng(config.seed ?? "qubok_evolve:demo:m19");
   spawnDemoAgents(world, initialAgentCount, rng);
   spawnRandomResources(resources, resourceTargetCount, rng);
+  seedDemoObstacleMask(obstacleMask);
   buildSpatialHashGrid(spatialGrid, world);
   rebuildResourceGrid(resources);
 
@@ -176,11 +191,12 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
       includeFood: true,
       includeObstacles: true,
       resources,
+      obstacleMask,
       tick: world.tick,
       foodTickInterval: sensorFoodTickInterval,
       obstacleTickInterval: sensorObstacleTickInterval,
       preserveSkippedSectorChannels: true,
-      obstacleDetectionRadius: 96,
+      obstacleDetectionRadius: 128,
       allySignalScale: 1,
       threatSignalScale: 1,
       foodSignalScale: 1,
@@ -267,6 +283,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     world,
     spatialGrid,
     resources,
+    obstacleMask,
     step,
     getSnapshot: () => makeRenderSnapshot(world)
   };

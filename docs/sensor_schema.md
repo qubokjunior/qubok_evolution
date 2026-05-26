@@ -65,3 +65,13 @@ m18 keeps the fixed-width sector channel contract stable while allowing expensiv
 | `sectorObstacle` | configurable, demo default every 8 ticks | preserved by default |
 
 `applyAgentSensors()` accepts `tick`, `foodTickInterval`, `obstacleTickInterval`, and `preserveSkippedSectorChannels`. This changes update frequency, not brain input width.
+## m19 obstacle mask source
+
+`sectorObstacle` is now fed by two sources:
+
+| Source | Meaning |
+|---|---|
+| world boundary proximity | soft warning near simulation edges |
+| `ObstacleMask` occupied cells | minimal terrain-like occupancy signal |
+
+This keeps the fixed-width sector contract stable while giving future brains obstacle information before a full terrain system exists.

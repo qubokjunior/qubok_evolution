@@ -122,6 +122,9 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("sensorFoodVisibleCount", frame.sensorStats.foodVisibleCount);
     metrics.record("sensorFoodSectorWrites", frame.sensorStats.foodSectorWrites);
     metrics.record("sensorObstacleSectorWrites", frame.sensorStats.obstacleSectorWrites);
+    metrics.record("sensorObstacleMaskCellChecks", frame.sensorStats.obstacleMaskCellChecks);
+    metrics.record("sensorObstacleMaskHits", frame.sensorStats.obstacleMaskHits);
+    metrics.record("sensorObstacleMaskSectorWrites", frame.sensorStats.obstacleMaskSectorWrites);
     metrics.record("sensorFoodSignalSum", frame.sensorStats.foodSignalSum);
     metrics.record("sensorObstacleSignalSum", frame.sensorStats.obstacleSignalSum);
     metrics.record("sensorFoodScheduled", frame.sensorStats.foodSensorScheduled ? 1 : 0);
@@ -183,6 +186,9 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         sensorFoodVisibleCount: snapshot.values.sensorFoodVisibleCount,
         sensorFoodSectorWrites: snapshot.values.sensorFoodSectorWrites,
         sensorObstacleSectorWrites: snapshot.values.sensorObstacleSectorWrites,
+        sensorObstacleMaskCellChecks: snapshot.values.sensorObstacleMaskCellChecks,
+        sensorObstacleMaskHits: snapshot.values.sensorObstacleMaskHits,
+        sensorObstacleMaskSectorWrites: snapshot.values.sensorObstacleMaskSectorWrites,
         sensorFoodSignalSum: snapshot.values.sensorFoodSignalSum,
         sensorObstacleSignalSum: snapshot.values.sensorObstacleSignalSum,
         sensorFoodScheduled: snapshot.values.sensorFoodScheduled,

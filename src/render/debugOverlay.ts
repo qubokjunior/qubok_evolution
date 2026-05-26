@@ -31,6 +31,9 @@ export type PerfOverlaySnapshot = {
   readonly sensorFoodVisibleCount: number;
   readonly sensorFoodSectorWrites: number;
   readonly sensorObstacleSectorWrites: number;
+  readonly sensorObstacleMaskCellChecks: number;
+  readonly sensorObstacleMaskHits: number;
+  readonly sensorObstacleMaskSectorWrites: number;
   readonly sensorFoodSignalSum: number;
   readonly sensorObstacleSignalSum: number;
   readonly sensorFoodScheduled: number;
@@ -112,6 +115,9 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     sensorFoodVisibleCount: createValueRow(root, "food visible"),
     sensorFoodSectorWrites: createValueRow(root, "food sectors"),
     sensorObstacleSectorWrites: createValueRow(root, "obs sectors"),
+    sensorObstacleMaskCellChecks: createValueRow(root, "obs cell checks"),
+    sensorObstacleMaskHits: createValueRow(root, "obs mask hits"),
+    sensorObstacleMaskSectorWrites: createValueRow(root, "obs mask sectors"),
     sensorFoodSignalSum: createValueRow(root, "food signal"),
     sensorObstacleSignalSum: createValueRow(root, "obs signal"),
     sensorFoodScheduled: createValueRow(root, "food sched"),
@@ -165,6 +171,9 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     rows.sensorFoodVisibleCount.textContent = formatInt(snapshot.sensorFoodVisibleCount);
     rows.sensorFoodSectorWrites.textContent = formatInt(snapshot.sensorFoodSectorWrites);
     rows.sensorObstacleSectorWrites.textContent = formatInt(snapshot.sensorObstacleSectorWrites);
+    rows.sensorObstacleMaskCellChecks.textContent = formatInt(snapshot.sensorObstacleMaskCellChecks);
+    rows.sensorObstacleMaskHits.textContent = formatInt(snapshot.sensorObstacleMaskHits);
+    rows.sensorObstacleMaskSectorWrites.textContent = formatInt(snapshot.sensorObstacleMaskSectorWrites);
     rows.sensorFoodSignalSum.textContent = formatDecimal(snapshot.sensorFoodSignalSum);
     rows.sensorObstacleSignalSum.textContent = formatDecimal(snapshot.sensorObstacleSignalSum);
     rows.sensorFoodScheduled.textContent = formatInt(snapshot.sensorFoodScheduled);

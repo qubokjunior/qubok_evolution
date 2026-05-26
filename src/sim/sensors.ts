@@ -1,10 +1,17 @@
 import { assertFiniteNumber } from "./arrays";
 import { forEachNeighborInRadius } from "./neighborQuery";
+import {
+  assertObstacleMaskCompatible,
+  getObstacleCellCenterX,
+  getObstacleCellCenterY,
+  getObstacleCellIdForCoordinates,
+  type ObstacleMask
+} from "./obstacleMask";
 import { getResourceCellIdForCoordinates, type ResourceLayer } from "./resources";
 import type { SpatialHashGrid } from "./spatialHash";
 import { getSectorOffset, type WorldState } from "./world";
 
-export const SENSOR_SYSTEM_VERSION = "qubok_evolve.sensors.v3" as const;
+export const SENSOR_SYSTEM_VERSION = "qubok_evolve.sensors.v4" as const;
 
 export type SensorPassConfig = {
   /** Multiplier applied to each agent visionRadius. Useful for benchmarks and later LOD. */
@@ -19,11 +26,14 @@ export type SensorPassConfig = {
   /** When false, sectorFood is cleared but not filled. Requires resources when true. */
   readonly includeFood?: boolean;
 
-  /** When false, sectorObstacle is cleared but not filled. Current m18 source is world-border proximity only. */
+  /** When false, sectorObstacle is cleared but not filled. */
   readonly includeObstacles?: boolean;
 
   /** Optional resource layer used to fill sectorFood. Resource grid must be rebuilt before the sensor pass. */
   readonly resources?: ResourceLayer;
+
+  /** Optional obstacle occupancy grid used to fill sectorObstacle in addition to border proximity. */
+  readonly obstacleMask?: ObstacleMask;
 
   /**
    * Tick used for warm-channel scheduling. Defaults to world.tick.
@@ -43,7 +53,7 @@ export type SensorPassConfig = {
   /** Distance below which separation avoids division by almost-zero. */
   readonly minimumDistance?: number;
 
-  /** Maximum range for border-obstacle sensing. The effective range is min(visionRadius, obstacleDetectionRadius). */
+  /** Maximum range for obstacle sensing. The effective range is min(visionRadius, obstacleDetectionRadius). */
   readonly obstacleDetectionRadius?: number;
 
   /** Scalar weights for fixed-width sector channels. */
@@ -72,6 +82,9 @@ export type SensorPassStats = {
   readonly sectorWrites: number;
   readonly foodSectorWrites: number;
   readonly obstacleSectorWrites: number;
+  readonly obstacleMaskCellChecks: number;
+  readonly obstacleMaskHits: number;
+  readonly obstacleMaskSectorWrites: number;
   readonly allySignalSum: number;
   readonly threatSignalSum: number;
   readonly foodSignalSum: number;
@@ -93,6 +106,7 @@ type ResolvedSensorConfig = {
   readonly includeFood: boolean;
   readonly includeObstacles: boolean;
   readonly resources?: ResourceLayer;
+  readonly obstacleMask?: ObstacleMask;
   readonly tick: number;
   readonly foodTickInterval: number;
   readonly obstacleTickInterval: number;
@@ -127,6 +141,13 @@ type ObstacleSectorStats = {
   readonly signalSum: number;
 };
 
+type ObstacleMaskSectorStats = {
+  readonly cellChecks: number;
+  readonly hits: number;
+  readonly sectorWrites: number;
+  readonly signalSum: number;
+};
+
 const DEFAULT_RADIUS_SCALE = 1;
 const DEFAULT_MINIMUM_DISTANCE = 0.0001;
 const DEFAULT_OBSTACLE_DETECTION_RADIUS = 96;
@@ -154,6 +175,9 @@ export function applyAgentSensors(
   let sectorWrites = 0;
   let foodSectorWrites = 0;
   let obstacleSectorWrites = 0;
+  let obstacleMaskCellChecks = 0;
+  let obstacleMaskHits = 0;
+  let obstacleMaskSectorWrites = 0;
   let allySignalSum = 0;
   let threatSignalSum = 0;
   let foodSignalSum = 0;
@@ -240,10 +264,20 @@ export function applyAgentSensors(
     }
 
     if (resolved.obstacleSensorScheduled) {
-      const obstacleStats = accumulateBoundaryObstacleSectors(world, agentIndex, heading, cosHalfCone, radius, resolved);
-      obstacleSectorWrites += obstacleStats.sectorWrites;
-      obstacleSignalSum += obstacleStats.signalSum;
-      sectorWrites += obstacleStats.sectorWrites;
+      const boundaryStats = accumulateBoundaryObstacleSectors(world, agentIndex, heading, cosHalfCone, radius, resolved);
+      obstacleSectorWrites += boundaryStats.sectorWrites;
+      obstacleSignalSum += boundaryStats.signalSum;
+      sectorWrites += boundaryStats.sectorWrites;
+
+      if (resolved.obstacleMask) {
+        const maskStats = accumulateObstacleMaskSectors(world, resolved.obstacleMask, agentIndex, heading, cosHalfCone, radius, resolved);
+        obstacleMaskCellChecks += maskStats.cellChecks;
+        obstacleMaskHits += maskStats.hits;
+        obstacleMaskSectorWrites += maskStats.sectorWrites;
+        obstacleSectorWrites += maskStats.sectorWrites;
+        obstacleSignalSum += maskStats.signalSum;
+        sectorWrites += maskStats.sectorWrites;
+      }
     }
 
     if (visibleForAgent > 0) {
@@ -271,6 +305,9 @@ export function applyAgentSensors(
     sectorWrites,
     foodSectorWrites,
     obstacleSectorWrites,
+    obstacleMaskCellChecks,
+    obstacleMaskHits,
+    obstacleMaskSectorWrites,
     allySignalSum,
     threatSignalSum,
     foodSignalSum,
@@ -436,6 +473,71 @@ function accumulateBoundaryObstacleSectors(
   return { sectorWrites, signalSum };
 }
 
+function accumulateObstacleMaskSectors(
+  world: WorldState,
+  mask: ObstacleMask,
+  agentIndex: number,
+  heading: UnitVector,
+  cosHalfCone: number,
+  visionRadius: number,
+  config: ResolvedSensorConfig
+): ObstacleMaskSectorStats {
+  const radius = Math.min(visionRadius, config.obstacleDetectionRadius);
+  if (radius <= 0) {
+    return { cellChecks: 0, hits: 0, sectorWrites: 0, signalSum: 0 };
+  }
+
+  let cellChecks = 0;
+  let hits = 0;
+  let sectorWrites = 0;
+  let signalSum = 0;
+  const minCellX = Math.max(0, Math.floor((world.x[agentIndex] - radius) / mask.cellSize));
+  const maxCellX = Math.min(mask.columns - 1, Math.floor((world.x[agentIndex] + radius) / mask.cellSize));
+  const minCellY = Math.max(0, Math.floor((world.y[agentIndex] - radius) / mask.cellSize));
+  const maxCellY = Math.min(mask.rows - 1, Math.floor((world.y[agentIndex] + radius) / mask.cellSize));
+  const radiusSquared = radius * radius;
+
+  for (let cellY = minCellY; cellY <= maxCellY; cellY += 1) {
+    const cellCenterY = getObstacleCellCenterY(mask, cellY);
+
+    for (let cellX = minCellX; cellX <= maxCellX; cellX += 1) {
+      cellChecks += 1;
+      const cellId = getObstacleCellIdForCoordinates(mask, cellX, cellY);
+      if (mask.occupied[cellId] !== 1) {
+        continue;
+      }
+
+      hits += 1;
+      const cellCenterX = getObstacleCellCenterX(mask, cellX);
+      const dx = cellCenterX - world.x[agentIndex];
+      const dy = cellCenterY - world.y[agentIndex];
+      const distanceSquared = dx * dx + dy * dy;
+
+      if (distanceSquared > radiusSquared) {
+        continue;
+      }
+
+      const distance = Math.sqrt(distanceSquared);
+      const direction = getDirectionOrHeading(dx, dy, distance, config.minimumDistance, heading);
+      const dot = direction.x * heading.x + direction.y * heading.y;
+
+      if (dot < cosHalfCone) {
+        continue;
+      }
+
+      const sectorIndex = getSensorSectorIndex(heading.x, heading.y, direction.x, direction.y, world.sectorCount);
+      const sectorOffset = getSectorOffset(world, agentIndex, sectorIndex);
+      const signal = getProximitySignal(Math.max(distance, config.minimumDistance), radius) * config.obstacleSignalScale;
+
+      world.sectorObstacle[sectorOffset] += signal;
+      signalSum += signal;
+      sectorWrites += 1;
+    }
+  }
+
+  return { cellChecks, hits, sectorWrites, signalSum };
+}
+
 function resolveConfig(world: WorldState, config: SensorPassConfig): ResolvedSensorConfig {
   const radiusScale = config.radiusScale ?? DEFAULT_RADIUS_SCALE;
   const minimumDistance = config.minimumDistance ?? DEFAULT_MINIMUM_DISTANCE;
@@ -475,6 +577,10 @@ function resolveConfig(world: WorldState, config: SensorPassConfig): ResolvedSen
   assertPositiveInteger(foodTickInterval, "foodTickInterval");
   assertPositiveInteger(obstacleTickInterval, "obstacleTickInterval");
 
+  if (config.obstacleMask) {
+    assertObstacleMaskCompatible(config.obstacleMask, world.worldWidth, world.worldHeight);
+  }
+
   const safeTick = Math.max(0, Math.trunc(tick));
   const foodCadenceReady = safeTick % foodTickInterval === 0;
   const obstacleCadenceReady = safeTick % obstacleTickInterval === 0;
@@ -493,6 +599,7 @@ function resolveConfig(world: WorldState, config: SensorPassConfig): ResolvedSen
     includeFood,
     includeObstacles,
     resources: config.resources,
+    obstacleMask: config.obstacleMask,
     tick: safeTick,
     foodTickInterval,
     obstacleTickInterval,

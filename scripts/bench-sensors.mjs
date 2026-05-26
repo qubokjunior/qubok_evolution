@@ -13,7 +13,7 @@ const temporaryDirectory = join(projectRoot, ".tmp_sensors_bench");
 await rm(temporaryDirectory, { force: true, recursive: true });
 await mkdir(temporaryDirectory, { recursive: true });
 
-for (const moduleName of ["arrays.ts", "rng.ts", "world.ts", "spatialHash.ts", "neighborQuery.ts", "resources.ts", "sensors.ts"]) {
+for (const moduleName of ["arrays.ts", "rng.ts", "world.ts", "spatialHash.ts", "neighborQuery.ts", "resources.ts", "obstacleMask.ts", "sensors.ts"]) {
   await transpileSimModule(moduleName, moduleName.replace(".ts", ".mjs"));
 }
 
@@ -21,6 +21,7 @@ const { createRng } = await import(pathToFileURL(join(temporaryDirectory, "rng.m
 const { createWorldState, spawnRandomAgents } = await import(pathToFileURL(join(temporaryDirectory, "world.mjs")).href);
 const { buildSpatialHashGrid, createSpatialHashGrid } = await import(pathToFileURL(join(temporaryDirectory, "spatialHash.mjs")).href);
 const { createResourceLayer, rebuildResourceGrid, spawnRandomResources } = await import(pathToFileURL(join(temporaryDirectory, "resources.mjs")).href);
+const { createObstacleMask, seedDemoObstacleMask } = await import(pathToFileURL(join(temporaryDirectory, "obstacleMask.mjs")).href);
 const { applyAgentSensors } = await import(pathToFileURL(join(temporaryDirectory, "sensors.mjs")).href);
 
 const entityCount = 5000;
@@ -28,9 +29,11 @@ const resourceCount = 2500;
 const world = createWorldState({ capacity: entityCount, worldWidth: 1024, worldHeight: 1024, sectorCount: 8 });
 const grid = createSpatialHashGrid({ capacity: entityCount, worldWidth: 1024, worldHeight: 1024, cellSize: 48 });
 const resources = createResourceLayer({ capacity: resourceCount, worldWidth: 1024, worldHeight: 1024, cellSize: 48 });
-const rng = createRng("qubok_evolve:bench:sensors:m18");
+const obstacleMask = createObstacleMask({ worldWidth: 1024, worldHeight: 1024, cellSize: 48 });
+const rng = createRng("qubok_evolve:bench:sensors:m19");
 spawnRandomAgents(world, entityCount, rng);
 spawnRandomResources(resources, resourceCount, rng);
+const obstacleStats = seedDemoObstacleMask(obstacleMask);
 
 const gridStart = performance.now();
 const gridStats = buildSpatialHashGrid(grid, world);
@@ -43,6 +46,7 @@ const resourceGridBuildMs = performance.now() - resourceGridStart;
 const fullStart = performance.now();
 const fullStats = applyAgentSensors(world, grid, {
   resources,
+  obstacleMask,
   tick: 0,
   foodTickInterval: 1,
   obstacleTickInterval: 1
@@ -52,6 +56,7 @@ const fullSensorMs = performance.now() - fullStart;
 const scheduledStart = performance.now();
 const scheduledStats = applyAgentSensors(world, grid, {
   resources,
+  obstacleMask,
   tick: 4,
   foodTickInterval: 4,
   obstacleTickInterval: 8
@@ -61,6 +66,7 @@ const scheduledSensorMs = performance.now() - scheduledStart;
 const skippedStart = performance.now();
 const skippedStats = applyAgentSensors(world, grid, {
   resources,
+  obstacleMask,
   tick: 5,
   foodTickInterval: 4,
   obstacleTickInterval: 8
@@ -70,9 +76,11 @@ const skippedSensorMs = performance.now() - skippedStart;
 await rm(temporaryDirectory, { force: true, recursive: true });
 
 console.log(JSON.stringify({
-  bench: "sensors:m18",
+  bench: "sensors:m19",
   entityCount,
   resourceCount,
+  obstacleCellCount: obstacleMask.cellCount,
+  obstacleOccupiedCellCount: obstacleStats.occupiedCellCount,
   gridBuildMs: round3(gridBuildMs),
   resourceGridBuildMs: round3(resourceGridBuildMs),
   fullSensorMs: round3(fullSensorMs),
@@ -95,6 +103,9 @@ console.log(JSON.stringify({
   obstacleSectorWritesFull: fullStats.obstacleSectorWrites,
   obstacleSectorWritesScheduled: scheduledStats.obstacleSectorWrites,
   obstacleSectorWritesSkipped: skippedStats.obstacleSectorWrites,
+  obstacleMaskCellChecksFull: fullStats.obstacleMaskCellChecks,
+  obstacleMaskHitsFull: fullStats.obstacleMaskHits,
+  obstacleMaskSectorWritesFull: fullStats.obstacleMaskSectorWrites,
   foodSensorScheduledOnScheduledTick: scheduledStats.foodSensorScheduled,
   obstacleSensorScheduledOnScheduledTick: scheduledStats.obstacleSensorScheduled,
   foodSkippedByCadence: skippedStats.foodSkippedByCadence,
@@ -133,6 +144,8 @@ async function transpileSimModule(sourceName, outputName) {
     .replaceAll("from './neighborQuery'", "from './neighborQuery.mjs'")
     .replaceAll('from "./resources"', 'from "./resources.mjs"')
     .replaceAll("from './resources'", "from './resources.mjs'")
+    .replaceAll('from "./obstacleMask"', 'from "./obstacleMask.mjs"')
+    .replaceAll("from './obstacleMask'", "from './obstacleMask.mjs'")
     .replaceAll('from "./sensors"', 'from "./sensors.mjs"')
     .replaceAll("from './sensors'", "from './sensors.mjs'");
 
