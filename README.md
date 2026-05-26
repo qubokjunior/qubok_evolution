@@ -2,7 +2,7 @@
 
 High-performance realtime 2D artificial-life ecosystem simulator.
 
-Current status: m45 / 0.1.0-milestone.45.
+Current status: m45 / 0.1.0-milestone.45 closed.
 
 ## What exists now
 
@@ -28,7 +28,7 @@ Implemented runtime foundations:
 - field decay/diffusion foundation with deterministic dynamics, scratch buffers, metrics, benchmark, demo wiring, and overlay labels;
 - field sources/sinks foundation with deterministic resource-driven vector emission, agent absorption, demo wiring, metrics, overlay labels, tests, and benchmark;
 - field source semantics tuning and visualization QA with resource energy/radius source scaling, agent radius/energy-pressure absorption, runtime visual QA, and overlay/readout guards;
-- m45 in progress: obstacle/terrain damping sources and editable debug parameters.
+- m45 complete: obstacle/terrain damping sources, editable debug parameters, panel persistence, render layer controls, and debug config preset import/export UX.
 
 ## Commands
 
@@ -39,15 +39,13 @@ npm run build
 npm run dev
 ```
 
-Targeted checks:
+Targeted final m45 checks:
 
 ```powershell
 npm run test:repo-status
 npm run test:roadmap-status
-npm run test:field-sources
-npm run test:field-sources-integration
-npm run test:debug-overlay-groups
 npm run test:demo-integration
+npm run test
 npm run build
 ```
 
@@ -72,7 +70,7 @@ http://127.0.0.1:5173/
 - `docs/integration_m42.md` — field decay/diffusion foundation milestone.
 - `docs/integration_m43.md` — field sources/sinks foundation milestone.
 - `docs/integration_m44.md` — field source semantics tuning and visualization QA milestone.
-- `docs/integration_m45.md` — obstacle/terrain damping sources and editable debug parameters milestone setup.
+- `docs/integration_m45.md` — completed obstacle/terrain damping sources and editable debug parameters milestone.
 
 ## Boundary rule
 
