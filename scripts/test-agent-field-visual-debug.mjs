@@ -13,7 +13,7 @@ const integrationM45 = readText("docs/integration_m45.md");
 for (const token of ["agentFieldInfluenceLayer", "renderAgentFieldInfluenceLayer", "findNearestFieldVector", "fieldSnapshot.magnitude", "fieldSnapshot.flowX", "fieldSnapshot.flowY"]) {
   assert(pixiRenderer.includes(token), "pixiRenderer missing agent field visual debug token: " + token);
 }
-assert(pixiRenderer.includes("renderDebugConfig.showFieldVectorLayer && renderDebugConfig.showAgents"), "agent field visual debug must follow field vectors and agents visibility.");
+assert(pixiRenderer.includes("renderDebugConfig.showAgentFieldInfluenceLayer && renderDebugConfig.showAgents"), "agent field visual debug must follow its own visibility toggle and agents visibility.");
 assert(packageJson.scripts["test:agent-field-visual-debug"] === "node scripts/test-agent-field-visual-debug.mjs", "package.json must expose test:agent-field-visual-debug.");
 assert(packageJson.scripts.test.includes("test:agent-field-visual-debug"), "npm run test must include test:agent-field-visual-debug.");
 assert(integrationM45.includes("M45-E2"), "integration_m45 must document M45-E2.");

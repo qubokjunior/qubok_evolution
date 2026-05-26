@@ -288,8 +288,8 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     }
     const obstacleRenderMs = endObstacleRenderScope();
 
-    if (renderDebugConfig.showFieldVectorLayer && renderDebugConfig.showAgents) {
-      renderAgentFieldInfluenceLayer(agentFieldInfluenceLayer, frame.snapshot, frame.fieldRenderSnapshot, options.host.clientWidth, options.host.clientHeight);
+    if (renderDebugConfig.showAgentFieldInfluenceLayer && renderDebugConfig.showAgents) {
+      renderAgentFieldInfluenceLayer(agentFieldInfluenceLayer, frame.snapshot, frame.fieldRenderSnapshot, options.host.clientWidth, options.host.clientHeight, renderDebugConfig);
     } else {
       agentFieldInfluenceLayer.clear();
     }
@@ -491,7 +491,7 @@ function renderFieldVectorLayer(layer: Graphics, snapshot: FieldRenderSnapshot, 
   layer.stroke({ width: 1, color: 0x7cc7ff, alpha: config.fieldVectorAlpha });
 }
 
-function renderAgentFieldInfluenceLayer(layer: Graphics, snapshot: RenderSnapshot, fieldSnapshot: FieldRenderSnapshot, viewportWidth: number, viewportHeight: number): void {
+function renderAgentFieldInfluenceLayer(layer: Graphics, snapshot: RenderSnapshot, fieldSnapshot: FieldRenderSnapshot, viewportWidth: number, viewportHeight: number, config: RenderDebugConfig): void {
   layer.clear();
   if (snapshot.count <= 0 || fieldSnapshot.sampleVectorCount <= 0) return;
 
@@ -500,7 +500,8 @@ function renderAgentFieldInfluenceLayer(layer: Graphics, snapshot: RenderSnapsho
   const scale = Math.min(scaleX, scaleY);
   const offsetX = (viewportWidth - snapshot.worldWidth * scale) * 0.5;
   const offsetY = (viewportHeight - snapshot.worldHeight * scale) * 0.5;
-  const maxDebugAgents = Math.min(snapshot.count, 512);
+  const maxDebugAgents = Math.min(snapshot.count, Math.max(0, config.agentFieldInfluenceMaxAgents));
+  if (maxDebugAgents <= 0) return;
   const stride = Math.max(1, Math.ceil(snapshot.count / Math.max(1, maxDebugAgents)));
 
   for (let index = 0; index < snapshot.count; index += stride) {
@@ -509,17 +510,17 @@ function renderAgentFieldInfluenceLayer(layer: Graphics, snapshot: RenderSnapsho
     if (nearest < 0) continue;
 
     const magnitude = fieldSnapshot.magnitude[nearest];
-    if (magnitude <= 0.02) continue;
+    if (magnitude <= config.agentFieldInfluenceMinMagnitude) continue;
 
     const dirX = fieldSnapshot.flowX[nearest] / magnitude;
     const dirY = fieldSnapshot.flowY[nearest] / magnitude;
     const x = offsetX + snapshot.x[index] * scale;
     const y = offsetY + snapshot.y[index] * scale;
-    const length = Math.max(4, Math.min(26, magnitude * 4.5));
+    const length = Math.max(4, Math.min(36, magnitude * config.agentFieldInfluenceScale));
     const endX = x + dirX * length;
     const endY = y + dirY * length;
     const radius = Math.max(2, Math.min(8, snapshot.radius[index] * scale * 2.2));
-    const alpha = Math.max(0.12, Math.min(0.72, 0.16 + magnitude * 0.035));
+    const alpha = Math.max(0.04, Math.min(config.agentFieldInfluenceAlpha, 0.12 + magnitude * 0.035));
     const color = magnitude >= 6 ? 0xffcf6b : magnitude >= 2 ? 0x7cc7ff : 0x86e889;
 
     layer.circle(x, y, radius).stroke({ width: 1, color, alpha: alpha * 0.55 });

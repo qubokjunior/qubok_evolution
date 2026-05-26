@@ -37,6 +37,8 @@ M45-D adds a compact field damping control panel with checkboxes, sliders, exact
 
 M45-E2 adds a visual agent-field debug layer: when field vectors and agents are visible, sampled agents display a small halo plus directional field-influence arrow based on the nearest rendered field vector.
 
+M45-F adds a separate agent field debug control panel for visibility, alpha, arrow length scale, max sampled agents, and minimum field magnitude threshold.
+
 M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel change event when damping checkboxes are toggled.
 
 ## Validation target
@@ -48,5 +50,6 @@ M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel ch
 - npm run test:field-damping-controls
 - npm run test:field-damping-panel
 - npm run test:agent-field-visual-debug
+- npm run test:agent-field-visual-controls
 - npm run test:demo-integration
 - npm run build

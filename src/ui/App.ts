@@ -2,6 +2,7 @@ import { createDemoSimulation, type DemoSimulationHandle } from "../sim/demoSimu
 import { createPerfOverlay } from "../render/debugOverlay";
 import { mountPixiRenderer } from "../render/pixiRenderer";
 import { createFieldDampingControlPanel } from "./fieldDampingPanel";
+import { createFieldVisualDebugPanel } from "./fieldVisualDebugPanel";
 import { DEFAULT_RENDER_DEBUG_CONFIG, toggleRenderDebugLayer, type RenderDebugConfig } from "../render/renderDebugConfig";
 
 export type QubokEvolveAppHandle = {
@@ -61,6 +62,8 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
     snapshotSource: (deltaSeconds) => simulation.step(deltaSeconds)
   });
 
+  const fieldVisualDebugPanel = createFieldVisualDebugPanel(shell, pixiRenderer);
+
   const handleRenderDebugShortcut = (event: KeyboardEvent): void => {
     if (event.repeat || event.altKey || event.ctrlKey || event.metaKey || isTextInputEvent(event)) {
       return;
@@ -89,6 +92,7 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
       pixiRenderer.destroy();
       perfOverlay.destroy();
       fieldDampingPanel.destroy();
+      fieldVisualDebugPanel.destroy();
       root.replaceChildren();
     }
   };

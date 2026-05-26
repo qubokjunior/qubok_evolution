@@ -152,6 +152,10 @@ body {
   pointer-events: auto;
 }
 
+.qubok_evolve-control-panel--visual-debug {
+  top: 420px;
+}
+
 .qubok_evolve-control-title {
   color: #f0f6ff;
   font-size: 11px;
