@@ -47,9 +47,10 @@ assertAlmostEqual(stats.flowYSum, 14, 0.00001, "stats flow y sum");
 
 const strided = makeFieldRenderSnapshot(field, { stride: 2, minMagnitude: 0.01 });
 assertEqual(strided.stride, 2, "stride value");
-assertEqual(strided.sampleVectorCount, 2, "strided non-zero vector count");
+assertEqual(strided.sampleVectorCount, 3, "strided non-zero vector count");
 assertEqual(strided.cellIds[0], 0, "strided first id");
-assertEqual(strided.cellIds[1], 20, "strided second id");
+assertEqual(strided.cellIds[1], 2, "strided second id");
+assertEqual(strided.cellIds[2], 20, "strided third id");
 
 const limited = makeFieldRenderSnapshot(field, { maxVectors: 1, minMagnitude: 0.01 });
 assertEqual(limited.sampleVectorCount, 1, "limited sample count");
