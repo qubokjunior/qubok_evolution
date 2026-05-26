@@ -4,13 +4,14 @@ import { mountPixiRenderer } from "../render/pixiRenderer";
 import { createFieldDampingControlPanel } from "./fieldDampingPanel";
 import { createFieldVisualDebugPanel } from "./fieldVisualDebugPanel";
 import { createDebugLayoutPanel } from "./debugLayoutPanel";
+import { createRenderLayersPanel } from "./renderLayersPanel";
 import { DEFAULT_RENDER_DEBUG_CONFIG, toggleRenderDebugLayer, type RenderDebugConfig } from "../render/renderDebugConfig";
 
 export type QubokEvolveAppHandle = {
   destroy: () => void;
 };
 
-type RenderDebugLayerKey = keyof Pick<RenderDebugConfig, "showGrid" | "showTerrainLayer" | "showObstacleLayer" | "showFieldVectorLayer" | "showAgents">;
+type RenderDebugLayerKey = keyof Pick<RenderDebugConfig, "showGrid" | "showTerrainLayer" | "showObstacleLayer" | "showFieldVectorLayer" | "showAgents" | "showAgentFieldInfluenceLayer">;
 
 type FieldDampingControlAction = "toggleObstacle" | "toggleTerrain" | "obstacleDown" | "obstacleUp" | "terrainDown" | "terrainUp";
 
@@ -19,7 +20,8 @@ const RENDER_DEBUG_LAYER_KEYS: Record<string, RenderDebugLayerKey> = Object.free
   "2": "showTerrainLayer",
   "3": "showFieldVectorLayer",
   "4": "showObstacleLayer",
-  "5": "showAgents"
+  "5": "showAgents",
+  "8": "showAgentFieldInfluenceLayer"
 });
 
 const FIELD_DAMPING_CONTROL_KEYS: Record<string, FieldDampingControlAction> = Object.freeze({
@@ -66,6 +68,7 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
     snapshotSource: (deltaSeconds) => simulation.step(deltaSeconds)
   });
 
+  const renderLayersPanel = createRenderLayersPanel(controlStack, pixiRenderer);
   const fieldVisualDebugPanel = createFieldVisualDebugPanel(controlStack, pixiRenderer);
   const debugLayoutPanel = createDebugLayoutPanel(controlStack);
 
@@ -87,6 +90,7 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
     event.preventDefault();
     const nextConfig = toggleRenderDebugLayer(pixiRenderer.getRenderDebugConfig(), layerKey);
     pixiRenderer.updateRenderDebugConfig(nextConfig);
+    window.dispatchEvent(new CustomEvent("qubok-render-debug-config-change"));
   };
 
   window.addEventListener("keydown", handleRenderDebugShortcut);
@@ -97,6 +101,7 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
       pixiRenderer.destroy();
       perfOverlay.destroy();
       fieldDampingPanel.destroy();
+      renderLayersPanel.destroy();
       fieldVisualDebugPanel.destroy();
       debugLayoutPanel.destroy();
       root.replaceChildren();

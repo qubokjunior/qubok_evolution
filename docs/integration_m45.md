@@ -63,6 +63,8 @@ M45-I1 moves right-side editable panels into a single scrollable control stack. 
 
 M45-I2 polishes the editable control stack: tighter vertical spacing, safer max panel width, hover scrollbar affordance, and default-collapsed debug UI layout panel.
 
+M45-J1 adds a render layers panel for grid, terrain, field vectors, obstacles, agents, and agent field influence visibility. Keyboard shortcuts remain available, and the panel syncs after shortcut-driven changes.
+
 M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel change event when damping checkboxes are toggled.
 
 ## Validation target
@@ -85,6 +87,7 @@ M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel ch
 - npm run test:debug-layout-panel
 - npm run test:control-stack
 - npm run test:control-stack-polish
+- npm run test:render-layers-panel
 - npm run test:editable-panel-resize
 - npm run test:demo-integration
 - npm run build

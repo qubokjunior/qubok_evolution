@@ -55,7 +55,7 @@ export function makeRenderDebugConfig(patch: RenderDebugConfigPatch = {}): Rende
   });
 }
 
-export function toggleRenderDebugLayer(config: RenderDebugConfig, key: keyof Pick<RenderDebugConfig, "showGrid" | "showTerrainLayer" | "showObstacleLayer" | "showFieldVectorLayer" | "showAgents">): RenderDebugConfig {
+export function toggleRenderDebugLayer(config: RenderDebugConfig, key: keyof Pick<RenderDebugConfig, "showGrid" | "showTerrainLayer" | "showObstacleLayer" | "showFieldVectorLayer" | "showAgents" | "showAgentFieldInfluenceLayer">): RenderDebugConfig {
   return makeRenderDebugConfig({ ...config, [key]: !config[key] });
 }
 

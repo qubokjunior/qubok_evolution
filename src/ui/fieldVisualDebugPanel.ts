@@ -28,7 +28,11 @@ export function createFieldVisualDebugPanel(host: HTMLElement, renderer: PixiRen
   const enabledToggle = createBooleanControl<RenderDebugConfig>({
     label: "show influence",
     getValue: (config) => config.showAgentFieldInfluenceLayer,
-    setValue: (value) => renderer.updateRenderDebugConfig({ showAgentFieldInfluenceLayer: value })
+    setValue: (value) => {
+      renderer.updateRenderDebugConfig({ showAgentFieldInfluenceLayer: value });
+      sync();
+      window.dispatchEvent(new CustomEvent("qubok-render-debug-config-change"));
+    }
   });
 
   const numericControls = NUMERIC_DEBUG_CONTROLS.map((spec) => createNumericControl<RenderDebugConfig, NumericDebugKey>(spec, {
@@ -69,9 +73,14 @@ export function createFieldVisualDebugPanel(host: HTMLElement, renderer: PixiRen
     for (const control of numericControls) control.sync(config);
   };
 
+  const handleExternalConfigChange = (): void => sync();
+  window.addEventListener("qubok-render-debug-config-change", handleExternalConfigChange);
   sync();
 
   return {
-    destroy: panel.destroy
+    destroy: () => {
+      window.removeEventListener("qubok-render-debug-config-change", handleExternalConfigChange);
+      panel.destroy();
+    }
   };
 }
