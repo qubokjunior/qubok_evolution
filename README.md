@@ -2,7 +2,7 @@
 
 High-performance realtime 2D artificial-life ecosystem simulator.
 
-Current status: m44 / 0.1.0-milestone.44.
+Current status: m45 / 0.1.0-milestone.45.
 
 ## What exists now
 
@@ -27,7 +27,8 @@ Implemented runtime foundations:
 - render debug controls, keyboard layer toggles, and grouped overlay metrics;
 - field decay/diffusion foundation with deterministic dynamics, scratch buffers, metrics, benchmark, demo wiring, and overlay labels;
 - field sources/sinks foundation with deterministic resource-driven vector emission, agent absorption, demo wiring, metrics, overlay labels, tests, and benchmark;
-- field source semantics tuning and visualization QA with resource energy/radius source scaling, agent radius/energy-pressure absorption, runtime visual QA, and overlay/readout guards.
+- field source semantics tuning and visualization QA with resource energy/radius source scaling, agent radius/energy-pressure absorption, runtime visual QA, and overlay/readout guards;
+- m45 in progress: obstacle/terrain damping sources and editable debug parameters.
 
 ## Commands
 
@@ -58,8 +59,8 @@ http://127.0.0.1:5173/
 
 ## Milestones and docs
 
-- `docs/milestones.md` — compact milestone index through m44.
-- `docs/roadmap.md` — development tracks after m44.
+- `docs/milestones.md` — compact milestone index through m45.
+- `docs/roadmap.md` — development tracks after m45.
 - `docs/architecture_tracks.md` — boundary contracts for future work.
 - `docs/world_state.md` — typed-array world state and lifecycle slot contract.
 - `docs/integration_m36.md` — terrain resource-affinity milestone.
@@ -71,6 +72,7 @@ http://127.0.0.1:5173/
 - `docs/integration_m42.md` — field decay/diffusion foundation milestone.
 - `docs/integration_m43.md` — field sources/sinks foundation milestone.
 - `docs/integration_m44.md` — field source semantics tuning and visualization QA milestone.
+- `docs/integration_m45.md` — obstacle/terrain damping sources and editable debug parameters milestone setup.
 
 ## Boundary rule
 

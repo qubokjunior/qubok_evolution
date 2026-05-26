@@ -15,14 +15,15 @@ const integrationM41 = readText("docs/integration_m41.md");
 const integrationM42 = readText("docs/integration_m42.md");
 const integrationM43 = readText("docs/integration_m43.md");
 const integrationM44 = readText("docs/integration_m44.md");
+const integrationM45 = readText("docs/integration_m45.md");
 
-assert(packageJson.version === "0.1.0-milestone.44", "package.json must expose 0.1.0-milestone.44.");
-assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.44\""), "appVersion must expose milestone.44.");
-assert(appVersion.includes("PROJECT_MILESTONE = 44"), "appVersion must expose milestone number 44.");
-assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m44\""), "appVersion must expose m44 label.");
-assert(readme.includes("0.1.0-milestone.44"), "README.md must expose current milestone version.");
-assert(readme.includes("Current status: m44"), "README.md must expose current status m44.");
-for (const marker of ["| m32 |", "| m33 |", "| m34 |", "| m35 |", "| m36 |", "| m37 |", "| m38 |", "| m39 |", "| m40 |", "| m41 |", "| m42 |", "| m43 |", "| m44 |"]) assert(milestones.includes(marker), "docs/milestones.md missing marker: " + marker);
+assert(packageJson.version === "0.1.0-milestone.45", "package.json must expose 0.1.0-milestone.45.");
+assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.45\""), "appVersion must expose milestone.45.");
+assert(appVersion.includes("PROJECT_MILESTONE = 45"), "appVersion must expose milestone number 45.");
+assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m45\""), "appVersion must expose m45 label.");
+assert(readme.includes("0.1.0-milestone.45"), "README.md must expose current milestone version.");
+assert(readme.includes("Current status: m45"), "README.md must expose current status m45.");
+for (const marker of ["| m32 |", "| m33 |", "| m34 |", "| m35 |", "| m36 |", "| m37 |", "| m38 |", "| m39 |", "| m40 |", "| m41 |", "| m42 |", "| m43 |", "| m44 |", "| m45 |"]) assert(milestones.includes(marker), "docs/milestones.md missing marker: " + marker);
 assert(integrationM40.includes("environmental field render snapshot"), "integration_m40 must describe environmental field render snapshot.");
 assert(integrationM41.includes("render debug controls"), "integration_m41 must describe render debug controls.");
 assert(integrationM42.includes("decay") && integrationM42.includes("diffusion"), "integration_m42 must describe field decay/diffusion.");
@@ -41,5 +42,8 @@ assert(packageJson.scripts.test.includes("test:field-sources-integration"), "npm
 
 
 assert(integrationM44.includes("field source semantics tuning") && integrationM44.includes("visualization QA"), "integration_m44 must describe field source semantics tuning and visualization QA.");
+
+
+assert(integrationM45.includes("obstacle/terrain damping sources") && integrationM45.includes("editable debug parameters"), "integration_m45 must describe obstacle/terrain damping sources and editable debug parameters.");
 
 console.log("repo status tests passed");

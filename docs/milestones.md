@@ -1,6 +1,6 @@
 # qubok_evolve milestones
 
-Compact milestone index through m44. Older early milestones are summarized at the system level; recent lifecycle, terrain, field, and render-debug milestones are listed with stricter implementation detail.
+Compact milestone index through m45. Older early milestones are summarized at the system level; recent lifecycle, terrain, field, and render-debug milestones are listed with stricter implementation detail.
 
 | Milestone | Focus | Status |
 |---|---|---|
@@ -48,8 +48,9 @@ Compact milestone index through m44. Older early milestones are summarized at th
 | m42 | Field decay/diffusion foundation with deterministic field dynamics, metrics, benchmark, demo wiring, and overlay labels. | complete |
 | m43 | Field sources/sinks foundation for deterministic emission and absorption into environmental fields, demo wiring, overlay metrics, tests, and benchmark. | complete |
 | m44 | Field source semantics tuning and visualization QA with runtime visual and overlay/readout guards. | complete |
+| m45 | Obstacle/terrain damping sources and editable debug parameters. | in progress |
 
 ## Current next-step candidates
 
-- Next: obstacle/terrain damping sources or controller/brain first pass after field source behavior is stable.
+- m45: obstacle/terrain damping sources and editable debug parameters. [in progress]
 - Later: field transport/advection, signed-distance-field correction, controller/brain layer, morphology compiler/editor, workerization, and WebGPU experiments.

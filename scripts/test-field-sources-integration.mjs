@@ -53,7 +53,7 @@ for (const requiredToken of [
   assert(fieldSourcesBench.includes(requiredToken), "field sources benchmark missing token: " + requiredToken);
 }
 
-assert(packageJson.version === "0.1.0-milestone.44", "package.json must expose milestone.44.");
+assert(packageJson.version === "0.1.0-milestone.45", "package.json must expose milestone.45.");
 assert(packageJson.scripts["test:field-sources"] === "node scripts/test-field-sources.mjs", "package.json must expose test:field-sources.");
 assert(packageJson.scripts["bench:field-sources"] === "node scripts/bench-field-sources.mjs", "package.json must expose bench:field-sources.");
 assert(packageJson.scripts.test.includes("test:field-sources"), "npm run test must include test:field-sources.");
@@ -61,5 +61,11 @@ assert(readme.includes("m43") && readme.includes("field sources/sinks"), "README
 assert(milestones.includes("| m43 |") && milestones.includes("complete"), "milestones must preserve m43 as complete.");
 assert(roadmap.includes("m44 shipped: field source semantics tuning and visualization QA"), "roadmap must include m44 shipped milestone.");
 assert(integrationM43.includes("field sources") && integrationM43.includes("sinks"), "integration_m43 must describe field sources/sinks.");
+
+
+assert(integrationM45.includes("obstacle/terrain damping sources") && integrationM45.includes("editable debug parameters"), "integration_m45 must describe obstacle/terrain damping sources and editable debug parameters.");
+
+
+assert(roadmap.includes("m45 in progress: obstacle/terrain damping sources and editable debug parameters"), "roadmap must include m45 current milestone.");
 
 console.log("field sources integration tests passed");

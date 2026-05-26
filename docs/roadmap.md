@@ -1,6 +1,6 @@
 # qubok_evolve roadmap
 
-Current status: m44 / 0.1.0-milestone.44.
+Current status: m45 / 0.1.0-milestone.45.
 
 m34 shipped: terrain Pixi debug render layer.
 
@@ -23,6 +23,8 @@ m42 shipped: field decay/diffusion foundation with deterministic dynamics, bench
 m43 shipped: field sources/sinks foundation with demo wiring and overlay metrics.
 
 m44 shipped: field source semantics tuning and visualization QA.
+
+m45 in progress: obstacle/terrain damping sources and editable debug parameters.
 
 ## terrain/material track
 

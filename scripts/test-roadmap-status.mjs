@@ -16,6 +16,7 @@ const integrationM41 = readText("docs/integration_m41.md");
 const integrationM42 = readText("docs/integration_m42.md");
 const integrationM43 = readText("docs/integration_m43.md");
 const integrationM44 = readText("docs/integration_m44.md");
+const integrationM45 = readText("docs/integration_m45.md");
 const field = readText("src/sim/field.ts");
 const fieldRenderSnapshot = readText("src/sim/fieldRenderSnapshot.ts");
 const fieldDynamics = readText("src/sim/fieldDynamics.ts");
@@ -26,10 +27,10 @@ const perfMetrics = readText("src/shared/perfMetrics.ts");
 const pixiRenderer = readText("src/render/pixiRenderer.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
 
-assert(packageJson.version === "0.1.0-milestone.44", "package.json must expose m44 version.");
-assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.44\""), "appVersion must expose milestone.44.");
-assert(appVersion.includes("PROJECT_MILESTONE = 44"), "appVersion must expose milestone number 44.");
-assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m44\""), "appVersion must expose m44 label.");
+assert(packageJson.version === "0.1.0-milestone.45", "package.json must expose m45 version.");
+assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.45\""), "appVersion must expose milestone.45.");
+assert(appVersion.includes("PROJECT_MILESTONE = 45"), "appVersion must expose milestone number 45.");
+assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m45\""), "appVersion must expose m45 label.");
 assert(readme.includes("docs/roadmap.md"), "README.md must link docs/roadmap.md.");
 assert(roadmap.includes("m39 shipped: low-resolution environmental flow field sampled by movement"), "roadmap must include m39 field milestone.");
 assert(roadmap.includes("m40 shipped: environmental field render snapshot and Pixi vector debug layer"), "roadmap must include m40 field render milestone.");
@@ -75,5 +76,11 @@ assert(integrationM44.includes("field source semantics tuning") && integrationM4
 
 
 assert(roadmap.includes("m44 shipped: field source semantics tuning and visualization QA"), "roadmap must include m44 shipped milestone.");
+
+
+assert(integrationM45.includes("obstacle/terrain damping sources") && integrationM45.includes("editable debug parameters"), "integration_m45 must describe obstacle/terrain damping sources and editable debug parameters.");
+
+
+assert(roadmap.includes("m45 in progress: obstacle/terrain damping sources and editable debug parameters"), "roadmap must include m45 current milestone.");
 
 console.log("roadmap status tests passed");
