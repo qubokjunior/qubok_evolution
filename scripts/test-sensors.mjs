@@ -12,7 +12,7 @@ const temporaryDirectory = join(projectRoot, ".tmp_sensors_test");
 await rm(temporaryDirectory, { force: true, recursive: true });
 await mkdir(temporaryDirectory, { recursive: true });
 
-for (const moduleName of ["arrays.ts", "world.ts", "spatialHash.ts", "neighborQuery.ts", "resources.ts", "obstacleMask.ts", "sensors.ts"]) {
+for (const moduleName of ["arrays.ts", "world.ts", "spatialHash.ts", "neighborQuery.ts", "resources.ts", "obstacleMask.ts", "terrain.ts", "sensors.ts"]) {
   await transpileSimModule(moduleName, moduleName.replace(".ts", ".mjs"));
 }
 
@@ -27,7 +27,7 @@ const {
   getSensorSectorIndex
 } = await import(pathToFileURL(join(temporaryDirectory, "sensors.mjs")).href);
 
-assertEqual(SENSOR_SYSTEM_VERSION, "qubok_evolve.sensors.v4", "sensor system version");
+assertEqual(SENSOR_SYSTEM_VERSION, "qubok_evolve.sensors.v5", "sensor system version");
 assertEqual(getSensorSectorIndex(1, 0, 1, 0, 8), 0, "forward sector");
 assertEqual(getSensorSectorIndex(1, 0, 0, 1, 8), 2, "left sector");
 assertEqual(getSensorSectorIndex(1, 0, -1, 0, 8), 4, "back sector");
@@ -38,77 +38,23 @@ const grid = createSpatialHashGrid({ capacity: 12, worldWidth: 200, worldHeight:
 const resources = createResourceLayer({ capacity: 8, worldWidth: 200, worldHeight: 200, cellSize: 20 });
 const obstacleMask = createObstacleMask({ worldWidth: 200, worldHeight: 200, cellSize: 10 });
 
-const center = spawnAgent(world, {
-  x: 50,
-  y: 50,
-  headingX: 1,
-  headingY: 0,
-  visionRadius: 40,
-  visionCosHalfCone: Math.cos(Math.PI / 4),
-  speciesId: 1
-});
-
-spawnAgent(world, {
-  x: 60,
-  y: 50,
-  headingX: 0,
-  headingY: 1,
-  visionRadius: 0,
-  speciesId: 1
-});
-
-spawnAgent(world, {
-  x: 65,
-  y: 55,
-  headingX: 1,
-  headingY: 0,
-  visionRadius: 0,
-  speciesId: 2,
-  mouthPower: 8,
-  maxSpeed: 100,
-  armor: 0.5
-});
-
-spawnAgent(world, {
-  x: 40,
-  y: 50,
-  visionRadius: 0,
-  speciesId: 2
-});
-
-spawnAgent(world, {
-  x: 100,
-  y: 50,
-  visionRadius: 0,
-  speciesId: 2
-});
-
-const edge = spawnAgent(world, {
-  x: 190,
-  y: 100,
-  headingX: 1,
-  headingY: 0,
-  visionRadius: 40,
-  visionCosHalfCone: Math.cos(Math.PI / 3),
-  speciesId: 3
-});
+const center = spawnAgent(world, { x: 50, y: 50, headingX: 1, headingY: 0, visionRadius: 40, visionCosHalfCone: Math.cos(Math.PI / 4), speciesId: 1 });
+spawnAgent(world, { x: 60, y: 50, headingX: 0, headingY: 1, visionRadius: 0, speciesId: 1 });
+spawnAgent(world, { x: 65, y: 55, headingX: 1, headingY: 0, visionRadius: 0, speciesId: 2, mouthPower: 8, maxSpeed: 100, armor: 0.5 });
+spawnAgent(world, { x: 40, y: 50, visionRadius: 0, speciesId: 2 });
+spawnAgent(world, { x: 100, y: 50, visionRadius: 0, speciesId: 2 });
+const edge = spawnAgent(world, { x: 190, y: 100, headingX: 1, headingY: 0, visionRadius: 40, visionCosHalfCone: Math.cos(Math.PI / 3), speciesId: 3 });
 
 spawnResource(resources, { x: 65, y: 50, energy: 18, radius: 3, kindId: 0 });
 spawnResource(resources, { x: 30, y: 50, energy: 18, radius: 3, kindId: 0 });
 rebuildResourceGrid(resources);
 
-setObstacleCell(obstacleMask, 7, 5, true); // center near x=75, y=55, visible in front of center
-setObstacleCell(obstacleMask, 3, 5, true); // behind center, should be rejected by cone
-setObstacleCell(obstacleMask, 19, 10, true); // border-side obstacle near edge agent
+setObstacleCell(obstacleMask, 7, 5, true);
+setObstacleCell(obstacleMask, 3, 5, true);
+setObstacleCell(obstacleMask, 19, 10, true);
 
 buildSpatialHashGrid(grid, world);
-const stats = applyAgentSensors(world, grid, {
-  resources,
-  obstacleMask,
-  tick: 0,
-  foodTickInterval: 4,
-  obstacleTickInterval: 2
-});
+const stats = applyAgentSensors(world, grid, { resources, obstacleMask, tick: 0, foodTickInterval: 4, obstacleTickInterval: 2 });
 
 assertEqual(stats.checkedCount, 2, "checked count");
 assertEqual(stats.skippedNoVisionCount, 4, "skipped no vision count");
@@ -142,13 +88,7 @@ assertGreater(-world.separationX[center], 0, "separation x pushes away from forw
 
 const preservedFood = world.sectorFood[forwardOffset];
 const preservedObstacle = world.sectorObstacle[forwardOffset];
-const skippedStats = applyAgentSensors(world, grid, {
-  resources,
-  obstacleMask,
-  tick: 1,
-  foodTickInterval: 4,
-  obstacleTickInterval: 2
-});
+const skippedStats = applyAgentSensors(world, grid, { resources, obstacleMask, tick: 1, foodTickInterval: 4, obstacleTickInterval: 2 });
 
 assertEqual(skippedStats.foodSensorScheduled, false, "food not scheduled on tick 1");
 assertEqual(skippedStats.obstacleSensorScheduled, false, "obstacle not scheduled on tick 1");
@@ -159,14 +99,7 @@ assertEqual(skippedStats.obstacleSectorWrites, 0, "no obstacle writes on skipped
 assertAlmostEqual(world.sectorFood[forwardOffset], preservedFood, 0.000001, "skipped food buffer preserved");
 assertAlmostEqual(world.sectorObstacle[forwardOffset], preservedObstacle, 0.000001, "skipped obstacle buffer preserved");
 
-applyAgentSensors(world, grid, {
-  resources,
-  obstacleMask,
-  tick: 1,
-  foodTickInterval: 4,
-  obstacleTickInterval: 2,
-  preserveSkippedSectorChannels: false
-});
+applyAgentSensors(world, grid, { resources, obstacleMask, tick: 1, foodTickInterval: 4, obstacleTickInterval: 2, preserveSkippedSectorChannels: false });
 assertEqual(world.sectorFood[forwardOffset], 0, "skipped food buffer cleared when preserve is false");
 assertEqual(world.sectorObstacle[forwardOffset], 0, "skipped obstacle buffer cleared when preserve is false");
 
@@ -190,14 +123,7 @@ async function transpileSimModule(sourceName, outputName) {
   const sourcePath = join(projectRoot, "src", "sim", sourceName);
   const outputPath = join(temporaryDirectory, outputName);
   const sourceText = await readFile(sourcePath, "utf8");
-  const transpiled = ts.transpileModule(sourceText, {
-    compilerOptions: {
-      module: ts.ModuleKind.ES2022,
-      target: ts.ScriptTarget.ES2022,
-      strict: true
-    }
-  });
-
+  const transpiled = ts.transpileModule(sourceText, { compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022, strict: true } });
   const outputText = transpiled.outputText
     .replaceAll('from "./arrays"', 'from "./arrays.mjs"')
     .replaceAll("from './arrays'", "from './arrays.mjs'")
@@ -211,39 +137,14 @@ async function transpileSimModule(sourceName, outputName) {
     .replaceAll("from './resources'", "from './resources.mjs'")
     .replaceAll('from "./obstacleMask"', 'from "./obstacleMask.mjs"')
     .replaceAll("from './obstacleMask'", "from './obstacleMask.mjs'")
+    .replaceAll('from "./terrain"', 'from "./terrain.mjs"')
+    .replaceAll("from './terrain'", "from './terrain.mjs'")
     .replaceAll('from "./sensors"', 'from "./sensors.mjs"')
     .replaceAll("from './sensors'", "from './sensors.mjs'");
-
   await writeFile(outputPath, outputText, "utf8");
 }
 
-function assertEqual(actual, expected, label) {
-  if (actual !== expected) {
-    throw new Error(`${label}: expected ${expected}, got ${actual}`);
-  }
-}
-
-function assertAlmostEqual(actual, expected, epsilon, label) {
-  if (Math.abs(actual - expected) > epsilon) {
-    throw new Error(`${label}: expected ${expected} +/- ${epsilon}, got ${actual}`);
-  }
-}
-
-function assertGreater(actual, threshold, label) {
-  if (!(actual > threshold)) {
-    throw new Error(`${label}: expected ${actual} > ${threshold}`);
-  }
-}
-
-function assertThrows(fn, label) {
-  let thrown = false;
-  try {
-    fn();
-  } catch {
-    thrown = true;
-  }
-
-  if (!thrown) {
-    throw new Error(`${label}: expected function to throw`);
-  }
-}
+function assertEqual(actual, expected, label) { if (actual !== expected) throw new Error(`${label}: expected ${expected}, got ${actual}`); }
+function assertAlmostEqual(actual, expected, epsilon, label) { if (Math.abs(actual - expected) > epsilon) throw new Error(`${label}: expected ${expected} +/- ${epsilon}, got ${actual}`); }
+function assertGreater(actual, threshold, label) { if (!(actual > threshold)) throw new Error(`${label}: expected ${actual} > ${threshold}`); }
+function assertThrows(fn, label) { let thrown = false; try { fn(); } catch { thrown = true; } if (!thrown) throw new Error(`${label}: expected function to throw`); }
