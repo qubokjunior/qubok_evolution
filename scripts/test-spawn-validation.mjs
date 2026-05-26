@@ -12,7 +12,7 @@ const temporaryDirectory = join(projectRoot, ".tmp_spawn_validation_test");
 await rm(temporaryDirectory, { force: true, recursive: true });
 await mkdir(temporaryDirectory, { recursive: true });
 
-for (const moduleName of ["arrays.ts", "world.ts", "resources.ts", "obstacleMask.ts", "rng.ts", "spawnValidation.ts"]) {
+for (const moduleName of ["arrays.ts", "world.ts", "resources.ts", "obstacleMask.ts", "terrain.ts", "rng.ts", "spawnValidation.ts"]) {
   await transpileSimModule(moduleName, moduleName.replace(".ts", ".mjs"));
 }
 
@@ -30,7 +30,7 @@ const {
   spawnRandomResourcesAvoidingObstacles
 } = await import(pathToFileURL(join(temporaryDirectory, "spawnValidation.mjs")).href);
 
-assertEqual(SPAWN_VALIDATION_VERSION, "qubok_evolve.spawn_validation.v1", "spawn validation version");
+assertEqual(SPAWN_VALIDATION_VERSION, "qubok_evolve.spawn_validation.v2", "spawn validation version");
 
 const mask = createObstacleMask({ worldWidth: 100, worldHeight: 100, cellSize: 10 });
 setObstacleCell(mask, 5, 5, true);
@@ -126,6 +126,8 @@ async function transpileSimModule(sourceName, outputName) {
     .replaceAll("from './arrays'", "from './arrays.mjs'")
     .replaceAll('from "./rng"', 'from "./rng.mjs"')
     .replaceAll("from './rng'", "from './rng.mjs'")
+    .replaceAll('from "./terrain"', 'from "./terrain.mjs"')
+    .replaceAll("from './terrain'", "from './terrain.mjs'")
     .replaceAll('from "./world"', 'from "./world.mjs"')
     .replaceAll("from './world'", "from './world.mjs'")
     .replaceAll('from "./resources"', 'from "./resources.mjs"')
