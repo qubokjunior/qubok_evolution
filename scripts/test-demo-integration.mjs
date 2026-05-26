@@ -15,39 +15,37 @@ const assert = (condition, message) => {
 const packageJson = JSON.parse(readText("package.json"));
 const appVersion = readText("src/shared/appVersion.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
-const spawnValidation = readText("src/sim/spawnValidation.ts");
+const reproduction = readText("src/sim/reproduction.ts");
 
-assert(packageJson.version === "0.1.0-milestone.22", "package.json version must be 0.1.0-milestone.22.");
-assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.22"'), "appVersion must expose milestone.22.");
-assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m22"'), "appVersion must expose m22 overlay label.");
+assert(packageJson.version === "0.1.0-milestone.23", "package.json version must be 0.1.0-milestone.23.");
+assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.23"'), "appVersion must expose milestone.23.");
+assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m23"'), "appVersion must expose m23 overlay label.");
 
 for (const forbiddenImport of ["../render/", "./render/", "../ui/", "./ui/", "pixi.js", "react"]) {
   assert(!demoSimulation.includes(forbiddenImport), `demoSimulation must not import forbidden boundary token: ${forbiddenImport}`);
 }
 
 for (const requiredDemoToken of [
-  "spawnRandomAgentsAvoidingObstacles",
-  "spawnRandomResourcesAvoidingObstacles",
-  "respawnResourcesToTargetAvoidingObstacles",
-  "initialAgentSpawnStats",
-  "initialResourceSpawnStats",
-  "resourceRespawnStats",
+  "applyReproduction",
+  "obstacleMask",
+  "offspringSpawnMaxAttempts",
+  "offspringClearanceRadius",
   "spawnMaxAttempts",
   "spawnClearanceRadius"
 ]) {
-  assert(demoSimulation.includes(requiredDemoToken), `demoSimulation is missing obstacle-aware spawn token: ${requiredDemoToken}`);
+  assert(demoSimulation.includes(requiredDemoToken), `demoSimulation is missing reproduction obstacle spawn token: ${requiredDemoToken}`);
 }
 
-for (const requiredSpawnToken of [
-  "SPAWN_VALIDATION_VERSION",
-  "isPositionBlockedByObstacleMask",
-  "findFreeRandomPosition",
-  "findFreePositionNearOrRandom",
-  "spawnRandomAgentsAvoidingObstacles",
-  "spawnRandomResourcesAvoidingObstacles",
-  "respawnResourcesToTargetAvoidingObstacles"
+for (const requiredReproductionToken of [
+  "REPRODUCTION_SYSTEM_VERSION = \"qubok_evolve.reproduction.v3\"",
+  "obstacleMask",
+  "offspringSpawnMaxAttempts",
+  "offspringClearanceRadius",
+  "blockedByObstacle",
+  "obstaclePlacementFailedCount",
+  "findFreePositionNearOrRandom"
 ]) {
-  assert(spawnValidation.includes(requiredSpawnToken), `spawn validation module is missing token: ${requiredSpawnToken}`);
+  assert(reproduction.includes(requiredReproductionToken), `reproduction module is missing m23 token: ${requiredReproductionToken}`);
 }
 
 console.log("demo integration tests passed");

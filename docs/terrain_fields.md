@@ -72,3 +72,8 @@ m22 adds spawn validation helpers that reject positions overlapping `ObstacleMas
 | `respawnResourcesToTargetAvoidingObstacles` | keeps food target without spawning inside obstacles |
 
 This is placement validation only, not pathfinding or collision solving.
+## m23 reproduction spawn validation
+
+m23 extends obstacle-aware placement to offspring. `applyReproduction()` can receive an `obstacleMask`, then child placement uses `findFreePositionNearOrRandom()` instead of blind local offset spawning.
+
+Parent energy is spent only after a valid offspring position is found.
