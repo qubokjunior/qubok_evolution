@@ -41,7 +41,11 @@ M45-F adds a separate agent field debug control panel for visibility, alpha, arr
 
 M45-G1 separates read-only telemetry from editable controls more clearly by making overlay metric groups collapsible. `runtime` and `field` open by default; heavier read-only groups start collapsed and can be expanded in-place.
 
-M45-G1a restores pointer interaction on the read-only telemetry overlay itself while keeping the overlay host transparent to canvas input outside the overlay.\n\nM45-G2 adds collapsible editable control panels. Right-side panels keep their title visible while hiding slider/number/checkbox bodies, further separating editable controls from read-only telemetry.
+M45-G1a restores pointer interaction on the read-only telemetry overlay itself while keeping the overlay host transparent to canvas input outside the overlay.
+
+M45-G2 adds collapsible editable control panels. Right-side panels keep their title visible while hiding slider/number/checkbox bodies, further separating editable controls from read-only telemetry.
+
+M45-H1 extracts shared editable panel primitives for collapsible panels, boolean controls, numeric range/number pairs, sections, footers, and reset behavior. Field damping and agent field debug panels now use the same primitive layer without changing visual behavior.
 
 M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel change event when damping checkboxes are toggled.
 
@@ -55,6 +59,8 @@ M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel ch
 - npm run test:field-damping-panel
 - npm run test:agent-field-visual-debug
 - npm run test:agent-field-visual-controls
-- npm run test:overlay-collapse\n- npm run test:editable-panel-collapse
+- npm run test:overlay-collapse
+- npm run test:editable-panel-collapse
+- npm run test:control-panel-primitives
 - npm run test:demo-integration
 - npm run build
