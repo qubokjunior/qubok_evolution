@@ -1,6 +1,6 @@
 # qubok_evolve roadmap
 
-Current status: m45 / 0.1.0-milestone.45.
+Current status: m45 / 0.1.0-milestone.45 closed.
 
 m34 shipped: terrain Pixi debug render layer.
 
@@ -24,7 +24,7 @@ m43 shipped: field sources/sinks foundation with demo wiring and overlay metrics
 
 m44 shipped: field source semantics tuning and visualization QA.
 
-m45 in progress: obstacle/terrain damping sources and editable debug parameters.
+m45 shipped: obstacle/terrain damping sources, editable debug parameters, panel stack persistence, render layer controls, and debug config preset import/export UX.
 
 ## terrain/material track
 
@@ -52,30 +52,33 @@ Shipped sequence:
 - field vector visibility and render debug controls;
 - deterministic field decay/diffusion step with scratch buffers, metrics, benchmark, demo wiring, and overlay labels;
 - deterministic field sources/sinks with resource-driven vector emission, agent absorption, demo wiring, metrics, benchmark, and overlay labels;
-- field source semantics tuning with resource energy/radius scaling, agent radius/energy-pressure absorption, runtime visual QA, and overlay/readout guards.
+- field source semantics tuning with resource energy/radius scaling, agent radius/energy-pressure absorption, runtime visual QA, and overlay/readout guards;
+- obstacle/terrain damping sources with runtime metrics, editable damping controls, persisted debug config, render layer/vector controls, and preset import/export UX.
 
 Current milestone:
-- m44 field source semantics tuning and visualization QA.
+- m45 closed: obstacle/terrain damping sources and editable debug parameters.
 
-M44 scope:
-- make resource source strength easier to interpret and test;
-- make agent absorption strength easier to interpret and test;
-- add deterministic QA checks for demo field source/sink behavior;
-- keep field source semantics simulation-only and renderer-agnostic;
-- keep visualization QA focused on existing overlay/readout behavior, not a render rewrite;
-- add `test:field-source-demo-semantics`, `test:field-source-visual-qa`, and `test:field-source-overlay-qa`.
+M45 scope:
+- damp environmental field magnitude around obstacle cells and terrain materials;
+- expose deterministic damping stats and overlay readouts;
+- expose editable damping controls and panels;
+- add agent field visual debug controls;
+- consolidate right-side editable panels into a scrollable, resizable, persistent stack;
+- persist render debug and field damping config;
+- export/import debug config presets with validation UX;
+- keep field damping simulation-only and renderer-agnostic.
 
 Follow-up candidates:
-- obstacle/terrain damping sources or sinks;
-- later field force integration separated from movement if field systems grow;
-- later field transport/advection branch.
+- m46 candidate: field transport/advection research spike or field-force separation, if the next track remains fluid-like fields;
+- signed-distance-field correction, if the next track returns to terrain/material response;
+- controller/brain first pass, if the next milestone should begin behavior decision logic after the debug/config foundation is stable.
 
 ## controller/brain track
 
-Goal: introduce decision logic after sensing and morphology foundations are stable.
+Goal: introduce decision logic after sensing, field, terrain, and debug foundations are stable.
 
 Candidate:
-- controller/brain first pass after field source semantics are stable.
+- controller/brain first pass using existing fixed-width sensors and current observability surfaces.
 
 ## render/performance track
 
