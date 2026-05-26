@@ -9,54 +9,27 @@ import {
 } from "./obstacleMask";
 import { getResourceCellIdForCoordinates, type ResourceLayer } from "./resources";
 import type { SpatialHashGrid } from "./spatialHash";
+import { sampleTerrainAtPosition, type TerrainLayer } from "./terrain";
 import { getSectorOffset, type WorldState } from "./world";
 
-export const SENSOR_SYSTEM_VERSION = "qubok_evolve.sensors.v4" as const;
+export const SENSOR_SYSTEM_VERSION = "qubok_evolve.sensors.v5" as const;
 
 export type SensorPassConfig = {
-  /** Multiplier applied to each agent visionRadius. Useful for benchmarks and later LOD. */
   readonly radiusScale?: number;
-
-  /** When false, sectorAlly is cleared but not filled. */
   readonly includeAllies?: boolean;
-
-  /** When false, sectorThreat is cleared but not filled. */
   readonly includeThreats?: boolean;
-
-  /** When false, sectorFood is cleared but not filled. Requires resources when true. */
   readonly includeFood?: boolean;
-
-  /** When false, sectorObstacle is cleared but not filled. */
   readonly includeObstacles?: boolean;
-
-  /** Optional resource layer used to fill sectorFood. Resource grid must be rebuilt before the sensor pass. */
   readonly resources?: ResourceLayer;
-
-  /** Optional obstacle occupancy grid used to fill sectorObstacle in addition to border proximity. */
   readonly obstacleMask?: ObstacleMask;
-
-  /**
-   * Tick used for warm-channel scheduling. Defaults to world.tick.
-   * Food/obstacle channels run when tick % interval === 0.
-   */
+  readonly terrain?: TerrainLayer;
   readonly tick?: number;
-
-  /** Runs food sector aggregation every N ticks. Default 1 preserves m17 behavior. */
   readonly foodTickInterval?: number;
-
-  /** Runs obstacle sector aggregation every N ticks. Default 1 preserves m17 behavior. */
   readonly obstacleTickInterval?: number;
-
-  /** When true, skipped warm channels keep their previous buffer values. Default true. */
+  readonly terrainTickInterval?: number;
   readonly preserveSkippedSectorChannels?: boolean;
-
-  /** Distance below which separation avoids division by almost-zero. */
   readonly minimumDistance?: number;
-
-  /** Maximum range for obstacle sensing. The effective range is min(visionRadius, obstacleDetectionRadius). */
   readonly obstacleDetectionRadius?: number;
-
-  /** Scalar weights for fixed-width sector channels. */
   readonly allySignalScale?: number;
   readonly threatSignalScale?: number;
   readonly foodSignalScale?: number;
@@ -85,14 +58,21 @@ export type SensorPassStats = {
   readonly obstacleMaskCellChecks: number;
   readonly obstacleMaskHits: number;
   readonly obstacleMaskSectorWrites: number;
+  readonly terrainSensorSampleCount: number;
+  readonly terrainSensorMovementCostSum: number;
+  readonly terrainSensorFrictionSum: number;
+  readonly terrainSensorDragSum: number;
+  readonly terrainSensorResourceAffinitySum: number;
   readonly allySignalSum: number;
   readonly threatSignalSum: number;
   readonly foodSignalSum: number;
   readonly obstacleSignalSum: number;
   readonly foodSensorScheduled: boolean;
   readonly obstacleSensorScheduled: boolean;
+  readonly terrainSensorScheduled: boolean;
   readonly foodSkippedByCadence: boolean;
   readonly obstacleSkippedByCadence: boolean;
+  readonly terrainSkippedByCadence: boolean;
   readonly agentsWithVisibleNeighbors: number;
   readonly maxVisibleNeighborsForAgent: number;
   readonly averageVisibleNeighborsPerCheckedAgent: number;
@@ -107,14 +87,18 @@ type ResolvedSensorConfig = {
   readonly includeObstacles: boolean;
   readonly resources?: ResourceLayer;
   readonly obstacleMask?: ObstacleMask;
+  readonly terrain?: TerrainLayer;
   readonly tick: number;
   readonly foodTickInterval: number;
   readonly obstacleTickInterval: number;
+  readonly terrainTickInterval: number;
   readonly preserveSkippedSectorChannels: boolean;
   readonly foodSensorScheduled: boolean;
   readonly obstacleSensorScheduled: boolean;
+  readonly terrainSensorScheduled: boolean;
   readonly foodSkippedByCadence: boolean;
   readonly obstacleSkippedByCadence: boolean;
+  readonly terrainSkippedByCadence: boolean;
   readonly clearFood: boolean;
   readonly clearObstacle: boolean;
   readonly minimumDistance: number;
@@ -125,28 +109,10 @@ type ResolvedSensorConfig = {
   readonly obstacleSignalScale: number;
 };
 
-type UnitVector = {
-  readonly x: number;
-  readonly y: number;
-};
-
-type FoodSectorStats = {
-  readonly visibleCount: number;
-  readonly sectorWrites: number;
-  readonly signalSum: number;
-};
-
-type ObstacleSectorStats = {
-  readonly sectorWrites: number;
-  readonly signalSum: number;
-};
-
-type ObstacleMaskSectorStats = {
-  readonly cellChecks: number;
-  readonly hits: number;
-  readonly sectorWrites: number;
-  readonly signalSum: number;
-};
+type UnitVector = { readonly x: number; readonly y: number };
+type FoodSectorStats = { readonly visibleCount: number; readonly sectorWrites: number; readonly signalSum: number };
+type ObstacleSectorStats = { readonly sectorWrites: number; readonly signalSum: number };
+type ObstacleMaskSectorStats = { readonly cellChecks: number; readonly hits: number; readonly sectorWrites: number; readonly signalSum: number };
 
 const DEFAULT_RADIUS_SCALE = 1;
 const DEFAULT_MINIMUM_DISTANCE = 0.0001;
@@ -154,16 +120,9 @@ const DEFAULT_OBSTACLE_DETECTION_RADIUS = 96;
 const DEFAULT_SIGNAL_SCALE = 1;
 const DEFAULT_WARM_CHANNEL_INTERVAL = 1;
 
-export function applyAgentSensors(
-  world: WorldState,
-  grid: SpatialHashGrid,
-  config: SensorPassConfig = {}
-): SensorPassStats {
+export function applyAgentSensors(world: WorldState, grid: SpatialHashGrid, config: SensorPassConfig = {}): SensorPassStats {
   const resolved = resolveConfig(world, config);
-  clearAgentSensorOutputs(world, {
-    clearFood: resolved.clearFood,
-    clearObstacle: resolved.clearObstacle
-  });
+  clearAgentSensorOutputs(world, { clearFood: resolved.clearFood, clearObstacle: resolved.clearObstacle });
 
   let checkedCount = 0;
   let skippedDeadCount = 0;
@@ -178,6 +137,11 @@ export function applyAgentSensors(
   let obstacleMaskCellChecks = 0;
   let obstacleMaskHits = 0;
   let obstacleMaskSectorWrites = 0;
+  let terrainSensorSampleCount = 0;
+  let terrainSensorMovementCostSum = 0;
+  let terrainSensorFrictionSum = 0;
+  let terrainSensorDragSum = 0;
+  let terrainSensorResourceAffinitySum = 0;
   let allySignalSum = 0;
   let threatSignalSum = 0;
   let foodSignalSum = 0;
@@ -189,6 +153,16 @@ export function applyAgentSensors(
     if (world.alive[agentIndex] !== 1) {
       skippedDeadCount += 1;
       continue;
+    }
+
+    if (resolved.terrainSensorScheduled && resolved.terrain) {
+      const sample = sampleTerrainAtPosition(resolved.terrain, world.x[agentIndex], world.y[agentIndex]);
+      world.terrainCellId[agentIndex] = sample.cellId;
+      terrainSensorSampleCount += 1;
+      terrainSensorMovementCostSum += sample.movementCost;
+      terrainSensorFrictionSum += sample.friction;
+      terrainSensorDragSum += sample.drag;
+      terrainSensorResourceAffinitySum += sample.resourceAffinity;
     }
 
     const radius = world.visionRadius[agentIndex] * resolved.radiusScale;
@@ -214,10 +188,7 @@ export function applyAgentSensors(
       const safeDistance = Math.max(distance, resolved.minimumDistance);
       const direction = getDirectionOrHeading(visit.dx, visit.dy, distance, resolved.minimumDistance, heading);
       const dot = direction.x * heading.x + direction.y * heading.y;
-
-      if (dot < cosHalfCone) {
-        return;
-      }
+      if (dot < cosHalfCone) return;
 
       visibleForAgent += 1;
       visibleNeighborCount += 1;
@@ -246,10 +217,8 @@ export function applyAgentSensors(
       sumNeighborY += world.y[neighborIndex];
       sumHeadingX += world.headingX[neighborIndex];
       sumHeadingY += world.headingY[neighborIndex];
-
-      const separationWeight = proximitySignal;
-      separationX -= direction.x * separationWeight;
-      separationY -= direction.y * separationWeight;
+      separationX -= direction.x * proximitySignal;
+      separationY -= direction.y * proximitySignal;
     });
 
     neighborCandidates += radiusStats.candidateCount;
@@ -308,14 +277,21 @@ export function applyAgentSensors(
     obstacleMaskCellChecks,
     obstacleMaskHits,
     obstacleMaskSectorWrites,
+    terrainSensorSampleCount,
+    terrainSensorMovementCostSum,
+    terrainSensorFrictionSum,
+    terrainSensorDragSum,
+    terrainSensorResourceAffinitySum,
     allySignalSum,
     threatSignalSum,
     foodSignalSum,
     obstacleSignalSum,
     foodSensorScheduled: resolved.foodSensorScheduled,
     obstacleSensorScheduled: resolved.obstacleSensorScheduled,
+    terrainSensorScheduled: resolved.terrainSensorScheduled,
     foodSkippedByCadence: resolved.foodSkippedByCadence,
     obstacleSkippedByCadence: resolved.obstacleSkippedByCadence,
+    terrainSkippedByCadence: resolved.terrainSkippedByCadence,
     agentsWithVisibleNeighbors,
     maxVisibleNeighborsForAgent,
     averageVisibleNeighborsPerCheckedAgent: checkedCount > 0 ? visibleNeighborCount / checkedCount : 0,
@@ -325,18 +301,10 @@ export function applyAgentSensors(
 
 export function clearAgentSensorOutputs(world: WorldState, options: SensorClearOptions = {}): void {
   const sectorEnd = world.count * world.sectorCount;
-  if (options.clearFood ?? true) {
-    world.sectorFood.fill(0, 0, sectorEnd);
-  }
-  if (options.clearThreat ?? true) {
-    world.sectorThreat.fill(0, 0, sectorEnd);
-  }
-  if (options.clearAlly ?? true) {
-    world.sectorAlly.fill(0, 0, sectorEnd);
-  }
-  if (options.clearObstacle ?? true) {
-    world.sectorObstacle.fill(0, 0, sectorEnd);
-  }
+  if (options.clearFood ?? true) world.sectorFood.fill(0, 0, sectorEnd);
+  if (options.clearThreat ?? true) world.sectorThreat.fill(0, 0, sectorEnd);
+  if (options.clearAlly ?? true) world.sectorAlly.fill(0, 0, sectorEnd);
+  if (options.clearObstacle ?? true) world.sectorObstacle.fill(0, 0, sectorEnd);
   world.averageNeighborHeadingX.fill(0, 0, world.count);
   world.averageNeighborHeadingY.fill(0, 0, world.count);
   world.localCentroidX.fill(0, 0, world.count);
@@ -345,17 +313,10 @@ export function clearAgentSensorOutputs(world: WorldState, options: SensorClearO
   world.separationY.fill(0, 0, world.count);
 }
 
-export function getSensorSectorIndex(
-  headingX: number,
-  headingY: number,
-  directionX: number,
-  directionY: number,
-  sectorCount: number
-): number {
+export function getSensorSectorIndex(headingX: number, headingY: number, directionX: number, directionY: number, sectorCount: number): number {
   if (!Number.isInteger(sectorCount) || sectorCount <= 0) {
     throw new Error(`sectorCount must be a positive integer. Received: ${sectorCount}`);
   }
-
   const heading = getNormalizedHeading(headingX, headingY);
   const direction = getNormalizedHeading(directionX, directionY);
   const dot = clamp(heading.x * direction.x + heading.y * direction.y, -1, 1);
@@ -366,19 +327,10 @@ export function getSensorSectorIndex(
   return Math.min(sectorCount - 1, Math.max(0, sectorIndex));
 }
 
-function accumulateFoodSectors(
-  world: WorldState,
-  resources: ResourceLayer,
-  agentIndex: number,
-  heading: UnitVector,
-  cosHalfCone: number,
-  radius: number,
-  config: ResolvedSensorConfig
-): FoodSectorStats {
+function accumulateFoodSectors(world: WorldState, resources: ResourceLayer, agentIndex: number, heading: UnitVector, cosHalfCone: number, radius: number, config: ResolvedSensorConfig): FoodSectorStats {
   let visibleCount = 0;
   let sectorWrites = 0;
   let signalSum = 0;
-
   const minCellX = Math.max(0, Math.floor((world.x[agentIndex] - radius) / resources.cellSize));
   const maxCellX = Math.min(resources.columns - 1, Math.floor((world.x[agentIndex] + radius) / resources.cellSize));
   const minCellY = Math.max(0, Math.floor((world.y[agentIndex] - radius) / resources.cellSize));
@@ -389,24 +341,19 @@ function accumulateFoodSectors(
     for (let cellX = minCellX; cellX <= maxCellX; cellX += 1) {
       let resourceIndex = resources.cellHeads[getResourceCellIdForCoordinates(resources, cellX, cellY)];
       let guard = 0;
-
       while (resourceIndex !== -1) {
         if (resources.alive[resourceIndex] === 1) {
           const dx = resources.x[resourceIndex] - world.x[agentIndex];
           const dy = resources.y[resourceIndex] - world.y[agentIndex];
           const distanceSquared = dx * dx + dy * dy;
-
           if (distanceSquared <= radiusSquared) {
             const distance = Math.sqrt(distanceSquared);
             const direction = getDirectionOrHeading(dx, dy, distance, config.minimumDistance, heading);
             const dot = direction.x * heading.x + direction.y * heading.y;
-
             if (dot >= cosHalfCone) {
               const sectorIndex = getSensorSectorIndex(heading.x, heading.y, direction.x, direction.y, world.sectorCount);
               const sectorOffset = getSectorOffset(world, agentIndex, sectorIndex);
-              const foodWeight = getFoodWeight(resources, resourceIndex);
-              const signal = getProximitySignal(Math.max(distance, config.minimumDistance), radius) * foodWeight * config.foodSignalScale;
-
+              const signal = getProximitySignal(Math.max(distance, config.minimumDistance), radius) * getFoodWeight(resources, resourceIndex) * config.foodSignalScale;
               world.sectorFood[sectorOffset] += signal;
               signalSum += signal;
               visibleCount += 1;
@@ -414,79 +361,42 @@ function accumulateFoodSectors(
             }
           }
         }
-
         resourceIndex = resources.next[resourceIndex];
         guard += 1;
-
-        if (guard > resources.capacity) {
-          throw new Error("Resource sensor linked-list cycle detected.");
-        }
+        if (guard > resources.capacity) throw new Error("Resource sensor linked-list cycle detected.");
       }
     }
   }
-
   return { visibleCount, sectorWrites, signalSum };
 }
 
-function accumulateBoundaryObstacleSectors(
-  world: WorldState,
-  agentIndex: number,
-  heading: UnitVector,
-  cosHalfCone: number,
-  visionRadius: number,
-  config: ResolvedSensorConfig
-): ObstacleSectorStats {
+function accumulateBoundaryObstacleSectors(world: WorldState, agentIndex: number, heading: UnitVector, cosHalfCone: number, visionRadius: number, config: ResolvedSensorConfig): ObstacleSectorStats {
   const radius = Math.min(visionRadius, config.obstacleDetectionRadius);
-  if (radius <= 0) {
-    return { sectorWrites: 0, signalSum: 0 };
-  }
-
+  if (radius <= 0) return { sectorWrites: 0, signalSum: 0 };
   let sectorWrites = 0;
   let signalSum = 0;
-
   const tryWrite = (directionX: number, directionY: number, distance: number): void => {
-    if (distance < 0 || distance > radius) {
-      return;
-    }
-
+    if (distance < 0 || distance > radius) return;
     const direction = getNormalizedHeading(directionX, directionY);
     const dot = direction.x * heading.x + direction.y * heading.y;
-
-    if (dot < cosHalfCone) {
-      return;
-    }
-
+    if (dot < cosHalfCone) return;
     const sectorIndex = getSensorSectorIndex(heading.x, heading.y, direction.x, direction.y, world.sectorCount);
     const sectorOffset = getSectorOffset(world, agentIndex, sectorIndex);
     const signal = getProximitySignal(Math.max(distance, config.minimumDistance), radius) * config.obstacleSignalScale;
-
     world.sectorObstacle[sectorOffset] += signal;
     signalSum += signal;
     sectorWrites += 1;
   };
-
   tryWrite(-1, 0, world.x[agentIndex]);
   tryWrite(1, 0, world.worldWidth - world.x[agentIndex]);
   tryWrite(0, -1, world.y[agentIndex]);
   tryWrite(0, 1, world.worldHeight - world.y[agentIndex]);
-
   return { sectorWrites, signalSum };
 }
 
-function accumulateObstacleMaskSectors(
-  world: WorldState,
-  mask: ObstacleMask,
-  agentIndex: number,
-  heading: UnitVector,
-  cosHalfCone: number,
-  visionRadius: number,
-  config: ResolvedSensorConfig
-): ObstacleMaskSectorStats {
+function accumulateObstacleMaskSectors(world: WorldState, mask: ObstacleMask, agentIndex: number, heading: UnitVector, cosHalfCone: number, visionRadius: number, config: ResolvedSensorConfig): ObstacleMaskSectorStats {
   const radius = Math.min(visionRadius, config.obstacleDetectionRadius);
-  if (radius <= 0) {
-    return { cellChecks: 0, hits: 0, sectorWrites: 0, signalSum: 0 };
-  }
-
+  if (radius <= 0) return { cellChecks: 0, hits: 0, sectorWrites: 0, signalSum: 0 };
   let cellChecks = 0;
   let hits = 0;
   let sectorWrites = 0;
@@ -496,45 +406,30 @@ function accumulateObstacleMaskSectors(
   const minCellY = Math.max(0, Math.floor((world.y[agentIndex] - radius) / mask.cellSize));
   const maxCellY = Math.min(mask.rows - 1, Math.floor((world.y[agentIndex] + radius) / mask.cellSize));
   const radiusSquared = radius * radius;
-
   for (let cellY = minCellY; cellY <= maxCellY; cellY += 1) {
     const cellCenterY = getObstacleCellCenterY(mask, cellY);
-
     for (let cellX = minCellX; cellX <= maxCellX; cellX += 1) {
       cellChecks += 1;
       const cellId = getObstacleCellIdForCoordinates(mask, cellX, cellY);
-      if (mask.occupied[cellId] !== 1) {
-        continue;
-      }
-
+      if (mask.occupied[cellId] !== 1) continue;
       hits += 1;
       const cellCenterX = getObstacleCellCenterX(mask, cellX);
       const dx = cellCenterX - world.x[agentIndex];
       const dy = cellCenterY - world.y[agentIndex];
       const distanceSquared = dx * dx + dy * dy;
-
-      if (distanceSquared > radiusSquared) {
-        continue;
-      }
-
+      if (distanceSquared > radiusSquared) continue;
       const distance = Math.sqrt(distanceSquared);
       const direction = getDirectionOrHeading(dx, dy, distance, config.minimumDistance, heading);
       const dot = direction.x * heading.x + direction.y * heading.y;
-
-      if (dot < cosHalfCone) {
-        continue;
-      }
-
+      if (dot < cosHalfCone) continue;
       const sectorIndex = getSensorSectorIndex(heading.x, heading.y, direction.x, direction.y, world.sectorCount);
       const sectorOffset = getSectorOffset(world, agentIndex, sectorIndex);
       const signal = getProximitySignal(Math.max(distance, config.minimumDistance), radius) * config.obstacleSignalScale;
-
       world.sectorObstacle[sectorOffset] += signal;
       signalSum += signal;
       sectorWrites += 1;
     }
   }
-
   return { cellChecks, hits, sectorWrites, signalSum };
 }
 
@@ -549,6 +444,7 @@ function resolveConfig(world: WorldState, config: SensorPassConfig): ResolvedSen
   const tick = config.tick ?? world.tick;
   const foodTickInterval = config.foodTickInterval ?? DEFAULT_WARM_CHANNEL_INTERVAL;
   const obstacleTickInterval = config.obstacleTickInterval ?? DEFAULT_WARM_CHANNEL_INTERVAL;
+  const terrainTickInterval = config.terrainTickInterval ?? DEFAULT_WARM_CHANNEL_INTERVAL;
   const includeFood = config.includeFood ?? true;
   const includeObstacles = config.includeObstacles ?? true;
   const preserveSkippedSectorChannels = config.preserveSkippedSectorChannels ?? true;
@@ -561,34 +457,26 @@ function resolveConfig(world: WorldState, config: SensorPassConfig): ResolvedSen
   assertFiniteNumber(foodSignalScale, "foodSignalScale");
   assertFiniteNumber(obstacleSignalScale, "obstacleSignalScale");
   assertFiniteNumber(tick, "tick");
-
-  if (radiusScale <= 0) {
-    throw new Error(`sensor radiusScale must be positive. Received: ${radiusScale}`);
-  }
-
-  if (minimumDistance <= 0) {
-    throw new Error(`sensor minimumDistance must be positive. Received: ${minimumDistance}`);
-  }
-
-  if (obstacleDetectionRadius <= 0) {
-    throw new Error(`sensor obstacleDetectionRadius must be positive. Received: ${obstacleDetectionRadius}`);
-  }
-
+  if (radiusScale <= 0) throw new Error(`sensor radiusScale must be positive. Received: ${radiusScale}`);
+  if (minimumDistance <= 0) throw new Error(`sensor minimumDistance must be positive. Received: ${minimumDistance}`);
+  if (obstacleDetectionRadius <= 0) throw new Error(`sensor obstacleDetectionRadius must be positive. Received: ${obstacleDetectionRadius}`);
   assertPositiveInteger(foodTickInterval, "foodTickInterval");
   assertPositiveInteger(obstacleTickInterval, "obstacleTickInterval");
-
-  if (config.obstacleMask) {
-    assertObstacleMaskCompatible(config.obstacleMask, world.worldWidth, world.worldHeight);
-  }
+  assertPositiveInteger(terrainTickInterval, "terrainTickInterval");
+  if (config.obstacleMask) assertObstacleMaskCompatible(config.obstacleMask, world.worldWidth, world.worldHeight);
 
   const safeTick = Math.max(0, Math.trunc(tick));
   const foodCadenceReady = safeTick % foodTickInterval === 0;
   const obstacleCadenceReady = safeTick % obstacleTickInterval === 0;
+  const terrainCadenceReady = safeTick % terrainTickInterval === 0;
   const hasFoodSource = includeFood && Boolean(config.resources);
+  const hasTerrainSource = Boolean(config.terrain);
   const foodSensorScheduled = hasFoodSource && foodCadenceReady;
   const obstacleSensorScheduled = includeObstacles && obstacleCadenceReady;
+  const terrainSensorScheduled = hasTerrainSource && terrainCadenceReady;
   const foodSkippedByCadence = hasFoodSource && !foodCadenceReady;
   const obstacleSkippedByCadence = includeObstacles && !obstacleCadenceReady;
+  const terrainSkippedByCadence = hasTerrainSource && !terrainCadenceReady;
   const clearFood = foodSensorScheduled || !includeFood || !config.resources || !preserveSkippedSectorChannels;
   const clearObstacle = obstacleSensorScheduled || !includeObstacles || !preserveSkippedSectorChannels;
 
@@ -600,14 +488,18 @@ function resolveConfig(world: WorldState, config: SensorPassConfig): ResolvedSen
     includeObstacles,
     resources: config.resources,
     obstacleMask: config.obstacleMask,
+    terrain: config.terrain,
     tick: safeTick,
     foodTickInterval,
     obstacleTickInterval,
+    terrainTickInterval,
     preserveSkippedSectorChannels,
     foodSensorScheduled,
     obstacleSensorScheduled,
+    terrainSensorScheduled,
     foodSkippedByCadence,
     obstacleSkippedByCadence,
+    terrainSkippedByCadence,
     clearFood,
     clearObstacle,
     minimumDistance,
@@ -625,43 +517,26 @@ function assertPositiveInteger(value: number, label: string): void {
   }
 }
 
-function getDirectionOrHeading(
-  dx: number,
-  dy: number,
-  distance: number,
-  minimumDistance: number,
-  fallbackHeading: UnitVector
-): UnitVector {
-  if (distance <= minimumDistance) {
-    return fallbackHeading;
-  }
-
+function getDirectionOrHeading(dx: number, dy: number, distance: number, minimumDistance: number, fallbackHeading: UnitVector): UnitVector {
+  if (distance <= minimumDistance) return fallbackHeading;
   return { x: dx / distance, y: dy / distance };
 }
 
 function getNormalizedHeading(x: number, y: number): UnitVector {
   const length = Math.hypot(x, y);
-
-  if (length <= 0.000001) {
-    return { x: 1, y: 0 };
-  }
-
+  if (length <= 0.000001) return { x: 1, y: 0 };
   return { x: x / length, y: y / length };
 }
 
 function getProximitySignal(distance: number, radius: number): number {
-  if (radius <= 0) {
-    return 0;
-  }
-
+  if (radius <= 0) return 0;
   const proximity = clamp(1 - distance / radius, 0, 1);
   return proximity * proximity;
 }
 
 function getAllyWeight(world: WorldState, index: number): number {
   const maxEnergy = Math.max(world.maxEnergy[index], 0.000001);
-  const energy01 = clamp(world.energy[index] / maxEnergy, 0, 1);
-  return 0.75 + energy01 * 0.5;
+  return 0.75 + clamp(world.energy[index] / maxEnergy, 0, 1) * 0.5;
 }
 
 function getThreatWeight(world: WorldState, index: number): number {
@@ -672,9 +547,7 @@ function getThreatWeight(world: WorldState, index: number): number {
 }
 
 function getFoodWeight(resources: ResourceLayer, index: number): number {
-  const energy = clamp(resources.energy[index] / 18, 0.1, 6);
-  const radius = clamp(resources.radius[index] / 4, 0.25, 3);
-  return energy * radius;
+  return clamp(resources.energy[index] / 18, 0.1, 6) * clamp(resources.radius[index] / 4, 0.25, 3);
 }
 
 function clamp(value: number, min: number, max: number): number {
