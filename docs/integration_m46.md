@@ -1,4 +1,4 @@
-﻿# Integration m46 â€” environmental field transport / advection planning
+# Integration m46 - environmental field transport / advection planning
 
 Milestone m46 starts after the closed m45 debug/config and field damping milestone. M46 stays on the fluid-like field track and focuses on environmental field transport before controller/brain work.
 
@@ -103,4 +103,3 @@ Add a focused benchmark before UI integration:
 - M46-A3: demo wiring behind conservative config: sources/sinks -> damping -> advection -> dynamics;
 - M46-A4: overlay metrics/readouts;
 - M46-A5: optional editable debug controls only after core behavior is stable.
-
