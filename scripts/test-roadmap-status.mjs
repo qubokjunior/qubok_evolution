@@ -1,9 +1,11 @@
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const readText = (relativePath) => readFileSync(resolve(projectRoot, relativePath), "utf8");
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
+
 const packageJson = JSON.parse(readText("package.json"));
 const appVersion = readText("src/shared/appVersion.ts");
 const readme = readText("README.md");
@@ -14,15 +16,17 @@ const integrationM41 = readText("docs/integration_m41.md");
 const integrationM42 = readText("docs/integration_m42.md");
 const field = readText("src/sim/field.ts");
 const fieldRenderSnapshot = readText("src/sim/fieldRenderSnapshot.ts");
+const fieldDynamics = readText("src/sim/fieldDynamics.ts");
 const movement = readText("src/sim/movement.ts");
 const debugOverlay = readText("src/render/debugOverlay.ts");
 const perfMetrics = readText("src/shared/perfMetrics.ts");
 const pixiRenderer = readText("src/render/pixiRenderer.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
+
 assert(packageJson.version === "0.1.0-milestone.42", "package.json must expose m42 version.");
 assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.42\""), "appVersion must expose milestone.42.");
-assert(appVersion.includes("PROJECT_MILESTONE = 42"), "appVersion must expose milestone number 41.");
-assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m41\""), "appVersion must expose m42 label.");
+assert(appVersion.includes("PROJECT_MILESTONE = 42"), "appVersion must expose milestone number 42.");
+assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m42\""), "appVersion must expose m42 label.");
 assert(readme.includes("docs/roadmap.md"), "README.md must link docs/roadmap.md.");
 assert(roadmap.includes("m39 shipped: low-resolution environmental flow field sampled by movement"), "roadmap must include m39 field milestone.");
 assert(roadmap.includes("m40 shipped: environmental field render snapshot and Pixi vector debug layer"), "roadmap must include m40 field render milestone.");
@@ -34,17 +38,24 @@ assert(field.includes("sampleFieldAtPosition"), "field must expose sampleFieldAt
 assert(fieldRenderSnapshot.includes("FIELD_RENDER_SNAPSHOT_VERSION"), "field render snapshot must expose version.");
 assert(fieldRenderSnapshot.includes("makeFieldRenderSnapshot"), "field render snapshot must expose snapshot builder.");
 assert(fieldRenderSnapshot.includes("analyzeFieldRenderSnapshot"), "field render snapshot must expose analyzer.");
+assert(fieldDynamics.includes("FIELD_DYNAMICS_VERSION"), "field dynamics must expose version.");
+assert(fieldDynamics.includes("stepEnvironmentalFieldDynamics"), "field dynamics must expose stepEnvironmentalFieldDynamics.");
+assert(fieldDynamics.includes("createFieldDynamicsScratch"), "field dynamics must expose scratch creation.");
 assert(movement.includes("field?: EnvironmentalFieldLayer"), "movement must accept field layer.");
 assert(movement.includes("fieldMovementSampleCount"), "movement must expose field movement stats.");
 assert(demoSimulation.includes("fieldRenderSnapshot"), "demoSimulation must emit fieldRenderSnapshot.");
+assert(demoSimulation.includes("fieldDynamicsStats"), "demoSimulation must emit fieldDynamicsStats.");
 assert(demoSimulation.includes("fieldRenderStride"), "demoSimulation must expose fieldRenderStride.");
 assert(debugOverlay.includes("field render"), "debug overlay must expose field render label.");
 assert(debugOverlay.includes("field vectors"), "debug overlay must expose field vector label.");
+assert(debugOverlay.includes("field dyn"), "debug overlay must expose field dynamics label.");
 assert(perfMetrics.includes("fieldRenderVectorCount"), "perf metrics must expose fieldRenderVectorCount.");
+assert(perfMetrics.includes("fieldDynamicsMs"), "perf metrics must expose fieldDynamicsMs.");
 assert(pixiRenderer.includes("renderFieldVectorLayer"), "pixi renderer must render field vectors.");
 assert(pixiRenderer.includes("fieldLayer"), "pixi renderer must own field layer.");
+assert(pixiRenderer.includes("fieldDynamicsMagnitudeAfter"), "pixi renderer must pass field dynamics overlay metrics.");
 assert(integrationM40.includes("environmental field render snapshot"), "integration_m40 must describe environmental field render snapshot.");
 assert(integrationM41.includes("overlay grouping"), "integration_m41 must describe overlay grouping.");
-assert(integrationM42.includes("M42"), "integration_m42 must describe m42.");
+assert(integrationM42.includes("decay") && integrationM42.includes("diffusion"), "integration_m42 must describe field decay/diffusion.");
 assert(packageJson.scripts.test.includes("test:roadmap-status"), "npm run test must include test:roadmap-status.");
 console.log("roadmap status tests passed");
