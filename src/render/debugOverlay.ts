@@ -25,6 +25,14 @@ export type PerfOverlaySnapshot = {
   readonly obstacleResponseSkippedCells: number;
   readonly obstacleResponseLimitHits: number;
   readonly obstacleResponseBoundaryHits: number;
+  readonly obstacleLifecycleEvents: number;
+  readonly obstacleLifecyclePressure: number;
+  readonly obstacleSpawnBlockedAttempts: number;
+  readonly obstacleSpawnFallbacks: number;
+  readonly obstacleSpawnFailures: number;
+  readonly obstacleReproductionBlocked: number;
+  readonly obstacleReproductionFailures: number;
+  readonly obstacleResourceRespawns: number;
   readonly deathsThisStep: number;
   readonly starvingCount: number;
   readonly starvationDamage: number;
@@ -116,6 +124,14 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     obstacleResponseSkippedCells: createValueRow(root, "obs skip cells"),
     obstacleResponseLimitHits: createValueRow(root, "obs limits"),
     obstacleResponseBoundaryHits: createValueRow(root, "obs boundary"),
+    obstacleLifecycleEvents: createValueRow(root, "obs life ev"),
+    obstacleLifecyclePressure: createValueRow(root, "obs pressure"),
+    obstacleSpawnBlockedAttempts: createValueRow(root, "obs spawn block"),
+    obstacleSpawnFallbacks: createValueRow(root, "obs fallback"),
+    obstacleSpawnFailures: createValueRow(root, "obs failures"),
+    obstacleReproductionBlocked: createValueRow(root, "obs repro block"),
+    obstacleReproductionFailures: createValueRow(root, "obs repro fail"),
+    obstacleResourceRespawns: createValueRow(root, "obs food respawn"),
     deathsThisStep: createValueRow(root, "deaths/tick"),
     starvingCount: createValueRow(root, "starving"),
     starvationDamage: createValueRow(root, "starve dmg"),
@@ -179,6 +195,14 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     rows.obstacleResponseSkippedCells.textContent = formatInt(snapshot.obstacleResponseSkippedCells);
     rows.obstacleResponseLimitHits.textContent = formatInt(snapshot.obstacleResponseLimitHits);
     rows.obstacleResponseBoundaryHits.textContent = formatInt(snapshot.obstacleResponseBoundaryHits);
+    rows.obstacleLifecycleEvents.textContent = formatInt(snapshot.obstacleLifecycleEvents);
+    rows.obstacleLifecyclePressure.textContent = formatDecimal(snapshot.obstacleLifecyclePressure);
+    rows.obstacleSpawnBlockedAttempts.textContent = formatInt(snapshot.obstacleSpawnBlockedAttempts);
+    rows.obstacleSpawnFallbacks.textContent = formatInt(snapshot.obstacleSpawnFallbacks);
+    rows.obstacleSpawnFailures.textContent = formatInt(snapshot.obstacleSpawnFailures);
+    rows.obstacleReproductionBlocked.textContent = formatInt(snapshot.obstacleReproductionBlocked);
+    rows.obstacleReproductionFailures.textContent = formatInt(snapshot.obstacleReproductionFailures);
+    rows.obstacleResourceRespawns.textContent = formatInt(snapshot.obstacleResourceRespawns);
     rows.deathsThisStep.textContent = formatInt(snapshot.deathsThisStep);
     rows.starvingCount.textContent = formatInt(snapshot.starvingCount);
     rows.starvationDamage.textContent = formatDecimal(snapshot.starvationDamage);

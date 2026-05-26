@@ -1,5 +1,6 @@
 import { Application, Container, Graphics } from "pixi.js";
 import type { EnergySurvivalStats } from "../sim/energy";
+import type { ObstacleLifecycleTelemetry } from "../sim/lifecycleTelemetry";
 import type { MovementStepMetrics } from "../sim/movement";
 import type { ObstacleSoftResponseStats } from "../sim/obstacleResponse";
 import type { LocalNeighborSummary } from "../sim/neighborQuery";
@@ -17,6 +18,7 @@ export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly snapshotStats: RenderSnapshotStats;
   readonly movementMetrics: MovementStepMetrics;
   readonly obstacleResponseStats: ObstacleSoftResponseStats;
+  readonly obstacleLifecycleTelemetry: ObstacleLifecycleTelemetry;
   readonly energyStats: EnergySurvivalStats;
   readonly spatialBuildStats: SpatialHashBuildStats;
   readonly neighborQueryStats: LocalNeighborSummary;
@@ -111,6 +113,14 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("obstacleResponseSkippedCells", frame.obstacleResponseStats.obstacleCellsSkippedByStride);
     metrics.record("obstacleResponseLimitHits", frame.obstacleResponseStats.obstacleCellCheckLimitHits);
     metrics.record("obstacleResponseBoundaryHits", frame.obstacleResponseStats.boundaryHits);
+    metrics.record("obstacleLifecycleEvents", frame.obstacleLifecycleTelemetry.lifecycleEventCount);
+    metrics.record("obstacleLifecyclePressure", frame.obstacleLifecycleTelemetry.lifecyclePressureScore);
+    metrics.record("obstacleSpawnBlockedAttempts", frame.obstacleLifecycleTelemetry.spawnBlockedAttempts);
+    metrics.record("obstacleSpawnFallbacks", frame.obstacleLifecycleTelemetry.spawnFallbacks);
+    metrics.record("obstacleSpawnFailures", frame.obstacleLifecycleTelemetry.spawnFailures);
+    metrics.record("obstacleReproductionBlocked", frame.obstacleLifecycleTelemetry.reproductionBlockedByObstacle);
+    metrics.record("obstacleReproductionFailures", frame.obstacleLifecycleTelemetry.reproductionPlacementFailures);
+    metrics.record("obstacleResourceRespawns", frame.obstacleLifecycleTelemetry.resourceRespawnedCount);
     metrics.record("predatorPreyMs", frame.predatorPreyMs);
     metrics.record("resourceMs", frame.resourceMs);
     metrics.record("energyMs", frame.energyMs);
@@ -180,6 +190,14 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         obstacleResponseSkippedCells: snapshot.values.obstacleResponseSkippedCells,
         obstacleResponseLimitHits: snapshot.values.obstacleResponseLimitHits,
         obstacleResponseBoundaryHits: snapshot.values.obstacleResponseBoundaryHits,
+        obstacleLifecycleEvents: snapshot.values.obstacleLifecycleEvents,
+        obstacleLifecyclePressure: snapshot.values.obstacleLifecyclePressure,
+        obstacleSpawnBlockedAttempts: snapshot.values.obstacleSpawnBlockedAttempts,
+        obstacleSpawnFallbacks: snapshot.values.obstacleSpawnFallbacks,
+        obstacleSpawnFailures: snapshot.values.obstacleSpawnFailures,
+        obstacleReproductionBlocked: snapshot.values.obstacleReproductionBlocked,
+        obstacleReproductionFailures: snapshot.values.obstacleReproductionFailures,
+        obstacleResourceRespawns: snapshot.values.obstacleResourceRespawns,
         predatorPreyMs: snapshot.values.predatorPreyMs,
         resourceMs: snapshot.values.resourceMs,
         energyMs: snapshot.values.energyMs,
