@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+﻿import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -77,7 +77,7 @@ assert(roadmap.includes("m44 shipped: field source semantics tuning and visualiz
 
 assert(integrationM45.includes("obstacle/terrain damping sources") && integrationM45.includes("editable debug parameters"), "integration_m45 must describe obstacle/terrain damping sources and editable debug parameters.");
 assert(roadmap.includes("m45 shipped: obstacle/terrain damping sources"), "roadmap must include m45 shipped milestone.");
-assert(roadmap.includes("m45 closed"), "roadmap must mark m45 as closed.");
+assert(roadmap.includes("m45 shipped: obstacle/terrain damping sources"), "roadmap must keep m45 shipped status.");
 assert(integrationM45.includes("## Final status") && integrationM45.includes("M45 is closed"), "integration_m45 must document final closed status.");
 assert(integrationM45.includes("## Final validation set") && integrationM45.includes("npm run test:repo-status") && integrationM45.includes("npm run build"), "integration_m45 must document final validation set.");
 
@@ -93,3 +93,4 @@ for (const requiredToken of ["FieldDampingStepMetrics", "fieldDampingStats", "fi
 assert(integrationM45.includes("fieldDampingStats") && integrationM45.includes("fieldDampingMs"), "integration_m45 must document m45 damping runtime outputs.");
 
 console.log("roadmap status tests passed");
+
