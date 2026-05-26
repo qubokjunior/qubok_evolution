@@ -331,6 +331,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   return { world, spatialGrid, resources, obstacleMask, terrain, field, initialAgentSpawnStats, initialResourceSpawnStats, step, getSnapshot: () => makeRenderSnapshot(world) };
 }
 
+
 function fillResourceFieldSources(resources: ResourceLayer, target: FieldPointSource[], maxResources: number, strength: number): void {
   target.length = 0;
   if (maxResources <= 0 || strength <= 0) return;
@@ -343,10 +344,13 @@ function fillResourceFieldSources(resources: ResourceLayer, target: FieldPointSo
     const dx = x - centerX;
     const dy = y - centerY;
     const distance = Math.max(Math.hypot(dx, dy), 1);
-    const wave = 0.75 + ((index * 17) % 11) * 0.05;
-    target.push({ x, y, flowX: -dy / distance, flowY: dx / distance, strength: strength * wave });
+    const energy01 = clamp01(resources.energy[index] / 28);
+    const radius01 = clamp01(resources.radius[index] / 5);
+    const resourceSignal = 0.5 + energy01 * 0.35 + radius01 * 0.15;
+    target.push({ x, y, flowX: -dy / distance, flowY: dx / distance, strength: strength * resourceSignal });
   }
 }
+
 
 function fillAgentFieldSinks(world: WorldState, target: FieldPointSink[], maxAgents: number, absorption: number): void {
   target.length = 0;
@@ -354,7 +358,12 @@ function fillAgentFieldSinks(world: WorldState, target: FieldPointSink[], maxAge
   if (maxAgents <= 0 || absorption01 <= 0) return;
   for (let index = 0; index < world.count && target.length < maxAgents; index += 1) {
     if (world.alive[index] !== 1) continue;
-    target.push({ x: world.x[index], y: world.y[index], absorption01 });
+    const radius01 = clamp01(world.radius[index] / 4);
+    const maxEnergy = Math.max(world.maxEnergy[index], 0.000001);
+    const energy01 = clamp01(world.energy[index] / maxEnergy);
+    const lowEnergyPressure01 = 1 - energy01;
+    const agentPresenceAbsorption01 = clamp01(absorption01 * (0.65 + radius01 * 0.25 + lowEnergyPressure01 * 0.1));
+    target.push({ x: world.x[index], y: world.y[index], absorption01: agentPresenceAbsorption01 });
   }
 }
 

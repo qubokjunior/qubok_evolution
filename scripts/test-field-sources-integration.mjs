@@ -53,13 +53,13 @@ for (const requiredToken of [
   assert(fieldSourcesBench.includes(requiredToken), "field sources benchmark missing token: " + requiredToken);
 }
 
-assert(packageJson.version === "0.1.0-milestone.43", "package.json must expose milestone.43.");
+assert(packageJson.version === "0.1.0-milestone.44", "package.json must expose milestone.43.");
 assert(packageJson.scripts["test:field-sources"] === "node scripts/test-field-sources.mjs", "package.json must expose test:field-sources.");
 assert(packageJson.scripts["bench:field-sources"] === "node scripts/bench-field-sources.mjs", "package.json must expose bench:field-sources.");
 assert(packageJson.scripts.test.includes("test:field-sources"), "npm run test must include test:field-sources.");
 assert(readme.includes("m43") && readme.includes("field sources/sinks"), "README must expose m43 field sources/sinks setup.");
 assert(milestones.includes("| m43 |") && milestones.includes("in progress"), "milestones must include m43 in progress.");
-assert(roadmap.includes("m43 in progress: field sources/sinks foundation"), "roadmap must include m43 current milestone.");
+assert(roadmap.includes("m44 in progress: field source semantics tuning and visualization QA"), "roadmap must include m43 current milestone.");
 assert(integrationM43.includes("field sources") && integrationM43.includes("sinks"), "integration_m43 must describe field sources/sinks.");
 
 console.log("field sources integration tests passed");
