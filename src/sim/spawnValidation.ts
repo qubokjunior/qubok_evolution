@@ -7,6 +7,7 @@ import {
   type ResourceLayer,
   type ResourceSpawnInput
 } from "./resources";
+import { sampleTerrainAtPosition, type TerrainLayer } from "./terrain";
 import {
   spawnAgent,
   type RngLike,
@@ -14,7 +15,7 @@ import {
   type WorldState
 } from "./world";
 
-export const SPAWN_VALIDATION_VERSION = "qubok_evolve.spawn_validation.v1" as const;
+export const SPAWN_VALIDATION_VERSION = "qubok_evolve.spawn_validation.v2" as const;
 
 export type Position2D = {
   readonly x: number;
@@ -24,6 +25,9 @@ export type Position2D = {
 export type SpawnValidationConfig = {
   readonly maxAttempts?: number;
   readonly clearanceRadius?: number;
+  readonly terrain?: TerrainLayer;
+  readonly terrainAffinityMaxAttempts?: number;
+  readonly terrainAffinityMinAcceptance?: number;
 };
 
 export type FreePositionResult = {
@@ -40,15 +44,23 @@ export type SpawnValidationStats = {
   readonly blockedAttemptCount: number;
   readonly fallbackUsedCount: number;
   readonly failedCount: number;
+  readonly terrainResourceSampleCount: number;
+  readonly terrainResourceAffinitySum: number;
+  readonly terrainResourceRejectedCount: number;
 };
 
 type ResolvedSpawnValidationConfig = {
   readonly maxAttempts: number;
   readonly clearanceRadius: number;
+  readonly terrain?: TerrainLayer;
+  readonly terrainAffinityMaxAttempts: number;
+  readonly terrainAffinityMinAcceptance: number;
 };
 
 const DEFAULT_MAX_ATTEMPTS = 64;
 const DEFAULT_CLEARANCE_RADIUS = 0;
+const DEFAULT_TERRAIN_AFFINITY_MAX_ATTEMPTS = 8;
+const DEFAULT_TERRAIN_AFFINITY_MIN_ACCEPTANCE = 0.05;
 
 export function isPositionBlockedByObstacleMask(
   mask: ObstacleMask,
@@ -195,7 +207,7 @@ export function spawnRandomResourcesAvoidingObstacles(
   const stats = createSpawnValidationStats(count);
 
   for (let localIndex = 0; localIndex < count; localIndex += 1) {
-    const position = findFreeRandomPosition(mask, rng, resolved);
+    const position = findTerrainWeightedFreeRandomPosition(mask, rng, resolved, stats);
     stats.blockedAttemptCount += Math.max(0, position.attempts - 1);
     stats.fallbackUsedCount += position.fallbackUsed ? 1 : 0;
 
@@ -222,12 +234,13 @@ export function respawnResourcesToTargetAvoidingObstacles(
     throw new Error(`targetAliveCount must be a non-negative integer. Received: ${targetAliveCount}`);
   }
 
+  const resolved = resolveConfig(config);
   const target = Math.min(targetAliveCount, layer.capacity);
   const requestedCount = Math.max(0, target - layer.aliveCount);
   const stats = createSpawnValidationStats(requestedCount);
 
   while (layer.aliveCount < target) {
-    const position = findFreeRandomPosition(mask, rng, config);
+    const position = findTerrainWeightedFreeRandomPosition(mask, rng, resolved, stats);
     stats.blockedAttemptCount += Math.max(0, position.attempts - 1);
     stats.fallbackUsedCount += position.fallbackUsed ? 1 : 0;
 
@@ -241,6 +254,45 @@ export function respawnResourcesToTargetAvoidingObstacles(
   }
 
   return freezeStats(stats);
+}
+
+function findTerrainWeightedFreeRandomPosition(
+  mask: ObstacleMask,
+  rng: RngLike,
+  config: ResolvedSpawnValidationConfig,
+  stats: MutableSpawnValidationStats
+): FreePositionResult {
+  if (!config.terrain) {
+    return findFreeRandomPosition(mask, rng, config);
+  }
+
+  let lastPosition: FreePositionResult | undefined;
+
+  for (let attempt = 0; attempt < config.terrainAffinityMaxAttempts; attempt += 1) {
+    const position = findFreeRandomPosition(mask, rng, config);
+    lastPosition = position;
+
+    if (!position.found) {
+      return position;
+    }
+
+    const affinity = sampleTerrainResourceAffinity(config.terrain, position.x, position.y, config.terrainAffinityMinAcceptance);
+    stats.terrainResourceSampleCount += 1;
+    stats.terrainResourceAffinitySum += affinity;
+
+    if (rng.nextFloat01() <= affinity) {
+      return position;
+    }
+
+    stats.terrainResourceRejectedCount += 1;
+  }
+
+  return lastPosition ?? findFreeRandomPosition(mask, rng, config);
+}
+
+function sampleTerrainResourceAffinity(terrain: TerrainLayer, x: number, y: number, minAcceptance: number): number {
+  const sample = sampleTerrainAtPosition(terrain, x, y);
+  return clamp(sample.resourceAffinity, minAcceptance, 1);
 }
 
 function createRandomAgentInput(world: WorldState, rng: RngLike, x: number, y: number): SpawnAgentInput {
@@ -307,8 +359,11 @@ function findFirstFreeGridPosition(mask: ObstacleMask, clearanceRadius: number):
 function resolveConfig(config: SpawnValidationConfig): ResolvedSpawnValidationConfig {
   const maxAttempts = config.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
   const clearanceRadius = config.clearanceRadius ?? DEFAULT_CLEARANCE_RADIUS;
+  const terrainAffinityMaxAttempts = config.terrainAffinityMaxAttempts ?? DEFAULT_TERRAIN_AFFINITY_MAX_ATTEMPTS;
+  const terrainAffinityMinAcceptance = config.terrainAffinityMinAcceptance ?? DEFAULT_TERRAIN_AFFINITY_MIN_ACCEPTANCE;
 
   assertFiniteNumber(clearanceRadius, "spawn clearanceRadius");
+  assertFiniteNumber(terrainAffinityMinAcceptance, "terrainAffinityMinAcceptance");
 
   if (!Number.isInteger(maxAttempts) || maxAttempts <= 0) {
     throw new Error(`spawn maxAttempts must be a positive integer. Received: ${maxAttempts}`);
@@ -318,7 +373,21 @@ function resolveConfig(config: SpawnValidationConfig): ResolvedSpawnValidationCo
     throw new Error(`spawn clearanceRadius must be non-negative. Received: ${clearanceRadius}`);
   }
 
-  return { maxAttempts, clearanceRadius };
+  if (!Number.isInteger(terrainAffinityMaxAttempts) || terrainAffinityMaxAttempts <= 0) {
+    throw new Error(`terrainAffinityMaxAttempts must be a positive integer. Received: ${terrainAffinityMaxAttempts}`);
+  }
+
+  if (terrainAffinityMinAcceptance < 0 || terrainAffinityMinAcceptance > 1) {
+    throw new Error(`terrainAffinityMinAcceptance must be between 0 and 1. Received: ${terrainAffinityMinAcceptance}`);
+  }
+
+  return {
+    maxAttempts,
+    clearanceRadius,
+    terrain: config.terrain,
+    terrainAffinityMaxAttempts,
+    terrainAffinityMinAcceptance
+  };
 }
 
 type MutableSpawnValidationStats = {
@@ -327,8 +396,10 @@ type MutableSpawnValidationStats = {
   blockedAttemptCount: number;
   fallbackUsedCount: number;
   failedCount: number;
+  terrainResourceSampleCount: number;
+  terrainResourceAffinitySum: number;
+  terrainResourceRejectedCount: number;
 };
-
 
 function createSpawnValidationStats(requestedCount: number): MutableSpawnValidationStats {
   return {
@@ -336,7 +407,10 @@ function createSpawnValidationStats(requestedCount: number): MutableSpawnValidat
     spawnedCount: 0,
     blockedAttemptCount: 0,
     fallbackUsedCount: 0,
-    failedCount: 0
+    failedCount: 0,
+    terrainResourceSampleCount: 0,
+    terrainResourceAffinitySum: 0,
+    terrainResourceRejectedCount: 0
   };
 }
 
@@ -346,7 +420,10 @@ function freezeStats(stats: MutableSpawnValidationStats): SpawnValidationStats {
     spawnedCount: stats.spawnedCount,
     blockedAttemptCount: stats.blockedAttemptCount,
     fallbackUsedCount: stats.fallbackUsedCount,
-    failedCount: stats.failedCount
+    failedCount: stats.failedCount,
+    terrainResourceSampleCount: stats.terrainResourceSampleCount,
+    terrainResourceAffinitySum: stats.terrainResourceAffinitySum,
+    terrainResourceRejectedCount: stats.terrainResourceRejectedCount
   };
 }
 
