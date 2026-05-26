@@ -1,10 +1,12 @@
 # qubok_evolve roadmap
 
-Current status: m31 / 0.1.0-milestone.31.
+Current status: m32 / 0.1.0-milestone.32.
 
 This roadmap splits future work into independent architecture tracks so later milestones do not mix terrain, morphology, controller, renderer, worker, and WebGPU changes in one step.
 
 ## terrain/material track
+
+m32 shipped: terrain/material typed-array layer, material definitions, position-to-cell query API, tests, and benchmark.
 
 Goal: turn the flat world into layered 2D terrain data without coupling terrain to rendering.
 

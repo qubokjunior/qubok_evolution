@@ -34,6 +34,8 @@ Compact milestone index through m30. Older early milestones are summarized at th
 | m28 | Controlled lifecycle pressure scenario validating death -> reusable slot -> birth. | complete |
 | m29 | Death-path audit guarding against direct alive-zero writes outside world.ts. | complete |
 | m30 | README/status sync, milestone index, and repo-status test. | complete |
+| m31 | Roadmap and architecture-track split for future work. | complete |
+| m32 | Terrain/material typed-array layer foundation with query API. | complete |
 
 ## Current next-step candidates
 
