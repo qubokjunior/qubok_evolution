@@ -33,3 +33,16 @@ m19 introduces a minimal `ObstacleMask` as a typed-array occupancy grid:
 | `cellCount` | number | total occupied buffer length |
 
 The mask currently feeds `sectorObstacle` only. It does not yet apply collision response, terrain movement cost, material sampling or signed-distance-field correction.
+## m20 soft obstacle response
+
+m20 adds `applyObstacleSoftResponse()` as the first movement-facing use of `ObstacleMask`.
+
+| Stage | Behavior |
+|---|---|
+| sample | reads occupied cells around each alive agent |
+| response | accumulates force away from nearby occupied cells |
+| boundary | optionally adds inward force near world edges |
+| clamp | caps final force per agent |
+| movement | writes to `world.fx/world.fy`, then existing movement integration handles velocity/position |
+
+This is intentionally soft response, not a hard collision solver.

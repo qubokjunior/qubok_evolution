@@ -1,6 +1,7 @@
 import { applyEnergySurvival, type EnergySurvivalStats } from "./energy";
 import { createRng, type DeterministicRng, type RngSeed } from "./rng";
 import { addForce, stepMovement, type MovementStepMetrics } from "./movement";
+import { applyObstacleSoftResponse, type ObstacleSoftResponseStats } from "./obstacleResponse";
 import { sampleLocalNeighborStats, type LocalNeighborSummary } from "./neighborQuery";
 import {
   applyPredatorPreyInteraction,
@@ -30,7 +31,7 @@ import { applyAgentSensors, type SensorPassStats } from "./sensors";
 import { buildSpatialHashGrid, createSpatialHashGrid, type SpatialHashBuildStats, type SpatialHashGrid } from "./spatialHash";
 import { createWorldState, spawnRandomAgents, type WorldState } from "./world";
 
-export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v10" as const;
+export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v11" as const;
 
 export type DemoSimulationConfig = {
   readonly seed?: RngSeed;
@@ -45,6 +46,9 @@ export type DemoSimulationConfig = {
   readonly resourceCellSize?: number;
   readonly resourcePickupRadius?: number;
   readonly obstacleCellSize?: number;
+  readonly obstacleResponseRadius?: number;
+  readonly obstacleResponseForceScale?: number;
+  readonly obstacleResponseMaxForce?: number;
   readonly sensorRadiusScale?: number;
   readonly sensorFoodTickInterval?: number;
   readonly sensorObstacleTickInterval?: number;
@@ -56,6 +60,7 @@ export type DemoSimulationStepResult = {
   readonly snapshot: RenderSnapshot;
   readonly snapshotStats: RenderSnapshotStats;
   readonly movementMetrics: MovementStepMetrics;
+  readonly obstacleResponseStats: ObstacleSoftResponseStats;
   readonly energyStats: EnergySurvivalStats;
   readonly spatialBuildStats: SpatialHashBuildStats;
   readonly neighborQueryStats: LocalNeighborSummary;
@@ -70,6 +75,7 @@ export type DemoSimulationStepResult = {
   readonly gridBuildMs: number;
   readonly neighborQueryMs: number;
   readonly sensorMs: number;
+  readonly obstacleResponseMs: number;
   readonly predatorPreyMs: number;
   readonly resourceMs: number;
   readonly energyMs: number;
@@ -96,6 +102,9 @@ const DEFAULT_RESOURCE_CAPACITY = 4096;
 const DEFAULT_TARGET_RESOURCE_COUNT = 2400;
 const DEFAULT_RESOURCE_PICKUP_RADIUS = 8;
 const DEFAULT_OBSTACLE_CELL_SIZE = 64;
+const DEFAULT_OBSTACLE_RESPONSE_RADIUS = 42;
+const DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE = 140;
+const DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE = 220;
 const DEFAULT_SENSOR_RADIUS_SCALE = 1;
 const DEFAULT_SENSOR_FOOD_TICK_INTERVAL = 4;
 const DEFAULT_SENSOR_OBSTACLE_TICK_INTERVAL = 8;
@@ -115,6 +124,9 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const resourceCapacity = config.resourceCapacity ?? DEFAULT_RESOURCE_CAPACITY;
   const resourceTargetCount = Math.min(config.targetResourceCount ?? DEFAULT_TARGET_RESOURCE_COUNT, resourceCapacity);
   const resourcePickupRadius = config.resourcePickupRadius ?? DEFAULT_RESOURCE_PICKUP_RADIUS;
+  const obstacleResponseRadius = config.obstacleResponseRadius ?? DEFAULT_OBSTACLE_RESPONSE_RADIUS;
+  const obstacleResponseForceScale = config.obstacleResponseForceScale ?? DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE;
+  const obstacleResponseMaxForce = config.obstacleResponseMaxForce ?? DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE;
   const sensorRadiusScale = config.sensorRadiusScale ?? DEFAULT_SENSOR_RADIUS_SCALE;
   const sensorFoodTickInterval = config.sensorFoodTickInterval ?? DEFAULT_SENSOR_FOOD_TICK_INTERVAL;
   const sensorObstacleTickInterval = config.sensorObstacleTickInterval ?? DEFAULT_SENSOR_OBSTACLE_TICK_INTERVAL;
@@ -148,7 +160,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     cellSize: config.obstacleCellSize ?? DEFAULT_OBSTACLE_CELL_SIZE
   });
 
-  const rng = createRng(config.seed ?? "qubok_evolve:demo:m19");
+  const rng = createRng(config.seed ?? "qubok_evolve:demo:m20");
   spawnDemoAgents(world, initialAgentCount, rng);
   spawnRandomResources(resources, resourceTargetCount, rng);
   seedDemoObstacleMask(obstacleMask);
@@ -160,6 +172,16 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     const start = performance.now();
 
     applyDemoForces(world);
+
+    const obstacleResponseStart = performance.now();
+    const obstacleResponseStats = applyObstacleSoftResponse(world, obstacleMask, {
+      responseRadius: obstacleResponseRadius,
+      forceScale: obstacleResponseForceScale,
+      maxForcePerAgent: obstacleResponseMaxForce,
+      includeWorldBounds: true
+    });
+    const obstacleResponseMs = performance.now() - obstacleResponseStart;
+
     const movementMetrics = stepMovement(world, {
       deltaSeconds: safeDeltaSeconds,
       boundsMode: "wrap",
@@ -257,6 +279,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
       snapshot,
       snapshotStats,
       movementMetrics,
+      obstacleResponseStats,
       energyStats,
       spatialBuildStats,
       neighborQueryStats,
@@ -271,6 +294,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
       gridBuildMs,
       neighborQueryMs,
       sensorMs,
+      obstacleResponseMs,
       predatorPreyMs,
       resourceMs,
       energyMs,

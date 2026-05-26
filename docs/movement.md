@@ -38,3 +38,16 @@ For each alive agent:
 ## Next milestone
 
 Milestone 5 should connect render to runtime snapshots: render many points from WorldState, without storing entity simulation in UI state.
+## m20 obstacle soft response
+
+Obstacle response is applied before `stepMovement()` and writes into the same force buffers used by steering:
+
+```text
+demo steering force
+  ↓
+obstacle soft response force
+  ↓
+stepMovement()
+```
+
+The movement integrator remains unchanged. This keeps obstacle response isolated and testable.
