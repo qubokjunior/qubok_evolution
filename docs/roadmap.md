@@ -1,6 +1,6 @@
 # qubok_evolve roadmap
 
-Current status: m38 / 0.1.0-milestone.38.
+Current status: m39 / 0.1.0-milestone.39.
 
 m34 shipped: terrain Pixi debug render layer.
 
@@ -11,6 +11,8 @@ m36 shipped: terrain resource-affinity spawning and respawning.
 m37 shipped: terrain-aware sensor sampling on controlled cadence.
 
 m38 shipped: terrain-aware reproduction placement using offspring habitat acceptance.
+
+m39 shipped: low-resolution environmental flow field sampled by movement.
 
 ## terrain/material track
 
@@ -28,14 +30,19 @@ Next candidates:
 
 ## fluid-like field track
 
+Shipped sequence:
+- low-resolution environmental field grid;
+- deterministic field sampling by position;
+- movement integration using flow vectors;
+- field movement metrics and overlay labels.
+
 Next likely milestone:
-- m39 low-resolution environmental flow field foundation.
+- m40 environmental field render snapshot and Pixi vector debug layer.
 
 Follow-up candidates:
-- vector field sampled by agents;
-- flow force integration separated from movement;
-- debug render snapshot for field vectors;
-- simple decay/diffusion rules for food scent / pressure / current maps.
+- field vector render decimation;
+- simple decay/diffusion rules for food scent / pressure / current maps;
+- field force integration separated from movement if field systems grow.
 
 ## controller/brain track
 
