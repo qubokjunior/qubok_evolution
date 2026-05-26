@@ -9,6 +9,8 @@ const assert = (condition, message) => { if (!condition) throw new Error(message
 const packageJson = JSON.parse(readText("package.json"));
 const appVersion = readText("src/shared/appVersion.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
+const field = readText("src/sim/field.ts");
+const movement = readText("src/sim/movement.ts");
 const reproduction = readText("src/sim/reproduction.ts");
 const sensors = readText("src/sim/sensors.ts");
 const obstacleRenderSnapshot = readText("src/sim/obstacleRenderSnapshot.ts");
@@ -27,6 +29,7 @@ const roadmapStatusTest = readText("scripts/test-roadmap-status.mjs");
 const terrain = readText("src/sim/terrain.ts");
 const terrainTest = readText("scripts/test-terrain.mjs");
 const terrainBench = readText("scripts/bench-terrain.mjs");
+const fieldTest = readText("scripts/test-field.mjs");
 const terrainRenderSnapshot = readText("src/sim/terrainRenderSnapshot.ts");
 const terrainRenderSnapshotTest = readText("scripts/test-terrain-render-snapshot.mjs");
 const terrainRenderSnapshotBench = readText("scripts/bench-terrain-render-snapshot.mjs");
@@ -36,12 +39,13 @@ const terrainResourceAffinityTest = readText("scripts/test-terrain-resource-affi
 const terrainSensorSamplingTest = readText("scripts/test-terrain-sensor-sampling.mjs");
 const terrainReproductionPlacementTest = readText("scripts/test-terrain-reproduction-placement.mjs");
 const deathPathAuditTest = readText("scripts/test-death-path-audit.mjs");
+const integrationM39 = readText("docs/integration_m39.md");
 
-assert(packageJson.version === "0.1.0-milestone.38", "package.json version must be 0.1.0-milestone.38.");
-assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.38"'), "appVersion must expose milestone.38.");
-assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m38"'), "appVersion must expose m38 overlay label.");
-assert(demoSimulation.includes('DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v20"'), "demo simulation must expose v20.");
-assert(demoSimulation.includes('qubok_evolve:demo:m38'), "demo seed must expose m38.");
+assert(packageJson.version === "0.1.0-milestone.39", "package.json version must be 0.1.0-milestone.39.");
+assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.39"'), "appVersion must expose milestone.39.");
+assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m39"'), "appVersion must expose m39 overlay label.");
+assert(demoSimulation.includes('DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v21"'), "demo simulation must expose v21.");
+assert(demoSimulation.includes('qubok_evolve:demo:m39'), "demo seed must expose m39.");
 
 assert(energy.includes("killAgent(world, index)"), "energy deaths must use killAgent so dead slots enter the free-list.");
 assert(predatorPrey.includes("killAgent(world, preyIndex)"), "predator/prey kills must use killAgent so dead slots enter the free-list.");
@@ -50,19 +54,21 @@ assert(deathPathAuditTest.includes("direct alive-zero writes"), "death path audi
 assert(packageJson.scripts["test:death-path-audit"] === "node scripts/test-death-path-audit.mjs", "package.json must expose test:death-path-audit.");
 assert(packageJson.scripts.test.includes("test:death-path-audit"), "npm run test must include death path audit.");
 
-assert(readme.includes("0.1.0-milestone.38"), "README must expose the current milestone version.");
+assert(readme.includes("0.1.0-milestone.39"), "README must expose the current milestone version.");
 assert(readme.includes("docs/milestones.md"), "README must link the milestone index.");
-assert(readme.includes("docs/integration_m38.md"), "README must link m38 integration doc.");
-assert(milestones.includes("| m38 |"), "milestones index must include m38.");
-assert(repoStatusTest.includes("0.1.0-milestone.38"), "repo status test must validate m38 status sync.");
+assert(readme.includes("docs/integration_m39.md"), "README must link m39 integration doc.");
+assert(milestones.includes("| m39 |"), "milestones index must include m39.");
+assert(repoStatusTest.includes("0.1.0-milestone.39"), "repo status test must validate m39 status sync.");
 assert(packageJson.scripts["test:repo-status"] === "node scripts/test-repo-status.mjs", "package.json must expose test:repo-status.");
 assert(packageJson.scripts.test.includes("test:repo-status"), "npm run test must include repo status test.");
 assert(readme.includes("docs/roadmap.md"), "README must link roadmap docs.");
 assert(roadmap.includes("terrain/material track"), "roadmap must include terrain/material track.");
+assert(roadmap.includes("fluid-like field track"), "roadmap must include fluid-like field track.");
 assert(roadmap.includes("controller/brain track"), "roadmap must include controller/brain track.");
-assert(roadmap.includes("m38 shipped: terrain-aware reproduction placement using offspring habitat acceptance"), "roadmap must include m38 shipped note.");
+assert(roadmap.includes("m39 shipped: low-resolution environmental flow field sampled by movement"), "roadmap must include m39 shipped note.");
+assert(roadmap.includes("m40 environmental field render snapshot and Pixi vector debug layer"), "roadmap must include m40 next candidate.");
 assert(architectureTracks.includes("renderer must not own authoritative simulation state"), "architecture tracks must preserve sim/render boundary.");
-assert(roadmapStatusTest.includes("terrainOffspringSampleCount"), "roadmap status test must validate terrain offspring metrics.");
+assert(roadmapStatusTest.includes("fieldMovementSampleCount"), "roadmap status test must validate field movement metrics.");
 assert(packageJson.scripts["test:roadmap-status"] === "node scripts/test-roadmap-status.mjs", "package.json must expose test:roadmap-status.");
 assert(packageJson.scripts.test.includes("test:roadmap-status"), "npm run test must include roadmap status test.");
 
@@ -73,6 +79,16 @@ assert(terrain.includes("TERRAIN_LAYER_VERSION"), "terrain module must expose ve
 assert(terrain.includes("sampleTerrainAtPosition"), "terrain module must expose position sampling query.");
 assert(terrainTest.includes("terrain tests passed"), "terrain test must expose pass token.");
 assert(terrainBench.includes("bench-terrain:m32"), "terrain benchmark must expose m32 bench token.");
+
+assert(packageJson.scripts["test:field"] === "node scripts/test-field.mjs", "package.json must expose test:field.");
+assert(packageJson.scripts.test.includes("test:field"), "npm run test must include field tests.");
+assert(field.includes("FIELD_LAYER_VERSION"), "field module must expose version token.");
+assert(field.includes("createEnvironmentalFieldLayer"), "field module must expose field creation.");
+assert(field.includes("sampleFieldAtPosition"), "field module must expose position sampling query.");
+assert(field.includes("flowX"), "field module must expose flowX channel.");
+assert(field.includes("flowY"), "field module must expose flowY channel.");
+assert(fieldTest.includes("environmental field tests passed"), "field test must expose pass token.");
+assert(integrationM39.includes("environmental flow field"), "integration_m39 must describe environmental flow field.");
 
 assert(packageJson.scripts["test:terrain-render-snapshot"] === "node scripts/test-terrain-render-snapshot.mjs", "package.json must expose test:terrain-render-snapshot.");
 assert(packageJson.scripts["bench:terrain-render-snapshot"] === "node scripts/bench-terrain-render-snapshot.mjs", "package.json must expose bench:terrain-render-snapshot.");
@@ -98,6 +114,22 @@ assert(perfMetrics.includes("terrainMovementSampleCount"), "perf metrics must ex
 assert(pixiRenderer.includes("terrainMovementCostSum"), "pixiRenderer must record terrain movement cost metric.");
 assert(debugOverlay.includes("terrain move samples"), "debugOverlay must expose terrain movement labels.");
 assert(terrainMovementQueryTest.includes("terrain movement query tests passed"), "terrain movement query test must expose pass token.");
+
+assert(movement.includes('MOVEMENT_SYSTEM_VERSION = "qubok_evolve.movement.v3"'), "movement must expose v3.");
+assert(movement.includes("field?: EnvironmentalFieldLayer"), "movement must accept environmental field.");
+assert(movement.includes("fieldForceScale"), "movement must expose fieldForceScale.");
+assert(movement.includes("sampleFieldAtPosition"), "movement must sample field.");
+assert(movement.includes("fieldMovementSampleCount"), "movement must expose field movement stats.");
+assert(movement.includes("fieldFlowMagnitudeSum"), "movement must expose field flow magnitude stats.");
+assert(demoSimulation.includes("createEnvironmentalFieldLayer"), "demoSimulation must create field.");
+assert(demoSimulation.includes("seedDemoField"), "demoSimulation must seed demo field.");
+assert(demoSimulation.includes("fieldForceScale"), "demoSimulation must expose field force scale.");
+assert(perfMetrics.includes("fieldMovementSampleCount"), "perf metrics must expose fieldMovementSampleCount.");
+assert(perfMetrics.includes("fieldFlowMagnitudeSum"), "perf metrics must expose fieldFlowMagnitudeSum.");
+assert(pixiRenderer.includes("fieldMovementSampleCount"), "pixiRenderer must record fieldMovementSampleCount.");
+assert(pixiRenderer.includes("fieldFlowMagnitudeSum"), "pixiRenderer must record fieldFlowMagnitudeSum.");
+assert(debugOverlay.includes("field move samples"), "debugOverlay must expose field move label.");
+assert(debugOverlay.includes("field flow mag"), "debugOverlay must expose field flow magnitude label.");
 
 assert(packageJson.scripts["test:terrain-resource-affinity"] === "node scripts/test-terrain-resource-affinity.mjs", "package.json must expose test:terrain-resource-affinity.");
 assert(packageJson.scripts.test.includes("test:terrain-resource-affinity"), "npm run test must include terrain resource affinity test.");
