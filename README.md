@@ -27,7 +27,7 @@ Implemented runtime foundations:
 - render debug controls, keyboard layer toggles, and grouped overlay metrics;
 - field decay/diffusion foundation with deterministic dynamics, scratch buffers, metrics, benchmark, demo wiring, and overlay labels;
 - field sources/sinks foundation with deterministic resource-driven vector emission, agent absorption, demo wiring, metrics, overlay labels, tests, and benchmark;
-- m44 in progress: field source semantics tuning and visualization QA.
+- field source semantics tuning and visualization QA with resource energy/radius source scaling, agent radius/energy-pressure absorption, runtime visual QA, and overlay/readout guards.
 
 ## Commands
 
@@ -70,7 +70,7 @@ http://127.0.0.1:5173/
 - `docs/integration_m41.md` — render debug controls and overlay grouping milestone.
 - `docs/integration_m42.md` — field decay/diffusion foundation milestone.
 - `docs/integration_m43.md` — field sources/sinks foundation milestone.
-- `docs/integration_m44.md` — field source semantics tuning and visualization QA milestone setup.
+- `docs/integration_m44.md` — field source semantics tuning and visualization QA milestone.
 
 ## Boundary rule
 

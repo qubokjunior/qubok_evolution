@@ -59,7 +59,7 @@ assert(packageJson.scripts["bench:field-sources"] === "node scripts/bench-field-
 assert(packageJson.scripts.test.includes("test:field-sources"), "npm run test must include test:field-sources.");
 assert(readme.includes("m43") && readme.includes("field sources/sinks"), "README must preserve shipped m43 field sources/sinks summary.");
 assert(milestones.includes("| m43 |") && milestones.includes("complete"), "milestones must preserve m43 as complete.");
-assert(roadmap.includes("m44 in progress: field source semantics tuning and visualization QA"), "roadmap must include m44 current milestone.");
+assert(roadmap.includes("m44 shipped: field source semantics tuning and visualization QA"), "roadmap must include m44 shipped milestone.");
 assert(integrationM43.includes("field sources") && integrationM43.includes("sinks"), "integration_m43 must describe field sources/sinks.");
 
 console.log("field sources integration tests passed");

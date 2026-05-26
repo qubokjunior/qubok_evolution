@@ -1,19 +1,19 @@
 # Integration m44 — field source semantics tuning and visualization QA
 
-Milestone m44 starts from m43 / 0.1.0-milestone.43 and tunes field source/sink behavior after the first shipped demo wiring.
+Milestone m44 ships on 0.1.0-milestone.44 and tunes field source/sink behavior after the first shipped demo wiring.
 
 ## Goal
 
 M44 should make field source semantics easier to reason about and easier to debug visually. Resource-driven sources and agent-driven sinks already exist; this milestone focuses on making their strengths interpretable, testable, and useful in the live overlay.
 
-## Planned scope
+## Shipped scope
 
-- tune resource source strength so it has a clear relation to resource state, such as energy and radius;
-- tune agent sink absorption so it has a clear relation to agent presence without instantly erasing the field;
-- add deterministic QA checks for demo source/sink behavior;
-- preserve existing field source/sink API boundaries;
-- preserve renderer-agnostic simulation logic;
-- keep visualization QA on the current overlay/vector layer rather than rewriting rendering.
+- tuned resource source strength so it has a clear relation to resource energy and radius;
+- tuned agent sink absorption so it relates to agent radius and low-energy pressure without instantly erasing the field;
+- added deterministic QA checks for demo source/sink behavior;
+- preserved existing field source/sink API boundaries;
+- preserved renderer-agnostic simulation logic;
+- kept visualization QA on the current overlay/vector layer rather than rewriting rendering.
 
 ## Runtime visualization QA
 
@@ -46,3 +46,9 @@ M44 should make field source semantics easier to reason about and easier to debu
 - npm run test:repo-status
 - npm run test:roadmap-status
 - npm run build
+
+## Commits
+
+- `de06bbc` — Tune m44 field source demo semantics
+- `330b3ab` — Add m44 field source visual QA
+- `2d68d44` — Add m44 field source overlay QA

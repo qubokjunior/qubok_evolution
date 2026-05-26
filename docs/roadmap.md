@@ -22,7 +22,7 @@ m42 shipped: field decay/diffusion foundation with deterministic dynamics, bench
 
 m43 shipped: field sources/sinks foundation with demo wiring and overlay metrics.
 
-m44 in progress: field source semantics tuning and visualization QA.
+m44 shipped: field source semantics tuning and visualization QA.
 
 ## terrain/material track
 
@@ -49,7 +49,8 @@ Shipped sequence:
 - Pixi vector debug layer with decimated arrows and field render metrics;
 - field vector visibility and render debug controls;
 - deterministic field decay/diffusion step with scratch buffers, metrics, benchmark, demo wiring, and overlay labels;
-- deterministic field sources/sinks with resource-driven vector emission, agent absorption, demo wiring, metrics, benchmark, and overlay labels.
+- deterministic field sources/sinks with resource-driven vector emission, agent absorption, demo wiring, metrics, benchmark, and overlay labels;
+- field source semantics tuning with resource energy/radius scaling, agent radius/energy-pressure absorption, runtime visual QA, and overlay/readout guards.
 
 Current milestone:
 - m44 field source semantics tuning and visualization QA.
@@ -59,7 +60,8 @@ M44 scope:
 - make agent absorption strength easier to interpret and test;
 - add deterministic QA checks for demo field source/sink behavior;
 - keep field source semantics simulation-only and renderer-agnostic;
-- keep visualization QA focused on existing overlay/readout behavior, not a render rewrite.
+- keep visualization QA focused on existing overlay/readout behavior, not a render rewrite;
+- add `test:field-source-demo-semantics`, `test:field-source-visual-qa`, and `test:field-source-overlay-qa`.
 
 Follow-up candidates:
 - obstacle/terrain damping sources or sinks;

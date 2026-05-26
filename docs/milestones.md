@@ -47,9 +47,9 @@ Compact milestone index through m44. Older early milestones are summarized at th
 | m41 | Render debug controls, field/terrain/obstacle visibility toggles, keyboard layer toggles, and grouped overlay metrics. | complete |
 | m42 | Field decay/diffusion foundation with deterministic field dynamics, metrics, benchmark, demo wiring, and overlay labels. | complete |
 | m43 | Field sources/sinks foundation for deterministic emission and absorption into environmental fields, demo wiring, overlay metrics, tests, and benchmark. | complete |
-| m44 | Field source semantics tuning and visualization QA. | in progress |
+| m44 | Field source semantics tuning and visualization QA with runtime visual and overlay/readout guards. | complete |
 
 ## Current next-step candidates
 
-- m44: field source semantics tuning and visualization QA. [in progress]
+- Next: obstacle/terrain damping sources or controller/brain first pass after field source behavior is stable.
 - Later: field transport/advection, signed-distance-field correction, controller/brain layer, morphology compiler/editor, workerization, and WebGPU experiments.

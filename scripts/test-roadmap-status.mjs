@@ -74,6 +74,6 @@ for (const requiredToken of ["fieldSourcesMs", "fieldSourceCount", "fieldSinkCou
 assert(integrationM44.includes("field source semantics tuning") && integrationM44.includes("visualization QA"), "integration_m44 must describe field source semantics tuning and visualization QA.");
 
 
-assert(roadmap.includes("m44 in progress: field source semantics tuning and visualization QA"), "roadmap must include m44 current milestone.");
+assert(roadmap.includes("m44 shipped: field source semantics tuning and visualization QA"), "roadmap must include m44 shipped milestone.");
 
 console.log("roadmap status tests passed");
