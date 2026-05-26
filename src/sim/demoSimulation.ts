@@ -1,4 +1,4 @@
-import { applyEnergySurvival, type EnergySurvivalStats } from "./energy";
+﻿import { applyEnergySurvival, type EnergySurvivalStats } from "./energy";
 import { createRng, type DeterministicRng, type RngSeed } from "./rng";
 import { addForce, stepMovement, type MovementStepMetrics } from "./movement";
 import {
@@ -42,6 +42,8 @@ import {
 } from "./spawnValidation";
 import { buildSpatialHashGrid, createSpatialHashGrid, type SpatialHashBuildStats, type SpatialHashGrid } from "./spatialHash";
 import { createWorldState, type WorldState } from "./world";
+import { createTerrainLayer, setTerrainRectMaterial, type TerrainLayer } from "./terrain";
+import { makeTerrainRenderSnapshot, type TerrainRenderSnapshot } from "./terrainRenderSnapshot";
 
 export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v16" as const;
 
@@ -76,6 +78,7 @@ export type DemoSimulationConfig = {
 export type DemoSimulationStepResult = {
   readonly snapshot: RenderSnapshot;
   readonly obstacleMaskSnapshot: ObstacleMaskRenderSnapshot;
+  readonly terrainRenderSnapshot: TerrainRenderSnapshot;
   readonly snapshotStats: RenderSnapshotStats;
   readonly movementMetrics: MovementStepMetrics;
   readonly obstacleResponseStats: ObstacleSoftResponseStats;
@@ -108,6 +111,7 @@ export type DemoSimulationHandle = {
   readonly spatialGrid: SpatialHashGrid;
   readonly resources: ResourceLayer;
   readonly obstacleMask: ObstacleMask;
+  readonly terrain: TerrainLayer;
   readonly initialAgentSpawnStats: SpawnValidationStats;
   readonly initialResourceSpawnStats: SpawnValidationStats;
   readonly step: (deltaSeconds: number) => DemoSimulationStepResult;
@@ -124,6 +128,7 @@ const DEFAULT_RESOURCE_CAPACITY = 4096;
 const DEFAULT_TARGET_RESOURCE_COUNT = 2400;
 const DEFAULT_RESOURCE_PICKUP_RADIUS = 8;
 const DEFAULT_OBSTACLE_CELL_SIZE = 64;
+const DEFAULT_TERRAIN_CELL_SIZE = 64;
 const DEFAULT_OBSTACLE_RESPONSE_RADIUS = 42;
 const DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE = 140;
 const DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE = 220;
@@ -192,13 +197,29 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     cellSize: config.obstacleCellSize ?? DEFAULT_OBSTACLE_CELL_SIZE
   });
 
+  const terrain = createTerrainLayer({
+    worldWidth,
+    worldHeight,
+    cellSize: DEFAULT_TERRAIN_CELL_SIZE
+  });
+
   const rng = createRng(config.seed ?? "qubok_evolve:demo:m25");
   seedDemoObstacleMask(obstacleMask);
+  seedDemoTerrain(terrain);
   const obstacleMaskSnapshot = makeObstacleMaskRenderSnapshot(obstacleMask);
   const spawnConfig = { maxAttempts: spawnMaxAttempts, clearanceRadius: spawnClearanceRadius };
   const initialAgentSpawnStats = spawnRandomAgentsAvoidingObstacles(world, initialAgentCount, rng, obstacleMask, spawnConfig);
   tuneDemoAgents(world, rng);
-  const initialResourceSpawnStats = spawnRandomResourcesAvoidingObstacles(resources, resourceTargetCount, rng, obstacleMask, spawnConfig);
+  const initialResourceSpawnStats =
+    resourceTargetCount > 0
+      ? spawnRandomResourcesAvoidingObstacles(resources, resourceTargetCount, rng, obstacleMask, spawnConfig)
+      : {
+          requestedCount: 0,
+          spawnedCount: 0,
+          blockedAttemptCount: 0,
+          fallbackUsedCount: 0,
+          failedCount: 0
+        };
   buildSpatialHashGrid(spatialGrid, world);
   rebuildResourceGrid(resources);
 
@@ -327,12 +348,14 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     });
 
     const snapshot = makeRenderSnapshot(world);
+    const terrainRenderSnapshot = makeTerrainRenderSnapshot(terrain);
     const snapshotStats = analyzeRenderSnapshot(snapshot);
     const simMsPerTick = performance.now() - start;
 
     return {
       snapshot,
       obstacleMaskSnapshot,
+      terrainRenderSnapshot,
       snapshotStats,
       movementMetrics,
       obstacleResponseStats,
@@ -366,6 +389,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     spatialGrid,
     resources,
     obstacleMask,
+    terrain,
     initialAgentSpawnStats,
     initialResourceSpawnStats,
     step,
@@ -454,3 +478,10 @@ function getSpeciesColorRGBA(species: number): number {
       return 0xfff08aff;
   }
 }
+
+function seedDemoTerrain(terrain: TerrainLayer): void {
+  setTerrainRectMaterial(terrain, 0, 0, terrain.worldWidth * 0.32, terrain.worldHeight, 1);
+  setTerrainRectMaterial(terrain, terrain.worldWidth * 0.35, terrain.worldHeight * 0.18, terrain.worldWidth * 0.66, terrain.worldHeight * 0.46, 2);
+  setTerrainRectMaterial(terrain, terrain.worldWidth * 0.58, terrain.worldHeight * 0.58, terrain.worldWidth, terrain.worldHeight, 3);
+}
+

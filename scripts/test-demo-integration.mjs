@@ -34,11 +34,12 @@ const terrainBench = readText("scripts/bench-terrain.mjs");
 const terrainRenderSnapshot = readText("src/sim/terrainRenderSnapshot.ts");
 const terrainRenderSnapshotTest = readText("scripts/test-terrain-render-snapshot.mjs");
 const terrainRenderSnapshotBench = readText("scripts/bench-terrain-render-snapshot.mjs");
+const terrainDebugRenderLayerTest = readText("scripts/test-terrain-debug-render-layer.mjs");
 const deathPathAuditTest = readText("scripts/test-death-path-audit.mjs");
 
-assert(packageJson.version === "0.1.0-milestone.33", "package.json version must be 0.1.0-milestone.33.");
-assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.33"'), "appVersion must expose milestone.33.");
-assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m33"'), "appVersion must expose m33 overlay label.");
+assert(packageJson.version === "0.1.0-milestone.34", "package.json version must be 0.1.0-milestone.34.");
+assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.34"'), "appVersion must expose milestone.34.");
+assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m34"'), "appVersion must expose m34 overlay label.");
 assert(energy.includes("killAgent(world, index)"), "energy deaths must use killAgent so dead slots enter the free-list.");
 assert(predatorPrey.includes("killAgent(world, preyIndex)"), "predator/prey kills must use killAgent so dead slots enter the free-list.");
 assert(lifecyclePressureTest.includes("death -> reusable slot -> birth"), "lifecycle pressure test must document the lifecycle loop.");
@@ -47,9 +48,9 @@ assert(deathPathAuditTest.includes("energy.ts must route death through killAgent
 assert(deathPathAuditTest.includes("predatorPrey.ts must route kills through killAgent"), "death path audit must lock predator/prey kill routing.");
 assert(packageJson.scripts["test:death-path-audit"] === "node scripts/test-death-path-audit.mjs", "package.json must expose test:death-path-audit.");
 assert(packageJson.scripts.test.includes("test:death-path-audit"), "npm run test must include death path audit.");
-assert(readme.includes("0.1.0-milestone.33"), "README must expose the current milestone version.");
+assert(readme.includes("0.1.0-milestone.34"), "README must expose the current milestone version.");
 assert(readme.includes("docs/milestones.md"), "README must link the milestone index.");
-assert(milestones.includes("| m33 |"), "milestones index must include m33.");
+assert(milestones.includes("| m34 |"), "milestones index must include m33.");
 assert(repoStatusTest.includes("README.md"), "repo status test must validate README status sync.");
 assert(packageJson.scripts["test:repo-status"] === "node scripts/test-repo-status.mjs", "package.json must expose test:repo-status.");
 assert(packageJson.scripts.test.includes("test:repo-status"), "npm run test must include repo status test.");
@@ -75,6 +76,14 @@ assert(terrainRenderSnapshot.includes("makeTerrainRenderSnapshot"), "terrain ren
 assert(terrainRenderSnapshot.includes("analyzeTerrainRenderSnapshot"), "terrain render snapshot module must expose snapshot analyzer.");
 assert(terrainRenderSnapshotTest.includes("terrain render snapshot tests passed"), "terrain render snapshot test must expose pass token.");
 assert(terrainRenderSnapshotBench.includes("bench-terrain-render-snapshot:m33"), "terrain render snapshot bench must expose m33 bench token.");
+assert(packageJson.scripts["test:terrain-debug-render-layer"] === "node scripts/test-terrain-debug-render-layer.mjs", "package.json must expose test:terrain-debug-render-layer.");
+assert(packageJson.scripts.test.includes("test:terrain-debug-render-layer"), "npm run test must include terrain debug render layer test.");
+assert(demoSimulation.includes("terrainRenderSnapshot"), "demoSimulation must emit terrainRenderSnapshot.");
+assert(pixiRenderer.includes("renderTerrainLayer"), "pixiRenderer must expose terrain render layer function.");
+assert(pixiRenderer.includes("terrainLayer"), "pixiRenderer must own terrainLayer.");
+assert(debugOverlay.includes("terrain render"), "debugOverlay must expose terrain render label.");
+assert(perfMetrics.includes("terrainRenderTruncated"), "perf metrics must expose terrainRenderTruncated.");
+assert(terrainDebugRenderLayerTest.includes("terrain debug render layer tests passed"), "terrain debug render layer test must expose pass token.");
 
 for (const forbiddenImport of ["../render/", "./render/", "../ui/", "./ui/", "pixi.js", "react"]) {
   assert(!demoSimulation.includes(forbiddenImport), `demoSimulation must not import forbidden boundary token: ${forbiddenImport}`);
