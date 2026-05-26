@@ -466,3 +466,19 @@ body {
 .qubok_evolve-control-stack:hover {
   scrollbar-color: rgba(124, 199, 255, 0.34) rgba(7, 10, 13, 0.32);
 }
+
+
+.qubok_evolve-control-textarea {
+  width: 100%;
+  min-height: 54px;
+  resize: vertical;
+  padding: 4px 5px;
+  border: 1px solid rgba(122, 152, 184, 0.22);
+  border-radius: 3px;
+  background: rgba(12, 17, 22, 0.92);
+  color: #d7e6f5;
+  font: inherit;
+  font-size: 10px;
+  line-height: 1.35;
+  scrollbar-width: thin;
+}

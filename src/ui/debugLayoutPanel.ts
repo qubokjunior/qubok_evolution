@@ -1,6 +1,6 @@
 import { clearStoredRenderDebugConfig } from "../render/renderDebugConfigPersistence";
 import { clearStoredFieldDampingConfig } from "../sim/fieldDampingConfigPersistence";
-import { serializeDebugConfigPreset } from "./debugConfigPreset";
+import { applyDebugConfigPresetText, serializeDebugConfigPreset } from "./debugConfigPreset";
 import { createCollapsibleControlPanel, createControlSection } from "./controlPanelPrimitives";
 
 export type DebugLayoutPanelHandle = {
@@ -32,6 +32,15 @@ export function createDebugLayoutPanel(host: HTMLElement): DebugLayoutPanelHandl
   copyPresetButton.className = "qubok_evolve-control-button qubok_evolve-control-button--wide";
   copyPresetButton.textContent = "copy debug preset";
 
+  const presetInput = document.createElement("textarea");
+  presetInput.className = "qubok_evolve-control-textarea";
+  presetInput.placeholder = "paste debug preset JSON";
+
+  const importPresetButton = document.createElement("button");
+  importPresetButton.type = "button";
+  importPresetButton.className = "qubok_evolve-control-button qubok_evolve-control-button--wide";
+  importPresetButton.textContent = "import preset + reload";
+
   const resetButton = document.createElement("button");
   resetButton.type = "button";
   resetButton.className = "qubok_evolve-control-button qubok_evolve-control-button--wide";
@@ -52,6 +61,16 @@ export function createDebugLayoutPanel(host: HTMLElement): DebugLayoutPanelHandl
     }
   });
 
+  importPresetButton.addEventListener("click", () => {
+    try {
+      const result = applyDebugConfigPresetText(presetInput.value);
+      status.textContent = `imported preset · layout ${result.layoutKeyCount} · render ${result.hasRenderDebugConfig ? "yes" : "no"} · damping ${result.hasFieldDampingConfig ? "yes" : "no"} · reloading`;
+      window.setTimeout(() => window.location.reload(), 80);
+    } catch {
+      status.textContent = "invalid debug preset JSON";
+    }
+  });
+
   resetButton.addEventListener("click", () => {
     const removedCount = clearDebugLayoutState();
     clearStoredRenderDebugConfig();
@@ -60,7 +79,7 @@ export function createDebugLayoutPanel(host: HTMLElement): DebugLayoutPanelHandl
     window.setTimeout(() => window.location.reload(), 80);
   });
 
-  panel.body.append(createControlSection(copyPresetButton, resetButton, status));
+  panel.body.append(createControlSection(copyPresetButton, presetInput, importPresetButton, resetButton, status));
 
   return {
     destroy: panel.destroy
