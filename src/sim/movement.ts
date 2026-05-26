@@ -1,7 +1,8 @@
 import { assertFiniteNumber, assertIndexInRange } from "./arrays";
+import { sampleTerrainAtPosition, type TerrainLayer } from "./terrain";
 import type { WorldState } from "./world";
 
-export const MOVEMENT_SYSTEM_VERSION = "qubok_evolve.movement.v1" as const;
+export const MOVEMENT_SYSTEM_VERSION = "qubok_evolve.movement.v2" as const;
 
 export type BoundsMode = "none" | "wrap" | "clamp";
 
@@ -10,6 +11,7 @@ export type MovementStepConfig = {
   readonly boundsMode?: BoundsMode;
   readonly clearForces?: boolean;
   readonly minimumEnergy?: number;
+  readonly terrain?: TerrainLayer;
 };
 
 export type MovementStepMetrics = {
@@ -20,11 +22,17 @@ export type MovementStepMetrics = {
   readonly deadCount: number;
   readonly distanceAccumulated: number;
   readonly energySpent: number;
+  readonly terrainMovementSampleCount: number;
+  readonly terrainMovementCostSum: number;
+  readonly terrainFrictionSum: number;
+  readonly terrainDragSum: number;
 };
 
 const EPSILON = 0.000001;
 const DEFAULT_MINIMUM_ENERGY = 0;
 const MAX_DELTA_SECONDS = 0.25;
+const MIN_TERRAIN_SPEED_SCALE = 0.1;
+const MAX_TERRAIN_SPEED_SCALE = 2;
 
 export function addForce(world: WorldState, index: number, fx: number, fy: number): void {
   assertIndexInRange(index, world.count, "agent index");
@@ -53,6 +61,7 @@ export function stepMovement(world: WorldState, config: MovementStepConfig): Mov
   const boundsMode = config.boundsMode ?? "wrap";
   const clearForcesAfterStep = config.clearForces ?? true;
   const minimumEnergy = config.minimumEnergy ?? DEFAULT_MINIMUM_ENERGY;
+  const terrain = config.terrain;
 
   assertFiniteNumber(minimumEnergy, "minimumEnergy");
 
@@ -61,6 +70,10 @@ export function stepMovement(world: WorldState, config: MovementStepConfig): Mov
   let deadCount = 0;
   let distanceAccumulated = 0;
   let energySpent = 0;
+  let terrainMovementSampleCount = 0;
+  let terrainMovementCostSum = 0;
+  let terrainFrictionSum = 0;
+  let terrainDragSum = 0;
 
   for (let index = 0; index < world.count; index += 1) {
     if (world.alive[index] !== 1) {
@@ -71,17 +84,29 @@ export function stepMovement(world: WorldState, config: MovementStepConfig): Mov
 
     const previousX = world.x[index];
     const previousY = world.y[index];
+    const terrainSample = terrain ? sampleTerrainAtPosition(terrain, previousX, previousY) : undefined;
+    const terrainMovementCost = Math.max(EPSILON, terrainSample?.movementCost ?? 1);
+    const terrainFriction = Math.max(0, terrainSample?.friction ?? 1);
+    const terrainDrag = Math.max(0, terrainSample?.drag ?? 0);
+
+    if (terrainSample) {
+      terrainMovementSampleCount += 1;
+      terrainMovementCostSum += terrainMovementCost;
+      terrainFrictionSum += terrainFriction;
+      terrainDragSum += terrainDrag;
+    }
 
     const safeMass = Math.max(world.mass[index], EPSILON);
     let vx = world.vx[index] + (world.fx[index] / safeMass) * deltaSeconds;
     let vy = world.vy[index] + (world.fy[index] / safeMass) * deltaSeconds;
 
-    const drag = Math.max(0, world.drag[index]);
+    const drag = Math.max(0, world.drag[index] + terrainDrag);
     const dragFactor = Math.max(0, 1 - drag * deltaSeconds);
     vx *= dragFactor;
     vy *= dragFactor;
 
-    const maxSpeed = Math.max(0, world.maxSpeed[index]);
+    const terrainSpeedScale = clamp(terrainFriction / terrainMovementCost, MIN_TERRAIN_SPEED_SCALE, MAX_TERRAIN_SPEED_SCALE);
+    const maxSpeed = Math.max(0, world.maxSpeed[index] * terrainSpeedScale);
     const speedBeforeClamp = Math.hypot(vx, vy);
     let speed = speedBeforeClamp;
 
@@ -118,7 +143,7 @@ export function stepMovement(world: WorldState, config: MovementStepConfig): Mov
     }
 
     const basalCost = Math.max(0, world.metabolism[index]) * deltaSeconds;
-    const movementCost = frameDistance * safeMass * 0.0005;
+    const movementCost = frameDistance * safeMass * 0.0005 * terrainMovementCost;
     const spent = basalCost + movementCost;
     world.energy[index] -= spent;
     energySpent += spent;
@@ -149,7 +174,11 @@ export function stepMovement(world: WorldState, config: MovementStepConfig): Mov
     movedCount,
     deadCount,
     distanceAccumulated,
-    energySpent
+    energySpent,
+    terrainMovementSampleCount,
+    terrainMovementCostSum,
+    terrainFrictionSum,
+    terrainDragSum
   };
 }
 

@@ -2,7 +2,7 @@
 
 High-performance realtime 2D artificial-life ecosystem simulator.
 
-Current status: m34 / 0.1.0-milestone.34.
+Current status: m35 / 0.1.0-milestone.35.
 
 ## What exists now
 
@@ -18,7 +18,8 @@ Implemented runtime foundations:
 - static tests guarding architecture boundaries, repo status, roadmap status, and lifecycle death routing;
 - terrain/material data layer with deterministic cell/material sampling;
 - terrain render snapshot foundation for future terrain debug visualization;
-- terrain Pixi debug render layer with overlay metrics.
+- terrain Pixi debug render layer with overlay metrics;
+- terrain movement query integration using material friction, drag, and movement cost.
 
 ## Commands
 
@@ -37,6 +38,7 @@ npm run test:roadmap-status
 npm run test:terrain
 npm run test:terrain-render-snapshot
 npm run test:terrain-debug-render-layer
+npm run test:terrain-movement-query
 npm run test:death-path-audit
 npm run test:lifecycle-pressure
 npm run bench:world-free-list
@@ -51,11 +53,11 @@ http://127.0.0.1:5173/
 
 ## Milestones and docs
 
-- `docs/milestones.md` — compact milestone index through m34.
+- `docs/milestones.md` — compact milestone index through m35.
 - `docs/roadmap.md` — development tracks after m31.
 - `docs/architecture_tracks.md` — boundary contracts for future work.
 - `docs/world_state.md` — typed-array world state and lifecycle slot contract.
-- `docs/integration_m34.md` — current terrain debug render layer milestone.
+- `docs/integration_m35.md` — current terrain movement query milestone.
 
 ## Boundary rule
 
