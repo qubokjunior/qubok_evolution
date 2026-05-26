@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import ts from "typescript";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -19,9 +19,10 @@ const output = ts.transpileModule(source, {
     strict: true
   }
 }).outputText;
-writeFileSync(resolve(tmpDir, "renderDebugConfig.mjs"), output);
+const transpiledPath = resolve(tmpDir, "renderDebugConfig.mjs");
+writeFileSync(transpiledPath, output);
 
-const mod = await import(resolve(tmpDir, "renderDebugConfig.mjs").href ?? `file://${resolve(tmpDir, "renderDebugConfig.mjs")}`);
+const mod = await import(pathToFileURL(transpiledPath).href);
 
 assert(source.includes("RENDER_DEBUG_CONFIG_VERSION"), "render debug config must expose version token.");
 assert(source.includes("DEFAULT_RENDER_DEBUG_CONFIG"), "render debug config must expose defaults.");
