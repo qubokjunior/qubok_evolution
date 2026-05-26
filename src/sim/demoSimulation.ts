@@ -45,7 +45,7 @@ import { createWorldState, type WorldState } from "./world";
 import { createTerrainLayer, setTerrainRectMaterial, type TerrainLayer } from "./terrain";
 import { makeTerrainRenderSnapshot, type TerrainRenderSnapshot } from "./terrainRenderSnapshot";
 
-export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v19" as const;
+export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v20" as const;
 
 export type DemoSimulationConfig = {
   readonly seed?: RngSeed;
@@ -72,6 +72,8 @@ export type DemoSimulationConfig = {
   readonly sensorFoodTickInterval?: number;
   readonly sensorObstacleTickInterval?: number;
   readonly sensorTerrainTickInterval?: number;
+  readonly offspringTerrainMaxAttempts?: number;
+  readonly offspringTerrainMinAcceptance?: number;
   readonly predatorAttackRadius?: number;
   readonly reproductionEnergyThreshold?: number;
 };
@@ -141,6 +143,8 @@ const DEFAULT_SENSOR_RADIUS_SCALE = 1;
 const DEFAULT_SENSOR_FOOD_TICK_INTERVAL = 4;
 const DEFAULT_SENSOR_OBSTACLE_TICK_INTERVAL = 8;
 const DEFAULT_SENSOR_TERRAIN_TICK_INTERVAL = 2;
+const DEFAULT_OFFSPRING_TERRAIN_MAX_ATTEMPTS = 6;
+const DEFAULT_OFFSPRING_TERRAIN_MIN_ACCEPTANCE = 0.05;
 const DEFAULT_PREDATOR_ATTACK_RADIUS = 24;
 const DEFAULT_REPRODUCTION_ENERGY_THRESHOLD = 88;
 const MAX_DELTA_SECONDS = 1 / 30;
@@ -166,6 +170,8 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const sensorFoodTickInterval = config.sensorFoodTickInterval ?? DEFAULT_SENSOR_FOOD_TICK_INTERVAL;
   const sensorObstacleTickInterval = config.sensorObstacleTickInterval ?? DEFAULT_SENSOR_OBSTACLE_TICK_INTERVAL;
   const sensorTerrainTickInterval = config.sensorTerrainTickInterval ?? DEFAULT_SENSOR_TERRAIN_TICK_INTERVAL;
+  const offspringTerrainMaxAttempts = config.offspringTerrainMaxAttempts ?? DEFAULT_OFFSPRING_TERRAIN_MAX_ATTEMPTS;
+  const offspringTerrainMinAcceptance = config.offspringTerrainMinAcceptance ?? DEFAULT_OFFSPRING_TERRAIN_MIN_ACCEPTANCE;
   const predatorAttackRadius = config.predatorAttackRadius ?? DEFAULT_PREDATOR_ATTACK_RADIUS;
   const reproductionEnergyThreshold = config.reproductionEnergyThreshold ?? DEFAULT_REPRODUCTION_ENERGY_THRESHOLD;
 
@@ -175,7 +181,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const obstacleMask = createObstacleMask({ worldWidth, worldHeight, cellSize: config.obstacleCellSize ?? DEFAULT_OBSTACLE_CELL_SIZE });
   const terrain = createTerrainLayer({ worldWidth, worldHeight, cellSize: DEFAULT_TERRAIN_CELL_SIZE });
 
-  const rng = createRng(config.seed ?? "qubok_evolve:demo:m37");
+  const rng = createRng(config.seed ?? "qubok_evolve:demo:m38");
   seedDemoObstacleMask(obstacleMask);
   seedDemoTerrain(terrain);
   const obstacleMaskSnapshot = makeObstacleMaskRenderSnapshot(obstacleMask);
@@ -249,7 +255,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     const energyMs = performance.now() - energyStart;
 
     const reproductionStart = performance.now();
-    const reproductionStats = applyReproduction(world, rng, { energyThreshold: reproductionEnergyThreshold, energyCost: 44, childEnergy: 32, minAgeSeconds: 2.5, maxBirthsPerStep: 8, spawnRadius: 14, inheritVelocityScale: 0.35, mutationChance: 0.35, mutationStandardDeviationScale: 0.4, obstacleMask, offspringSpawnMaxAttempts: spawnMaxAttempts, offspringClearanceRadius: spawnClearanceRadius });
+    const reproductionStats = applyReproduction(world, rng, { energyThreshold: reproductionEnergyThreshold, energyCost: 44, childEnergy: 32, minAgeSeconds: 2.5, maxBirthsPerStep: 8, spawnRadius: 14, inheritVelocityScale: 0.35, mutationChance: 0.35, mutationStandardDeviationScale: 0.4, obstacleMask, terrain, offspringSpawnMaxAttempts: spawnMaxAttempts, offspringClearanceRadius: spawnClearanceRadius, offspringTerrainMaxAttempts, offspringTerrainMinAcceptance });
     const reproductionMs = performance.now() - reproductionStart;
 
     const obstacleLifecycleTelemetry = makeObstacleLifecycleTelemetry({ sensorStats, obstacleResponseStats, resourceRespawnStats, reproductionStats });
