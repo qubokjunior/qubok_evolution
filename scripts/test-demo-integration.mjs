@@ -31,26 +31,28 @@ const roadmapStatusTest = readText("scripts/test-roadmap-status.mjs");
 const terrain = readText("src/sim/terrain.ts");
 const terrainTest = readText("scripts/test-terrain.mjs");
 const terrainBench = readText("scripts/bench-terrain.mjs");
+const terrainRenderSnapshot = readText("src/sim/terrainRenderSnapshot.ts");
+const terrainRenderSnapshotTest = readText("scripts/test-terrain-render-snapshot.mjs");
+const terrainRenderSnapshotBench = readText("scripts/bench-terrain-render-snapshot.mjs");
 const deathPathAuditTest = readText("scripts/test-death-path-audit.mjs");
 
-assert(packageJson.version === "0.1.0-milestone.32", "package.json version must be 0.1.0-milestone.32.");
-assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.32"'), "appVersion must expose milestone.32.");
-assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m32"'), "appVersion must expose m32 overlay label.");
+assert(packageJson.version === "0.1.0-milestone.33", "package.json version must be 0.1.0-milestone.33.");
+assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.33"'), "appVersion must expose milestone.33.");
+assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m33"'), "appVersion must expose m33 overlay label.");
 assert(energy.includes("killAgent(world, index)"), "energy deaths must use killAgent so dead slots enter the free-list.");
 assert(predatorPrey.includes("killAgent(world, preyIndex)"), "predator/prey kills must use killAgent so dead slots enter the free-list.");
-assert(lifecyclePressureTest.includes("death -> reusable slot -> birth"), "lifecycle pressure test must document the m32 loop.");
+assert(lifecyclePressureTest.includes("death -> reusable slot -> birth"), "lifecycle pressure test must document the lifecycle loop.");
 assert(deathPathAuditTest.includes("direct alive-zero writes"), "death path audit must scan direct alive-zero writes.");
 assert(deathPathAuditTest.includes("energy.ts must route death through killAgent"), "death path audit must lock energy death routing.");
 assert(deathPathAuditTest.includes("predatorPrey.ts must route kills through killAgent"), "death path audit must lock predator/prey kill routing.");
 assert(packageJson.scripts["test:death-path-audit"] === "node scripts/test-death-path-audit.mjs", "package.json must expose test:death-path-audit.");
 assert(packageJson.scripts.test.includes("test:death-path-audit"), "npm run test must include death path audit.");
-assert(readme.includes("0.1.0-milestone.32"), "README must expose the current milestone version.");
+assert(readme.includes("0.1.0-milestone.33"), "README must expose the current milestone version.");
 assert(readme.includes("docs/milestones.md"), "README must link the milestone index.");
-assert(milestones.includes("| m32 |"), "milestones index must include m32.");
+assert(milestones.includes("| m33 |"), "milestones index must include m33.");
 assert(repoStatusTest.includes("README.md"), "repo status test must validate README status sync.");
 assert(packageJson.scripts["test:repo-status"] === "node scripts/test-repo-status.mjs", "package.json must expose test:repo-status.");
 assert(packageJson.scripts.test.includes("test:repo-status"), "npm run test must include repo status test.");
-assert(readme.includes("0.1.0-milestone.32"), "README must expose the current m32 milestone version.");
 assert(readme.includes("docs/roadmap.md"), "README must link roadmap docs.");
 assert(roadmap.includes("terrain/material track"), "roadmap must include terrain/material track.");
 assert(roadmap.includes("controller/brain track"), "roadmap must include controller/brain track.");
@@ -65,6 +67,14 @@ assert(terrain.includes("TERRAIN_LAYER_VERSION"), "terrain module must expose ve
 assert(terrain.includes("sampleTerrainAtPosition"), "terrain module must expose position sampling query.");
 assert(terrainTest.includes("terrain tests passed"), "terrain test must expose pass token.");
 assert(terrainBench.includes("bench-terrain:m32"), "terrain benchmark must expose m32 bench token.");
+assert(packageJson.scripts["test:terrain-render-snapshot"] === "node scripts/test-terrain-render-snapshot.mjs", "package.json must expose test:terrain-render-snapshot.");
+assert(packageJson.scripts["bench:terrain-render-snapshot"] === "node scripts/bench-terrain-render-snapshot.mjs", "package.json must expose bench:terrain-render-snapshot.");
+assert(packageJson.scripts.test.includes("test:terrain-render-snapshot"), "npm run test must include terrain render snapshot tests.");
+assert(terrainRenderSnapshot.includes("TERRAIN_RENDER_SNAPSHOT_VERSION"), "terrain render snapshot module must expose version token.");
+assert(terrainRenderSnapshot.includes("makeTerrainRenderSnapshot"), "terrain render snapshot module must expose snapshot builder.");
+assert(terrainRenderSnapshot.includes("analyzeTerrainRenderSnapshot"), "terrain render snapshot module must expose snapshot analyzer.");
+assert(terrainRenderSnapshotTest.includes("terrain render snapshot tests passed"), "terrain render snapshot test must expose pass token.");
+assert(terrainRenderSnapshotBench.includes("bench-terrain-render-snapshot:m33"), "terrain render snapshot bench must expose m33 bench token.");
 
 for (const forbiddenImport of ["../render/", "./render/", "../ui/", "./ui/", "pixi.js", "react"]) {
   assert(!demoSimulation.includes(forbiddenImport), `demoSimulation must not import forbidden boundary token: ${forbiddenImport}`);
@@ -113,7 +123,6 @@ for (const requiredOverlayToken of [
 ]) {
   assert(debugOverlay.includes(requiredOverlayToken), `debugOverlay missing obstacle render token: ${requiredOverlayToken}`);
 }
-
 
 for (const requiredWorldSlotTelemetryToken of [
   "reusableSlotCount",
