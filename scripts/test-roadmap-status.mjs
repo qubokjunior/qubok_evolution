@@ -72,18 +72,14 @@ for (const requiredToken of ["fieldSourceStats", "fieldSourcesMs", "fieldSourceM
 for (const requiredToken of ["field src", "field sink", "field src after"]) assert(debugOverlay.includes(requiredToken), "debugOverlay missing field source label: " + requiredToken);
 for (const requiredToken of ["fieldSourcesMs", "fieldSourceCount", "fieldSinkCount", "fieldSourceMagnitudeAfter"]) assert(perfMetrics.includes(requiredToken), "perf metrics missing field source token: " + requiredToken);
 
-
 assert(integrationM44.includes("field source semantics tuning") && integrationM44.includes("visualization QA"), "integration_m44 must describe field source semantics tuning and visualization QA.");
-
-
 assert(roadmap.includes("m44 shipped: field source semantics tuning and visualization QA"), "roadmap must include m44 shipped milestone.");
 
-
 assert(integrationM45.includes("obstacle/terrain damping sources") && integrationM45.includes("editable debug parameters"), "integration_m45 must describe obstacle/terrain damping sources and editable debug parameters.");
-
-
-assert(roadmap.includes("m45 in progress: obstacle/terrain damping sources and editable debug parameters"), "roadmap must include m45 current milestone.");
-
+assert(roadmap.includes("m45 shipped: obstacle/terrain damping sources"), "roadmap must include m45 shipped milestone.");
+assert(roadmap.includes("m45 closed"), "roadmap must mark m45 as closed.");
+assert(integrationM45.includes("## Final status") && integrationM45.includes("M45 is closed"), "integration_m45 must document final closed status.");
+assert(integrationM45.includes("## Final validation set") && integrationM45.includes("npm run test:repo-status") && integrationM45.includes("npm run build"), "integration_m45 must document final validation set.");
 
 assert(fieldDamping.includes("FIELD_DAMPING_VERSION") && fieldDamping.includes("applyFieldDamping"), "fieldDamping must expose m45 core damping API.");
 assert(packageJson.scripts["test:field-damping"] === "node scripts/test-field-damping.mjs", "package.json must expose test:field-damping.");
