@@ -86,8 +86,8 @@ function readText(relativePath) {
 
 function stripComments(source) {
   return source
-    .replace(//\*[\s\S]*?\*//g, "")
-    .replace(/(^|[^:])//.*$/gm, "$1");
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:])\/\/.*$/gm, "$1");
 }
 
 function getLineColumn(source, index) {
