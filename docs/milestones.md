@@ -45,9 +45,9 @@ Compact milestone index through m42. Older early milestones are summarized at th
 | m39 | Low-resolution environmental flow field sampled by movement. | complete |
 | m40 | Environmental field render snapshot and Pixi vector debug layer. | complete |
 | m41 | Render debug controls, field/terrain/obstacle visibility toggles, keyboard layer toggles, and grouped overlay metrics. | complete |
-| m42 | Field decay/diffusion foundation with deterministic field dynamics and metrics. | in progress |
+| m42 | Field decay/diffusion foundation with deterministic field dynamics, metrics, benchmark, demo wiring, and overlay labels. | complete |
 
 ## Current next-step candidates
 
-- m42: field decay/diffusion foundation. [in progress]
+- m43 candidate: field sources/sinks or controller/brain first pass.
 - Later: field transport/advection, signed-distance-field correction, controller/brain layer, morphology compiler/editor, workerization, and WebGPU experiments.
