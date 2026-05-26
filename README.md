@@ -2,7 +2,7 @@
 
 High-performance realtime 2D artificial-life ecosystem simulator.
 
-Current status: m42 / 0.1.0-milestone.42.
+Current status: m43 / 0.1.0-milestone.43.
 
 ## What exists now
 
@@ -25,7 +25,8 @@ Implemented runtime foundations:
 - low-resolution environmental flow field with movement integration and debug overlay metrics;
 - environmental field render snapshot and Pixi vector debug layer;
 - render debug controls, keyboard layer toggles, and grouped overlay metrics;
-- field decay/diffusion foundation with deterministic dynamics, scratch buffers, metrics, benchmark, demo wiring, and overlay labels.
+- field decay/diffusion foundation with deterministic dynamics, scratch buffers, metrics, benchmark, demo wiring, and overlay labels;
+- m43 milestone setup for field sources/sinks.
 
 ## Commands
 
@@ -69,8 +70,8 @@ http://127.0.0.1:5173/
 
 ## Milestones and docs
 
-- `docs/milestones.md` — compact milestone index through m42.
-- `docs/roadmap.md` — development tracks after m42.
+- `docs/milestones.md` — compact milestone index through m43.
+- `docs/roadmap.md` — development tracks after m43.
 - `docs/architecture_tracks.md` — boundary contracts for future work.
 - `docs/world_state.md` — typed-array world state and lifecycle slot contract.
 - `docs/integration_m36.md` — terrain resource-affinity milestone.
@@ -80,6 +81,7 @@ http://127.0.0.1:5173/
 - `docs/integration_m40.md` — environmental field render snapshot and Pixi vector debug layer.
 - `docs/integration_m41.md` — render debug controls and overlay grouping milestone.
 - `docs/integration_m42.md` — field decay/diffusion foundation milestone.
+- `docs/integration_m43.md` — field sources/sinks milestone setup.
 
 ## Boundary rule
 
