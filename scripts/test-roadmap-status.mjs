@@ -21,6 +21,7 @@ const field = readText("src/sim/field.ts");
 const fieldRenderSnapshot = readText("src/sim/fieldRenderSnapshot.ts");
 const fieldDynamics = readText("src/sim/fieldDynamics.ts");
 const fieldSources = readText("src/sim/fieldSources.ts");
+const fieldDamping = readText("src/sim/fieldDamping.ts");
 const movement = readText("src/sim/movement.ts");
 const debugOverlay = readText("src/render/debugOverlay.ts");
 const perfMetrics = readText("src/shared/perfMetrics.ts");
@@ -82,5 +83,10 @@ assert(integrationM45.includes("obstacle/terrain damping sources") && integratio
 
 
 assert(roadmap.includes("m45 in progress: obstacle/terrain damping sources and editable debug parameters"), "roadmap must include m45 current milestone.");
+
+
+assert(fieldDamping.includes("FIELD_DAMPING_VERSION") && fieldDamping.includes("applyFieldDamping"), "fieldDamping must expose m45 core damping API.");
+assert(packageJson.scripts["test:field-damping"] === "node scripts/test-field-damping.mjs", "package.json must expose test:field-damping.");
+assert(packageJson.scripts.test.includes("test:field-damping"), "npm run test must include test:field-damping.");
 
 console.log("roadmap status tests passed");

@@ -25,6 +25,7 @@ const app = readText("src/ui/App.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
 const field = readText("src/sim/field.ts");
 const fieldSources = readText("src/sim/fieldSources.ts");
+const fieldDamping = readText("src/sim/fieldDamping.ts");
 const fieldRenderSnapshot = readText("src/sim/fieldRenderSnapshot.ts");
 const movement = readText("src/sim/movement.ts");
 const reproduction = readText("src/sim/reproduction.ts");
@@ -173,5 +174,10 @@ assert(roadmap.includes("m45 in progress: obstacle/terrain damping sources and e
 
 
 assert(readme.includes("docs/integration_m45.md"), "README must link m45 integration doc.");
+
+
+assert(fieldDamping.includes("FIELD_DAMPING_VERSION") && fieldDamping.includes("applyFieldDamping"), "fieldDamping must expose m45 core damping API.");
+assert(packageJson.scripts["test:field-damping"] === "node scripts/test-field-damping.mjs", "package.json must expose test:field-damping.");
+assert(packageJson.scripts.test.includes("test:field-damping"), "npm run test must include test:field-damping.");
 
 console.log("demo integration tests passed");

@@ -46,4 +46,9 @@ assert(integrationM44.includes("field source semantics tuning") && integrationM4
 
 assert(integrationM45.includes("obstacle/terrain damping sources") && integrationM45.includes("editable debug parameters"), "integration_m45 must describe obstacle/terrain damping sources and editable debug parameters.");
 
+
+assert(fieldDamping.includes("FIELD_DAMPING_VERSION") && fieldDamping.includes("applyFieldDamping"), "fieldDamping must expose m45 core damping API.");
+assert(packageJson.scripts["test:field-damping"] === "node scripts/test-field-damping.mjs", "package.json must expose test:field-damping.");
+assert(packageJson.scripts.test.includes("test:field-damping"), "npm run test must include test:field-damping.");
+
 console.log("repo status tests passed");

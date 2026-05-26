@@ -31,5 +31,6 @@ M45 should make the environmental field respond to non-agent environment structu
 
 - npm run test:repo-status
 - npm run test:roadmap-status
+- npm run test:field-damping
 - npm run test:demo-integration
 - npm run build
