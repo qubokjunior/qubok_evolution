@@ -53,3 +53,15 @@ This deliberately does not change `sectorCount`. Brain inputs can keep the same 
 ### Current limitation
 
 `sectorObstacle` is not terrain-aware yet. It only senses world bounds as a cheap placeholder/proxy. The later terrain milestone should replace or extend this with obstacle mask / signed distance field sampling.
+## m18 warm-channel cadence
+
+m18 keeps the fixed-width sector channel contract stable while allowing expensive warm channels to refresh less often:
+
+| Channel | Default cadence | Buffer behavior on skipped tick |
+|---|---:|---|
+| `sectorAlly` | every sensor pass | cleared and recomputed |
+| `sectorThreat` | every sensor pass | cleared and recomputed |
+| `sectorFood` | configurable, demo default every 4 ticks | preserved by default |
+| `sectorObstacle` | configurable, demo default every 8 ticks | preserved by default |
+
+`applyAgentSensors()` accepts `tick`, `foodTickInterval`, `obstacleTickInterval`, and `preserveSkippedSectorChannels`. This changes update frequency, not brain input width.

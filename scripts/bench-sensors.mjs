@@ -13,13 +13,9 @@ const temporaryDirectory = join(projectRoot, ".tmp_sensors_bench");
 await rm(temporaryDirectory, { force: true, recursive: true });
 await mkdir(temporaryDirectory, { recursive: true });
 
-await transpileSimModule("arrays.ts", "arrays.mjs");
-await transpileSimModule("rng.ts", "rng.mjs");
-await transpileSimModule("world.ts", "world.mjs");
-await transpileSimModule("spatialHash.ts", "spatialHash.mjs");
-await transpileSimModule("neighborQuery.ts", "neighborQuery.mjs");
-await transpileSimModule("resources.ts", "resources.mjs");
-await transpileSimModule("sensors.ts", "sensors.mjs");
+for (const moduleName of ["arrays.ts", "rng.ts", "world.ts", "spatialHash.ts", "neighborQuery.ts", "resources.ts", "sensors.ts"]) {
+  await transpileSimModule(moduleName, moduleName.replace(".ts", ".mjs"));
+}
 
 const { createRng } = await import(pathToFileURL(join(temporaryDirectory, "rng.mjs")).href);
 const { createWorldState, spawnRandomAgents } = await import(pathToFileURL(join(temporaryDirectory, "world.mjs")).href);
@@ -32,7 +28,7 @@ const resourceCount = 2500;
 const world = createWorldState({ capacity: entityCount, worldWidth: 1024, worldHeight: 1024, sectorCount: 8 });
 const grid = createSpatialHashGrid({ capacity: entityCount, worldWidth: 1024, worldHeight: 1024, cellSize: 48 });
 const resources = createResourceLayer({ capacity: resourceCount, worldWidth: 1024, worldHeight: 1024, cellSize: 48 });
-const rng = createRng("qubok_evolve:bench:sensors:m17");
+const rng = createRng("qubok_evolve:bench:sensors:m18");
 spawnRandomAgents(world, entityCount, rng);
 spawnRandomResources(resources, resourceCount, rng);
 
@@ -44,39 +40,72 @@ const resourceGridStart = performance.now();
 const resourceStats = rebuildResourceGrid(resources);
 const resourceGridBuildMs = performance.now() - resourceGridStart;
 
-const start = performance.now();
-const stats = applyAgentSensors(world, grid, {
+const fullStart = performance.now();
+const fullStats = applyAgentSensors(world, grid, {
   resources,
-  obstacleDetectionRadius: 96
+  tick: 0,
+  foodTickInterval: 1,
+  obstacleTickInterval: 1
 });
-const sensorMs = performance.now() - start;
+const fullSensorMs = performance.now() - fullStart;
+
+const scheduledStart = performance.now();
+const scheduledStats = applyAgentSensors(world, grid, {
+  resources,
+  tick: 4,
+  foodTickInterval: 4,
+  obstacleTickInterval: 8
+});
+const scheduledSensorMs = performance.now() - scheduledStart;
+
+const skippedStart = performance.now();
+const skippedStats = applyAgentSensors(world, grid, {
+  resources,
+  tick: 5,
+  foodTickInterval: 4,
+  obstacleTickInterval: 8
+});
+const skippedSensorMs = performance.now() - skippedStart;
 
 await rm(temporaryDirectory, { force: true, recursive: true });
 
 console.log(JSON.stringify({
-  bench: "sensors:m17",
+  bench: "sensors:m18",
   entityCount,
   resourceCount,
   gridBuildMs: round3(gridBuildMs),
   resourceGridBuildMs: round3(resourceGridBuildMs),
-  sensorMs: round3(sensorMs),
+  fullSensorMs: round3(fullSensorMs),
+  scheduledSensorMs: round3(scheduledSensorMs),
+  skippedSensorMs: round3(skippedSensorMs),
+  skippedVsFullRatio: round3(skippedSensorMs / Math.max(fullSensorMs, 0.000001)),
   insertedCount: gridStats.insertedCount,
   insertedResourceCount: resourceStats.insertedCount,
-  checkedCount: stats.checkedCount,
-  neighborCandidates: stats.neighborCandidates,
-  radiusNeighborCount: stats.radiusNeighborCount,
-  visibleNeighborCount: stats.visibleNeighborCount,
-  foodVisibleCount: stats.foodVisibleCount,
-  sectorWrites: stats.sectorWrites,
-  foodSectorWrites: stats.foodSectorWrites,
-  obstacleSectorWrites: stats.obstacleSectorWrites,
-  allySignalSum: round3(stats.allySignalSum),
-  threatSignalSum: round3(stats.threatSignalSum),
-  foodSignalSum: round3(stats.foodSignalSum),
-  obstacleSignalSum: round3(stats.obstacleSignalSum),
-  averageVisibleNeighborsPerCheckedAgent: round3(stats.averageVisibleNeighborsPerCheckedAgent),
-  averageCandidatesPerCheckedAgent: round3(stats.averageCandidatesPerCheckedAgent),
-  maxVisibleNeighborsForAgent: stats.maxVisibleNeighborsForAgent
+  checkedCount: fullStats.checkedCount,
+  neighborCandidates: fullStats.neighborCandidates,
+  radiusNeighborCount: fullStats.radiusNeighborCount,
+  visibleNeighborCount: fullStats.visibleNeighborCount,
+  foodVisibleCount: fullStats.foodVisibleCount,
+  sectorWritesFull: fullStats.sectorWrites,
+  sectorWritesScheduled: scheduledStats.sectorWrites,
+  sectorWritesSkipped: skippedStats.sectorWrites,
+  foodSectorWritesFull: fullStats.foodSectorWrites,
+  foodSectorWritesScheduled: scheduledStats.foodSectorWrites,
+  foodSectorWritesSkipped: skippedStats.foodSectorWrites,
+  obstacleSectorWritesFull: fullStats.obstacleSectorWrites,
+  obstacleSectorWritesScheduled: scheduledStats.obstacleSectorWrites,
+  obstacleSectorWritesSkipped: skippedStats.obstacleSectorWrites,
+  foodSensorScheduledOnScheduledTick: scheduledStats.foodSensorScheduled,
+  obstacleSensorScheduledOnScheduledTick: scheduledStats.obstacleSensorScheduled,
+  foodSkippedByCadence: skippedStats.foodSkippedByCadence,
+  obstacleSkippedByCadence: skippedStats.obstacleSkippedByCadence,
+  allySignalSum: round3(fullStats.allySignalSum),
+  threatSignalSum: round3(fullStats.threatSignalSum),
+  foodSignalSum: round3(fullStats.foodSignalSum),
+  obstacleSignalSum: round3(fullStats.obstacleSignalSum),
+  averageVisibleNeighborsPerCheckedAgent: round3(fullStats.averageVisibleNeighborsPerCheckedAgent),
+  averageCandidatesPerCheckedAgent: round3(fullStats.averageCandidatesPerCheckedAgent),
+  maxVisibleNeighborsForAgent: fullStats.maxVisibleNeighborsForAgent
 }, null, 2));
 
 async function transpileSimModule(sourceName, outputName) {

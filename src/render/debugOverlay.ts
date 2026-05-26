@@ -33,6 +33,10 @@ export type PerfOverlaySnapshot = {
   readonly sensorObstacleSectorWrites: number;
   readonly sensorFoodSignalSum: number;
   readonly sensorObstacleSignalSum: number;
+  readonly sensorFoodScheduled: number;
+  readonly sensorObstacleScheduled: number;
+  readonly sensorFoodSkippedByCadence: number;
+  readonly sensorObstacleSkippedByCadence: number;
   readonly avgVisibleNeighborsPerAgent: number;
   readonly attacksThisStep: number;
   readonly killsThisStep: number;
@@ -110,6 +114,10 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     sensorObstacleSectorWrites: createValueRow(root, "obs sectors"),
     sensorFoodSignalSum: createValueRow(root, "food signal"),
     sensorObstacleSignalSum: createValueRow(root, "obs signal"),
+    sensorFoodScheduled: createValueRow(root, "food sched"),
+    sensorObstacleScheduled: createValueRow(root, "obs sched"),
+    sensorFoodSkippedByCadence: createValueRow(root, "food skip"),
+    sensorObstacleSkippedByCadence: createValueRow(root, "obs skip"),
     avgVisibleNeighborsPerAgent: createValueRow(root, "avg visible"),
     attacksThisStep: createValueRow(root, "attacks"),
     killsThisStep: createValueRow(root, "kills"),
@@ -159,6 +167,10 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     rows.sensorObstacleSectorWrites.textContent = formatInt(snapshot.sensorObstacleSectorWrites);
     rows.sensorFoodSignalSum.textContent = formatDecimal(snapshot.sensorFoodSignalSum);
     rows.sensorObstacleSignalSum.textContent = formatDecimal(snapshot.sensorObstacleSignalSum);
+    rows.sensorFoodScheduled.textContent = formatInt(snapshot.sensorFoodScheduled);
+    rows.sensorObstacleScheduled.textContent = formatInt(snapshot.sensorObstacleScheduled);
+    rows.sensorFoodSkippedByCadence.textContent = formatInt(snapshot.sensorFoodSkippedByCadence);
+    rows.sensorObstacleSkippedByCadence.textContent = formatInt(snapshot.sensorObstacleSkippedByCadence);
     rows.avgVisibleNeighborsPerAgent.textContent = formatDecimal(snapshot.avgVisibleNeighborsPerAgent);
     rows.attacksThisStep.textContent = formatInt(snapshot.attacksThisStep);
     rows.killsThisStep.textContent = formatInt(snapshot.killsThisStep);
