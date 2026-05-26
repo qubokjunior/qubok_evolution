@@ -78,3 +78,7 @@ All death paths must route through `killAgent(world, index)`, because `killAgent
 2. adding the dead slot to `reusableSlots` exactly once.
 
 This protects the m26 free-list contract from future systems that might otherwise bypass reusable slot creation.
+
+## m30 repository status note
+
+Milestone 30 does not change WorldState behavior. It updates README/status documentation and adds repo-status tests so the repository landing page tracks the actual milestone/version after the lifecycle free-list work.
