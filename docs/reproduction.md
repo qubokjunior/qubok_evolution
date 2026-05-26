@@ -68,3 +68,14 @@ Morphology placement/add/remove mutation remains locked until the compiler and v
 | `offspringClearanceRadius` | extra clearance around child position |
 
 New stats track blocked obstacle placement and fallback usage.
+
+
+## m26 capacity semantics
+
+Before milestone 26, reproduction treated `world.count >= world.capacity` as a hard block. That was correct for append-only storage but wrong for long-running ecology because dead slots remained structurally unavailable.
+
+Milestone 26 changes the reproduction capacity gate to use `canSpawnAgent(world)`.
+
+A parent can now reproduce when normal energy and age requirements are met, per-step birth limits are not exhausted, and either `world.count < world.capacity` or `world.reusableSlotCount > 0`.
+
+`blockedByCapacity` now means there is neither append capacity nor a reusable dead slot.

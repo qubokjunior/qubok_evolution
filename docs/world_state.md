@@ -26,3 +26,21 @@ WorldState is the typed-array storage layer for simulation data. It is not an ob
 ## Current benchmark meaning
 
 `bench:world` measures allocation plus deterministic spawning only. It is not a movement benchmark yet. Movement starts in the next milestone.
+
+## m26 dead-slot reuse / free-list
+
+Milestone 26 changes lifecycle capacity semantics without changing the typed-array storage model.
+
+`WorldState` now keeps a deterministic free-list for dead agent slots:
+
+- `reusableSlots: Uint32Array` stores dead slot indices;
+- `reusableSlotFlags: Uint8Array` prevents duplicate insertion;
+- `reusableSlotCount` is the current number of reusable slots;
+- `spawnReusedSlotCount` counts spawns that reused dead slots;
+- `spawnAppendedSlotCount` counts spawns that appended at the historical end.
+
+`killAgent(world, index)` now validates the index, returns immediately if the slot is already dead, writes `alive[index] = 0`, and queues the slot only once.
+
+`spawnAgent(world, input)` now reuses a queued dead slot before appending. It throws only when there is no reusable slot and `world.count >= world.capacity`.
+
+No compaction is performed. Render snapshots still expose slots from `0..world.count`, and downstream code must continue to respect `alive[index]`.

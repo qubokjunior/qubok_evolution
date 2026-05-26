@@ -20,9 +20,9 @@ const pixiRenderer = readText("src/render/pixiRenderer.ts");
 const debugOverlay = readText("src/render/debugOverlay.ts");
 const perfMetrics = readText("src/shared/perfMetrics.ts");
 
-assert(packageJson.version === "0.1.0-milestone.25", "package.json version must be 0.1.0-milestone.25.");
-assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.25"'), "appVersion must expose milestone.25.");
-assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m25"'), "appVersion must expose m25 overlay label.");
+assert(packageJson.version === "0.1.0-milestone.26", "package.json version must be 0.1.0-milestone.26.");
+assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.26"'), "appVersion must expose milestone.26.");
+assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m26"'), "appVersion must expose m26 overlay label.");
 
 for (const forbiddenImport of ["../render/", "./render/", "../ui/", "./ui/", "pixi.js", "react"]) {
   assert(!demoSimulation.includes(forbiddenImport), `demoSimulation must not import forbidden boundary token: ${forbiddenImport}`);

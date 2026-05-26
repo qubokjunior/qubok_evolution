@@ -10,7 +10,7 @@ import {
 import type { ObstacleMask } from "./obstacleMask";
 import type { DeterministicRng } from "./rng";
 import { findFreePositionNearOrRandom } from "./spawnValidation";
-import { spawnAgent, type WorldState } from "./world";
+import { canSpawnAgent, spawnAgent, type WorldState } from "./world";
 
 export const REPRODUCTION_SYSTEM_VERSION = "qubok_evolve.reproduction.v3" as const;
 
@@ -195,7 +195,7 @@ export function applyReproduction(
       continue;
     }
 
-    if (world.count >= world.capacity) {
+    if (!canSpawnAgent(world)) {
       blockedByCapacity += 1;
       continue;
     }
