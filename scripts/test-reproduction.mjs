@@ -26,7 +26,7 @@ const {
   REPRODUCTION_SYSTEM_VERSION
 } = await import(pathToFileURL(join(temporaryDirectory, "reproduction.mjs")).href);
 
-assertEqual(REPRODUCTION_SYSTEM_VERSION, "qubok_evolve.reproduction.v3", "system version");
+assertEqual(REPRODUCTION_SYSTEM_VERSION, "qubok_evolve.reproduction.v4", "system version");
 
 {
   const rules = createReproductionMutationRules(0.25, 2);
@@ -77,6 +77,8 @@ assertEqual(REPRODUCTION_SYSTEM_VERSION, "qubok_evolve.reproduction.v3", "system
   assertEqual(stats.blockedByCapacity, 0, "blocked count");
   assertEqual(stats.blockedByObstacle, 0, "obstacle blocked count");
   assertEqual(stats.obstaclePlacementFailedCount, 0, "obstacle placement failed count");
+  assertEqual(stats.terrainOffspringSampleCount, 0, "plain reproduction has no terrain samples");
+  assertEqual(stats.terrainOffspringRejectedCount, 0, "plain reproduction has no terrain rejections");
   assertEqual(stats.mutationAttempts, 17, "mutation attempts from dedicated module");
   assertEqual(stats.mutationChangedCount, 0, "zero scale mutation changes nothing");
   assertEqual(world.count, 2, "world count after birth");
@@ -272,6 +274,14 @@ assertThrows(
 assertThrows(
   () => applyReproduction(createWorldState({ capacity: 1 }), createRng("bad-clearance"), { offspringClearanceRadius: -1 }),
   "invalid offspring clearance"
+);
+assertThrows(
+  () => applyReproduction(createWorldState({ capacity: 1 }), createRng("bad-terrain-attempts"), { offspringTerrainMaxAttempts: 0 }),
+  "invalid terrain offspring attempts"
+);
+assertThrows(
+  () => applyReproduction(createWorldState({ capacity: 1 }), createRng("bad-terrain-acceptance"), { offspringTerrainMinAcceptance: 2 }),
+  "invalid terrain offspring acceptance"
 );
 
 await rm(temporaryDirectory, { force: true, recursive: true });
