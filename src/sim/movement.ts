@@ -1,8 +1,9 @@
 import { assertFiniteNumber, assertIndexInRange } from "./arrays";
+import { sampleFieldAtPosition, type EnvironmentalFieldLayer } from "./field";
 import { sampleTerrainAtPosition, type TerrainLayer } from "./terrain";
 import { killAgent, type WorldState } from "./world";
 
-export const MOVEMENT_SYSTEM_VERSION = "qubok_evolve.movement.v2" as const;
+export const MOVEMENT_SYSTEM_VERSION = "qubok_evolve.movement.v3" as const;
 
 export type BoundsMode = "none" | "wrap" | "clamp";
 
@@ -12,6 +13,8 @@ export type MovementStepConfig = {
   readonly clearForces?: boolean;
   readonly minimumEnergy?: number;
   readonly terrain?: TerrainLayer;
+  readonly field?: EnvironmentalFieldLayer;
+  readonly fieldForceScale?: number;
 };
 
 export type MovementStepMetrics = {
@@ -26,6 +29,10 @@ export type MovementStepMetrics = {
   readonly terrainMovementCostSum: number;
   readonly terrainFrictionSum: number;
   readonly terrainDragSum: number;
+  readonly fieldMovementSampleCount: number;
+  readonly fieldFlowXSum: number;
+  readonly fieldFlowYSum: number;
+  readonly fieldFlowMagnitudeSum: number;
 };
 
 const EPSILON = 0.000001;
@@ -33,12 +40,12 @@ const DEFAULT_MINIMUM_ENERGY = 0;
 const MAX_DELTA_SECONDS = 0.25;
 const MIN_TERRAIN_SPEED_SCALE = 0.1;
 const MAX_TERRAIN_SPEED_SCALE = 2;
+const DEFAULT_FIELD_FORCE_SCALE = 1;
 
 export function addForce(world: WorldState, index: number, fx: number, fy: number): void {
   assertIndexInRange(index, world.count, "agent index");
   assertFiniteNumber(fx, "fx");
   assertFiniteNumber(fy, "fy");
-
   world.fx[index] += fx;
   world.fy[index] += fy;
 }
@@ -51,7 +58,6 @@ export function clearForces(world: WorldState): void {
 export function setVelocityFromHeading(world: WorldState, index: number, speed: number): void {
   assertIndexInRange(index, world.count, "agent index");
   assertFiniteNumber(speed, "speed");
-
   world.vx[index] = world.headingX[index] * speed;
   world.vy[index] = world.headingY[index] * speed;
 }
@@ -62,8 +68,11 @@ export function stepMovement(world: WorldState, config: MovementStepConfig): Mov
   const clearForcesAfterStep = config.clearForces ?? true;
   const minimumEnergy = config.minimumEnergy ?? DEFAULT_MINIMUM_ENERGY;
   const terrain = config.terrain;
+  const field = config.field;
+  const fieldForceScale = config.fieldForceScale ?? DEFAULT_FIELD_FORCE_SCALE;
 
   assertFiniteNumber(minimumEnergy, "minimumEnergy");
+  assertFiniteNumber(fieldForceScale, "fieldForceScale");
 
   let aliveCount = 0;
   let movedCount = 0;
@@ -74,6 +83,10 @@ export function stepMovement(world: WorldState, config: MovementStepConfig): Mov
   let terrainMovementCostSum = 0;
   let terrainFrictionSum = 0;
   let terrainDragSum = 0;
+  let fieldMovementSampleCount = 0;
+  let fieldFlowXSum = 0;
+  let fieldFlowYSum = 0;
+  let fieldFlowMagnitudeSum = 0;
 
   for (let index = 0; index < world.count; index += 1) {
     if (world.alive[index] !== 1) {
@@ -88,6 +101,7 @@ export function stepMovement(world: WorldState, config: MovementStepConfig): Mov
     const terrainMovementCost = Math.max(EPSILON, terrainSample?.movementCost ?? 1);
     const terrainFriction = Math.max(0, terrainSample?.friction ?? 1);
     const terrainDrag = Math.max(0, terrainSample?.drag ?? 0);
+    const fieldSample = field ? sampleFieldAtPosition(field, previousX, previousY) : undefined;
 
     if (terrainSample) {
       terrainMovementSampleCount += 1;
@@ -96,9 +110,21 @@ export function stepMovement(world: WorldState, config: MovementStepConfig): Mov
       terrainDragSum += terrainDrag;
     }
 
+    if (fieldSample) {
+      fieldMovementSampleCount += 1;
+      fieldFlowXSum += fieldSample.flowX;
+      fieldFlowYSum += fieldSample.flowY;
+      fieldFlowMagnitudeSum += fieldSample.flowMagnitude;
+    }
+
     const safeMass = Math.max(world.mass[index], EPSILON);
     let vx = world.vx[index] + (world.fx[index] / safeMass) * deltaSeconds;
     let vy = world.vy[index] + (world.fy[index] / safeMass) * deltaSeconds;
+
+    if (fieldSample) {
+      vx += fieldSample.flowX * fieldForceScale * deltaSeconds;
+      vy += fieldSample.flowY * fieldForceScale * deltaSeconds;
+    }
 
     const drag = Math.max(0, world.drag[index] + terrainDrag);
     const dragFactor = Math.max(0, 1 - drag * deltaSeconds);
@@ -178,25 +204,22 @@ export function stepMovement(world: WorldState, config: MovementStepConfig): Mov
     terrainMovementSampleCount,
     terrainMovementCostSum,
     terrainFrictionSum,
-    terrainDragSum
+    terrainDragSum,
+    fieldMovementSampleCount,
+    fieldFlowXSum,
+    fieldFlowYSum,
+    fieldFlowMagnitudeSum
   };
 }
 
 function validateDeltaSeconds(deltaSeconds: number): number {
   assertFiniteNumber(deltaSeconds, "deltaSeconds");
-
-  if (deltaSeconds <= 0 || deltaSeconds > MAX_DELTA_SECONDS) {
-    throw new Error(`deltaSeconds must be > 0 and <= ${MAX_DELTA_SECONDS}. Received: ${deltaSeconds}`);
-  }
-
+  if (deltaSeconds <= 0 || deltaSeconds > MAX_DELTA_SECONDS) throw new Error(`deltaSeconds must be > 0 and <= ${MAX_DELTA_SECONDS}. Received: ${deltaSeconds}`);
   return deltaSeconds;
 }
 
 function wrapCoordinate(value: number, size: number): number {
-  if (size <= 0) {
-    return value;
-  }
-
+  if (size <= 0) return value;
   const wrapped = value % size;
   return wrapped < 0 ? wrapped + size : wrapped;
 }
