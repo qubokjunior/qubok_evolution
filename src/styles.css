@@ -482,3 +482,25 @@ body {
   line-height: 1.35;
   scrollbar-width: thin;
 }
+
+
+.qubok_evolve-control-textarea[data-validation="valid"] {
+  border-color: rgba(134, 232, 137, 0.44);
+}
+
+.qubok_evolve-control-textarea[data-validation="invalid"] {
+  border-color: rgba(255, 115, 115, 0.46);
+}
+
+.qubok_evolve-control-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.qubok_evolve-control-note--preset[data-validation="valid"] {
+  color: #86e889;
+}
+
+.qubok_evolve-control-note--preset[data-validation="invalid"] {
+  color: #ff9a9a;
+}

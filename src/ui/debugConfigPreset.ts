@@ -27,6 +27,11 @@ export type DebugConfigPresetImportResult = {
   readonly hasFieldDampingConfig: boolean;
 };
 
+export type DebugConfigPresetValidation = {
+  readonly state: "empty" | "valid" | "invalid";
+  readonly message: string;
+};
+
 export function makeDebugConfigPreset(): DebugConfigPreset {
   return {
     version: DEBUG_CONFIG_PRESET_VERSION,
@@ -39,6 +44,27 @@ export function makeDebugConfigPreset(): DebugConfigPreset {
 
 export function serializeDebugConfigPreset(preset: DebugConfigPreset = makeDebugConfigPreset()): string {
   return JSON.stringify(preset, null, 2);
+}
+
+export function validateDebugConfigPresetText(presetText: string): DebugConfigPresetValidation {
+  const trimmedText = presetText.trim();
+  if (trimmedText.length <= 0) {
+    return { state: "empty", message: "empty preset textarea" };
+  }
+
+  try {
+    const parsed = JSON.parse(trimmedText) as unknown;
+    if (!isPreset(parsed)) {
+      return { state: "invalid", message: "invalid preset version or shape" };
+    }
+
+    return {
+      state: "valid",
+      message: `valid preset · layout ${Object.keys(parsed.layout).length} · render ${parsed.renderDebugConfig === null ? "no" : "yes"} · damping ${parsed.fieldDampingConfig === null ? "no" : "yes"}`
+    };
+  } catch {
+    return { state: "invalid", message: "invalid JSON" };
+  }
 }
 
 export function applyDebugConfigPresetText(presetText: string): DebugConfigPresetImportResult {

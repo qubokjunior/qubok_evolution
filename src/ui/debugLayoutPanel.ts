@@ -1,7 +1,7 @@
 import { clearStoredRenderDebugConfig } from "../render/renderDebugConfigPersistence";
 import { clearStoredFieldDampingConfig } from "../sim/fieldDampingConfigPersistence";
-import { applyDebugConfigPresetText, serializeDebugConfigPreset } from "./debugConfigPreset";
-import { createCollapsibleControlPanel, createControlSection } from "./controlPanelPrimitives";
+import { applyDebugConfigPresetText, serializeDebugConfigPreset, validateDebugConfigPresetText } from "./debugConfigPreset";
+import { createCollapsibleControlPanel, createControlSection, createControlSubsection } from "./controlPanelPrimitives";
 
 export type DebugLayoutPanelHandle = {
   readonly destroy: () => void;
@@ -41,6 +41,14 @@ export function createDebugLayoutPanel(host: HTMLElement): DebugLayoutPanelHandl
   importPresetButton.className = "qubok_evolve-control-button qubok_evolve-control-button--wide";
   importPresetButton.textContent = "import preset + reload";
 
+  const clearPresetButton = document.createElement("button");
+  clearPresetButton.type = "button";
+  clearPresetButton.className = "qubok_evolve-control-button qubok_evolve-control-button--wide";
+  clearPresetButton.textContent = "clear preset text";
+
+  const presetStatus = document.createElement("div");
+  presetStatus.className = "qubok_evolve-control-note qubok_evolve-control-note--preset";
+
   const resetButton = document.createElement("button");
   resetButton.type = "button";
   resetButton.className = "qubok_evolve-control-button qubok_evolve-control-button--wide";
@@ -49,6 +57,14 @@ export function createDebugLayoutPanel(host: HTMLElement): DebugLayoutPanelHandl
   const status = document.createElement("div");
   status.className = "qubok_evolve-control-note";
   status.textContent = "copy/export or clear stored debug values";
+
+  const updatePresetValidation = (): void => {
+    const validation = validateDebugConfigPresetText(presetInput.value);
+    presetInput.dataset.validation = validation.state;
+    presetStatus.dataset.validation = validation.state;
+    presetStatus.textContent = validation.message;
+    importPresetButton.disabled = validation.state !== "valid";
+  };
 
   copyPresetButton.addEventListener("click", async () => {
     const presetText = serializeDebugConfigPreset();
@@ -59,6 +75,14 @@ export function createDebugLayoutPanel(host: HTMLElement): DebugLayoutPanelHandl
       status.textContent = "clipboard unavailable · open devtools to inspect preset";
       console.info("qubok_evolve debug preset", presetText);
     }
+  });
+
+  presetInput.addEventListener("input", updatePresetValidation);
+
+  clearPresetButton.addEventListener("click", () => {
+    presetInput.value = "";
+    updatePresetValidation();
+    status.textContent = "preset text cleared";
   });
 
   importPresetButton.addEventListener("click", () => {
@@ -79,7 +103,12 @@ export function createDebugLayoutPanel(host: HTMLElement): DebugLayoutPanelHandl
     window.setTimeout(() => window.location.reload(), 80);
   });
 
-  panel.body.append(createControlSection(copyPresetButton, presetInput, importPresetButton, resetButton, status));
+  updatePresetValidation();
+
+  panel.body.append(
+    createControlSubsection("preset io", copyPresetButton, presetInput, importPresetButton, clearPresetButton, presetStatus),
+    createControlSection(resetButton, status)
+  );
 
   return {
     destroy: panel.destroy

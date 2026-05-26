@@ -75,6 +75,8 @@ M45-K1 adds debug/config preset export. The debug UI layout panel can copy a JSO
 
 M45-K2 adds debug/config preset import. The debug UI layout panel can paste a preset JSON, validate version/shape, write layout/render/damping config back to localStorage, and reload the page.
 
+M45-K3 polishes debug/config preset UX: preset controls move into a named subsection, textarea validation reports empty/valid/invalid state, import is disabled until valid, and a clear preset text action is available.
+
 M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel change event when damping checkboxes are toggled.
 
 ## Validation target
@@ -103,6 +105,7 @@ M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel ch
 - npm run test:field-damping-config-persistence
 - npm run test:debug-config-preset-export
 - npm run test:debug-config-preset-import
+- npm run test:debug-config-preset-ux
 - npm run test:editable-panel-resize
 - npm run test:demo-integration
 - npm run build
