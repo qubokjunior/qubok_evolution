@@ -1,4 +1,4 @@
-import { createDemoSimulation } from "../sim/demoSimulation";
+import { createDemoSimulation, type DemoSimulationHandle } from "../sim/demoSimulation";
 import { createPerfOverlay } from "../render/debugOverlay";
 import { mountPixiRenderer } from "../render/pixiRenderer";
 import { DEFAULT_RENDER_DEBUG_CONFIG, toggleRenderDebugLayer, type RenderDebugConfig } from "../render/renderDebugConfig";
@@ -9,12 +9,23 @@ export type QubokEvolveAppHandle = {
 
 type RenderDebugLayerKey = keyof Pick<RenderDebugConfig, "showGrid" | "showTerrainLayer" | "showObstacleLayer" | "showFieldVectorLayer" | "showAgents">;
 
+type FieldDampingControlAction = "toggleObstacle" | "toggleTerrain" | "obstacleDown" | "obstacleUp" | "terrainDown" | "terrainUp";
+
 const RENDER_DEBUG_LAYER_KEYS: Record<string, RenderDebugLayerKey> = Object.freeze({
   "1": "showGrid",
   "2": "showTerrainLayer",
   "3": "showFieldVectorLayer",
   "4": "showObstacleLayer",
   "5": "showAgents"
+});
+
+const FIELD_DAMPING_CONTROL_KEYS: Record<string, FieldDampingControlAction> = Object.freeze({
+  "6": "toggleObstacle",
+  "7": "toggleTerrain",
+  "[": "obstacleDown",
+  "]": "obstacleUp",
+  ";": "terrainDown",
+  "'": "terrainUp"
 });
 
 export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolveAppHandle> {
@@ -51,8 +62,17 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
     if (event.repeat || event.altKey || event.ctrlKey || event.metaKey || isTextInputEvent(event)) {
       return;
     }
+
+    const dampingAction = FIELD_DAMPING_CONTROL_KEYS[event.key];
+    if (dampingAction) {
+      event.preventDefault();
+      applyFieldDampingControlShortcut(simulation, dampingAction);
+      return;
+    }
+
     const layerKey = RENDER_DEBUG_LAYER_KEYS[event.key];
     if (!layerKey) return;
+
     event.preventDefault();
     const nextConfig = toggleRenderDebugLayer(pixiRenderer.getRenderDebugConfig(), layerKey);
     pixiRenderer.updateRenderDebugConfig(nextConfig);
@@ -68,6 +88,35 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
       root.replaceChildren();
     }
   };
+}
+
+function applyFieldDampingControlShortcut(simulation: DemoSimulationHandle, action: FieldDampingControlAction): void {
+  const config = simulation.getFieldDampingConfig();
+
+  switch (action) {
+    case "toggleObstacle":
+      simulation.updateFieldDampingConfig({ enableObstacleFieldDamping: !config.enableObstacleFieldDamping });
+      return;
+    case "toggleTerrain":
+      simulation.updateFieldDampingConfig({ enableTerrainFieldDamping: !config.enableTerrainFieldDamping });
+      return;
+    case "obstacleDown":
+      simulation.updateFieldDampingConfig({ obstacleFieldDampingPerSecond: scaleControl(config.obstacleFieldDampingPerSecond, 0.8) });
+      return;
+    case "obstacleUp":
+      simulation.updateFieldDampingConfig({ obstacleFieldDampingPerSecond: scaleControl(config.obstacleFieldDampingPerSecond, 1.25) });
+      return;
+    case "terrainDown":
+      simulation.updateFieldDampingConfig({ terrainFieldDampingScalePerSecond: scaleControl(config.terrainFieldDampingScalePerSecond, 0.8) });
+      return;
+    case "terrainUp":
+      simulation.updateFieldDampingConfig({ terrainFieldDampingScalePerSecond: scaleControl(config.terrainFieldDampingScalePerSecond, 1.25) });
+      return;
+  }
+}
+
+function scaleControl(value: number, multiplier: number): number {
+  return Math.max(0, Math.min(16, value * multiplier));
 }
 
 function isTextInputEvent(event: KeyboardEvent): boolean {

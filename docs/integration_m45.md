@@ -31,11 +31,14 @@ M45 should make the environmental field respond to non-agent environment structu
 
 M45-B wires `applyFieldDamping` into the demo runtime after `applyFieldSourcesAndSinks(...)` and before `stepEnvironmentalFieldDynamics(...)`. The step result emits `fieldDampingStats` and `fieldDampingMs`. Renderer and overlay metrics include damping runtime cost, obstacle/terrain sample counts, damped cell counts, and field magnitude before/after/damped totals.
 
+M45-C adds runtime-editable damping controls: 6/7 toggle obstacle/terrain field damping; `6/7` toggle obstacle/terrain field damping, `[`/`]` scale obstacle damping per second, and `;`/`'` scale terrain damping per second. The overlay echoes enabled states, per-second strengths, and max sample caps.
+
 ## Validation target
 
 - npm run test:repo-status
 - npm run test:roadmap-status
 - npm run test:field-damping
 - npm run test:field-damping-integration
+- npm run test:field-damping-controls
 - npm run test:demo-integration
 - npm run build

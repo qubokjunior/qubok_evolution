@@ -29,6 +29,7 @@ export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly fieldDynamicsStats: FieldDynamicsStepMetrics;
   readonly fieldSourceStats: FieldSourceStepMetrics;
   readonly fieldDampingStats: FieldDampingStepMetrics;
+  readonly fieldDampingConfig: FieldDampingConfigReadout;
   readonly snapshotStats: RenderSnapshotStats;
   readonly movementMetrics: MovementStepMetrics;
   readonly obstacleResponseStats: ObstacleSoftResponseStats;
@@ -73,6 +74,16 @@ export type PixiRendererHandle = {
 };
 
 type AgentGlyph = { readonly graphic: Graphics; colorRGBA: number };
+
+type FieldDampingConfigReadout = {
+  readonly enableObstacleFieldDamping: boolean;
+  readonly enableTerrainFieldDamping: boolean;
+  readonly obstacleFieldDampingPerSecond: number;
+  readonly terrainFieldDampingScalePerSecond: number;
+  readonly fieldDampingMaxObstacleCells: number;
+  readonly fieldDampingMaxTerrainCells: number;
+};
+
 
 const GRID_STEP_PX = 64;
 const MAX_DEVICE_PIXEL_RATIO = 2;
@@ -198,6 +209,12 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("fieldDampingMagnitudeBefore", frame.fieldDampingStats.totalMagnitudeBefore);
     metrics.record("fieldDampingMagnitudeAfter", frame.fieldDampingStats.totalMagnitudeAfter);
     metrics.record("fieldDampingMagnitudeDamped", frame.fieldDampingStats.totalMagnitudeDamped);
+    metrics.record("fieldDampingObstacleEnabled", frame.fieldDampingConfig.enableObstacleFieldDamping ? 1 : 0);
+    metrics.record("fieldDampingTerrainEnabled", frame.fieldDampingConfig.enableTerrainFieldDamping ? 1 : 0);
+    metrics.record("fieldDampingObstaclePerSecond", frame.fieldDampingConfig.obstacleFieldDampingPerSecond);
+    metrics.record("fieldDampingTerrainScalePerSecond", frame.fieldDampingConfig.terrainFieldDampingScalePerSecond);
+    metrics.record("fieldDampingMaxObstacleCells", frame.fieldDampingConfig.fieldDampingMaxObstacleCells);
+    metrics.record("fieldDampingMaxTerrainCells", frame.fieldDampingConfig.fieldDampingMaxTerrainCells);
     metrics.record("deathsThisStep", frame.energyStats.deathsThisStep);
     metrics.record("starvingCount", frame.energyStats.starvingCount);
     metrics.record("starvationDamage", frame.energyStats.starvationDamage);
@@ -351,6 +368,12 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         fieldDampingMagnitudeBefore: snapshot.values.fieldDampingMagnitudeBefore,
         fieldDampingMagnitudeAfter: snapshot.values.fieldDampingMagnitudeAfter,
         fieldDampingMagnitudeDamped: snapshot.values.fieldDampingMagnitudeDamped,
+        fieldDampingObstacleEnabled: snapshot.values.fieldDampingObstacleEnabled,
+        fieldDampingTerrainEnabled: snapshot.values.fieldDampingTerrainEnabled,
+        fieldDampingObstaclePerSecond: snapshot.values.fieldDampingObstaclePerSecond,
+        fieldDampingTerrainScalePerSecond: snapshot.values.fieldDampingTerrainScalePerSecond,
+        fieldDampingMaxObstacleCells: snapshot.values.fieldDampingMaxObstacleCells,
+        fieldDampingMaxTerrainCells: snapshot.values.fieldDampingMaxTerrainCells,
         deathsThisStep: snapshot.values.deathsThisStep,
         starvingCount: snapshot.values.starvingCount,
         starvationDamage: snapshot.values.starvationDamage,

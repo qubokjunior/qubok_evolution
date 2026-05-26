@@ -101,6 +101,17 @@ export type DemoSimulationConfig = {
   readonly reproductionEnergyThreshold?: number;
 };
 
+export type DemoSimulationFieldDampingConfig = {
+  readonly enableObstacleFieldDamping: boolean;
+  readonly enableTerrainFieldDamping: boolean;
+  readonly obstacleFieldDampingPerSecond: number;
+  readonly terrainFieldDampingScalePerSecond: number;
+  readonly fieldDampingMaxObstacleCells: number;
+  readonly fieldDampingMaxTerrainCells: number;
+};
+
+export type DemoSimulationFieldDampingConfigPatch = Partial<DemoSimulationFieldDampingConfig>;
+
 export type DemoSimulationStepResult = {
   readonly snapshot: RenderSnapshot;
   readonly obstacleMaskSnapshot: ObstacleMaskRenderSnapshot;
@@ -109,6 +120,7 @@ export type DemoSimulationStepResult = {
   readonly fieldDynamicsStats: FieldDynamicsStepMetrics;
   readonly fieldSourceStats: FieldSourceStepMetrics;
   readonly fieldDampingStats: FieldDampingStepMetrics;
+  readonly fieldDampingConfig: DemoSimulationFieldDampingConfig;
   readonly snapshotStats: RenderSnapshotStats;
   readonly movementMetrics: MovementStepMetrics;
   readonly obstacleResponseStats: ObstacleSoftResponseStats;
@@ -150,6 +162,8 @@ export type DemoSimulationHandle = {
   readonly initialResourceSpawnStats: SpawnValidationStats;
   readonly step: (deltaSeconds: number) => DemoSimulationStepResult;
   readonly getSnapshot: () => RenderSnapshot;
+  readonly getFieldDampingConfig: () => DemoSimulationFieldDampingConfig;
+  readonly updateFieldDampingConfig: (patch: DemoSimulationFieldDampingConfigPatch) => DemoSimulationFieldDampingConfig;
 };
 
 const DEFAULT_CAPACITY = 1536;
@@ -216,12 +230,12 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const fieldAgentSinkAbsorptionPerSecond = config.fieldAgentSinkAbsorptionPerSecond ?? DEFAULT_FIELD_AGENT_SINK_ABSORPTION_PER_SECOND;
   const fieldSourceMaxResources = Math.max(0, Math.floor(config.fieldSourceMaxResources ?? DEFAULT_FIELD_SOURCE_MAX_RESOURCES));
   const fieldSinkMaxAgents = Math.max(0, Math.floor(config.fieldSinkMaxAgents ?? DEFAULT_FIELD_SINK_MAX_AGENTS));
-  const enableObstacleFieldDamping = config.enableObstacleFieldDamping ?? true;
-  const enableTerrainFieldDamping = config.enableTerrainFieldDamping ?? true;
-  const obstacleFieldDampingPerSecond = config.obstacleFieldDampingPerSecond ?? DEFAULT_OBSTACLE_FIELD_DAMPING_PER_SECOND;
-  const terrainFieldDampingScalePerSecond = config.terrainFieldDampingScalePerSecond ?? DEFAULT_TERRAIN_FIELD_DAMPING_SCALE_PER_SECOND;
-  const fieldDampingMaxObstacleCells = Math.max(0, Math.floor(config.fieldDampingMaxObstacleCells ?? DEFAULT_FIELD_DAMPING_MAX_OBSTACLE_CELLS));
-  const fieldDampingMaxTerrainCells = Math.max(0, Math.floor(config.fieldDampingMaxTerrainCells ?? DEFAULT_FIELD_DAMPING_MAX_TERRAIN_CELLS));
+  let enableObstacleFieldDamping = config.enableObstacleFieldDamping ?? true;
+  let enableTerrainFieldDamping = config.enableTerrainFieldDamping ?? true;
+  let obstacleFieldDampingPerSecond = clampFinite(config.obstacleFieldDampingPerSecond ?? DEFAULT_OBSTACLE_FIELD_DAMPING_PER_SECOND, 0, 16);
+  let terrainFieldDampingScalePerSecond = clampFinite(config.terrainFieldDampingScalePerSecond ?? DEFAULT_TERRAIN_FIELD_DAMPING_SCALE_PER_SECOND, 0, 16);
+  let fieldDampingMaxObstacleCells = clampInteger(config.fieldDampingMaxObstacleCells ?? DEFAULT_FIELD_DAMPING_MAX_OBSTACLE_CELLS, 0, 1_000_000);
+  let fieldDampingMaxTerrainCells = clampInteger(config.fieldDampingMaxTerrainCells ?? DEFAULT_FIELD_DAMPING_MAX_TERRAIN_CELLS, 0, 1_000_000);
   const obstacleResponseRadius = config.obstacleResponseRadius ?? DEFAULT_OBSTACLE_RESPONSE_RADIUS;
   const obstacleResponseForceScale = config.obstacleResponseForceScale ?? DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE;
   const obstacleResponseMaxForce = config.obstacleResponseMaxForce ?? DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE;
@@ -262,6 +276,25 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     : { requestedCount: 0, spawnedCount: 0, blockedAttemptCount: 0, fallbackUsedCount: 0, failedCount: 0, terrainResourceSampleCount: 0, terrainResourceAffinitySum: 0, terrainResourceRejectedCount: 0 };
   buildSpatialHashGrid(spatialGrid, world);
   rebuildResourceGrid(resources);
+
+  const getFieldDampingConfig = (): DemoSimulationFieldDampingConfig => Object.freeze({
+    enableObstacleFieldDamping,
+    enableTerrainFieldDamping,
+    obstacleFieldDampingPerSecond,
+    terrainFieldDampingScalePerSecond,
+    fieldDampingMaxObstacleCells,
+    fieldDampingMaxTerrainCells
+  });
+
+  const updateFieldDampingConfig = (patch: DemoSimulationFieldDampingConfigPatch): DemoSimulationFieldDampingConfig => {
+    if (typeof patch.enableObstacleFieldDamping === "boolean") enableObstacleFieldDamping = patch.enableObstacleFieldDamping;
+    if (typeof patch.enableTerrainFieldDamping === "boolean") enableTerrainFieldDamping = patch.enableTerrainFieldDamping;
+    if (patch.obstacleFieldDampingPerSecond !== undefined) obstacleFieldDampingPerSecond = clampFinite(patch.obstacleFieldDampingPerSecond, 0, 16);
+    if (patch.terrainFieldDampingScalePerSecond !== undefined) terrainFieldDampingScalePerSecond = clampFinite(patch.terrainFieldDampingScalePerSecond, 0, 16);
+    if (patch.fieldDampingMaxObstacleCells !== undefined) fieldDampingMaxObstacleCells = clampInteger(patch.fieldDampingMaxObstacleCells, 0, 1_000_000);
+    if (patch.fieldDampingMaxTerrainCells !== undefined) fieldDampingMaxTerrainCells = clampInteger(patch.fieldDampingMaxTerrainCells, 0, 1_000_000);
+    return getFieldDampingConfig();
+  };
 
   const step = (deltaSeconds: number): DemoSimulationStepResult => {
     const safeDeltaSeconds = Math.min(Math.max(deltaSeconds, 1 / 240), MAX_DELTA_SECONDS);
@@ -348,10 +381,10 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     const snapshotStats = analyzeRenderSnapshot(snapshot);
     const simMsPerTick = performance.now() - start;
 
-    return { snapshot, obstacleMaskSnapshot, terrainRenderSnapshot, fieldRenderSnapshot, fieldDynamicsStats, fieldSourceStats, fieldDampingStats, snapshotStats, movementMetrics, obstacleResponseStats, obstacleLifecycleTelemetry, energyStats, spatialBuildStats, neighborQueryStats, sensorStats, predatorPreyStats, reproductionStats, resourceBuildStats, resourcePickupStats, resourceRespawnStats, resourceAliveCount: resources.aliveCount, resourceTargetCount, resourceRespawnedCount, gridBuildMs, neighborQueryMs, sensorMs, obstacleResponseMs, predatorPreyMs, resourceMs, energyMs, reproductionMs, fieldDynamicsMs, fieldSourcesMs, fieldDampingMs, simMsPerTick };
+    return { snapshot, obstacleMaskSnapshot, terrainRenderSnapshot, fieldRenderSnapshot, fieldDynamicsStats, fieldSourceStats, fieldDampingStats, fieldDampingConfig: getFieldDampingConfig(), snapshotStats, movementMetrics, obstacleResponseStats, obstacleLifecycleTelemetry, energyStats, spatialBuildStats, neighborQueryStats, sensorStats, predatorPreyStats, reproductionStats, resourceBuildStats, resourcePickupStats, resourceRespawnStats, resourceAliveCount: resources.aliveCount, resourceTargetCount, resourceRespawnedCount, gridBuildMs, neighborQueryMs, sensorMs, obstacleResponseMs, predatorPreyMs, resourceMs, energyMs, reproductionMs, fieldDynamicsMs, fieldSourcesMs, fieldDampingMs, simMsPerTick };
   };
 
-  return { world, spatialGrid, resources, obstacleMask, terrain, field, initialAgentSpawnStats, initialResourceSpawnStats, step, getSnapshot: () => makeRenderSnapshot(world) };
+  return { world, spatialGrid, resources, obstacleMask, terrain, field, initialAgentSpawnStats, initialResourceSpawnStats, step, getSnapshot: () => makeRenderSnapshot(world), getFieldDampingConfig, updateFieldDampingConfig };
 }
 
 
@@ -392,6 +425,15 @@ function fillAgentFieldSinks(world: WorldState, target: FieldPointSink[], maxAge
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
+}
+
+
+function clampFinite(value: number, min: number, max: number): number {
+  return Number.isFinite(value) ? Math.max(min, Math.min(max, value)) : min;
+}
+
+function clampInteger(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, Math.floor(Number.isFinite(value) ? value : min)));
 }
 
 function tuneDemoAgents(world: WorldState, rng: DeterministicRng): void {
