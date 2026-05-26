@@ -45,7 +45,7 @@ import { createWorldState, type WorldState } from "./world";
 import { createTerrainLayer, setTerrainRectMaterial, type TerrainLayer } from "./terrain";
 import { makeTerrainRenderSnapshot, type TerrainRenderSnapshot } from "./terrainRenderSnapshot";
 
-export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v18" as const;
+export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v19" as const;
 
 export type DemoSimulationConfig = {
   readonly seed?: RngSeed;
@@ -71,6 +71,7 @@ export type DemoSimulationConfig = {
   readonly sensorRadiusScale?: number;
   readonly sensorFoodTickInterval?: number;
   readonly sensorObstacleTickInterval?: number;
+  readonly sensorTerrainTickInterval?: number;
   readonly predatorAttackRadius?: number;
   readonly reproductionEnergyThreshold?: number;
 };
@@ -139,16 +140,14 @@ const DEFAULT_SPAWN_CLEARANCE_RADIUS = 4;
 const DEFAULT_SENSOR_RADIUS_SCALE = 1;
 const DEFAULT_SENSOR_FOOD_TICK_INTERVAL = 4;
 const DEFAULT_SENSOR_OBSTACLE_TICK_INTERVAL = 8;
+const DEFAULT_SENSOR_TERRAIN_TICK_INTERVAL = 2;
 const DEFAULT_PREDATOR_ATTACK_RADIUS = 24;
 const DEFAULT_REPRODUCTION_ENERGY_THRESHOLD = 88;
 const MAX_DELTA_SECONDS = 1 / 30;
 
 export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSimulationHandle {
   const capacity = config.capacity ?? DEFAULT_CAPACITY;
-  const initialAgentCount = Math.min(
-    config.initialAgentCount ?? Math.max(1, Math.floor(capacity * DEFAULT_INITIAL_AGENT_FILL_RATIO)),
-    capacity
-  );
+  const initialAgentCount = Math.min(config.initialAgentCount ?? Math.max(1, Math.floor(capacity * DEFAULT_INITIAL_AGENT_FILL_RATIO)), capacity);
   const worldWidth = config.worldWidth ?? DEFAULT_WORLD_WIDTH;
   const worldHeight = config.worldHeight ?? DEFAULT_WORLD_HEIGHT;
   const neighborRadius = config.neighborRadius ?? DEFAULT_NEIGHBOR_RADIUS;
@@ -159,109 +158,53 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const obstacleResponseForceScale = config.obstacleResponseForceScale ?? DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE;
   const obstacleResponseMaxForce = config.obstacleResponseMaxForce ?? DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE;
   const obstacleResponseCellStride = config.obstacleResponseCellStride ?? DEFAULT_OBSTACLE_RESPONSE_CELL_STRIDE;
-  const obstacleResponseMaxCellChecksPerAgent =
-    config.obstacleResponseMaxCellChecksPerAgent ?? DEFAULT_OBSTACLE_RESPONSE_MAX_CELL_CHECKS_PER_AGENT;
+  const obstacleResponseMaxCellChecksPerAgent = config.obstacleResponseMaxCellChecksPerAgent ?? DEFAULT_OBSTACLE_RESPONSE_MAX_CELL_CHECKS_PER_AGENT;
   const obstacleResponseBoundsOnly = config.obstacleResponseBoundsOnly ?? false;
   const spawnMaxAttempts = config.spawnMaxAttempts ?? DEFAULT_SPAWN_MAX_ATTEMPTS;
   const spawnClearanceRadius = config.spawnClearanceRadius ?? DEFAULT_SPAWN_CLEARANCE_RADIUS;
   const sensorRadiusScale = config.sensorRadiusScale ?? DEFAULT_SENSOR_RADIUS_SCALE;
   const sensorFoodTickInterval = config.sensorFoodTickInterval ?? DEFAULT_SENSOR_FOOD_TICK_INTERVAL;
   const sensorObstacleTickInterval = config.sensorObstacleTickInterval ?? DEFAULT_SENSOR_OBSTACLE_TICK_INTERVAL;
+  const sensorTerrainTickInterval = config.sensorTerrainTickInterval ?? DEFAULT_SENSOR_TERRAIN_TICK_INTERVAL;
   const predatorAttackRadius = config.predatorAttackRadius ?? DEFAULT_PREDATOR_ATTACK_RADIUS;
   const reproductionEnergyThreshold = config.reproductionEnergyThreshold ?? DEFAULT_REPRODUCTION_ENERGY_THRESHOLD;
 
-  const world = createWorldState({
-    capacity,
-    worldWidth,
-    worldHeight,
-    sectorCount: 8
-  });
+  const world = createWorldState({ capacity, worldWidth, worldHeight, sectorCount: 8 });
+  const spatialGrid = createSpatialHashGrid({ capacity, worldWidth, worldHeight, cellSize: config.spatialCellSize ?? DEFAULT_SPATIAL_CELL_SIZE });
+  const resources = createResourceLayer({ capacity: resourceCapacity, worldWidth, worldHeight, cellSize: config.resourceCellSize ?? config.spatialCellSize ?? DEFAULT_SPATIAL_CELL_SIZE });
+  const obstacleMask = createObstacleMask({ worldWidth, worldHeight, cellSize: config.obstacleCellSize ?? DEFAULT_OBSTACLE_CELL_SIZE });
+  const terrain = createTerrainLayer({ worldWidth, worldHeight, cellSize: DEFAULT_TERRAIN_CELL_SIZE });
 
-  const spatialGrid = createSpatialHashGrid({
-    capacity,
-    worldWidth,
-    worldHeight,
-    cellSize: config.spatialCellSize ?? DEFAULT_SPATIAL_CELL_SIZE
-  });
-
-  const resources = createResourceLayer({
-    capacity: resourceCapacity,
-    worldWidth,
-    worldHeight,
-    cellSize: config.resourceCellSize ?? config.spatialCellSize ?? DEFAULT_SPATIAL_CELL_SIZE
-  });
-
-  const obstacleMask = createObstacleMask({
-    worldWidth,
-    worldHeight,
-    cellSize: config.obstacleCellSize ?? DEFAULT_OBSTACLE_CELL_SIZE
-  });
-
-  const terrain = createTerrainLayer({
-    worldWidth,
-    worldHeight,
-    cellSize: DEFAULT_TERRAIN_CELL_SIZE
-  });
-
-  const rng = createRng(config.seed ?? "qubok_evolve:demo:m36");
+  const rng = createRng(config.seed ?? "qubok_evolve:demo:m37");
   seedDemoObstacleMask(obstacleMask);
   seedDemoTerrain(terrain);
   const obstacleMaskSnapshot = makeObstacleMaskRenderSnapshot(obstacleMask);
   const spawnConfig = { maxAttempts: spawnMaxAttempts, clearanceRadius: spawnClearanceRadius };
   const initialAgentSpawnStats = spawnRandomAgentsAvoidingObstacles(world, initialAgentCount, rng, obstacleMask, spawnConfig);
   tuneDemoAgents(world, rng);
-  const initialResourceSpawnStats =
-    resourceTargetCount > 0
-      ? spawnRandomResourcesAvoidingObstacles(resources, resourceTargetCount, rng, obstacleMask, { ...spawnConfig, terrain })
-      : {
-          requestedCount: 0,
-          spawnedCount: 0,
-          blockedAttemptCount: 0,
-          fallbackUsedCount: 0,
-          failedCount: 0,
-          terrainResourceSampleCount: 0,
-          terrainResourceAffinitySum: 0,
-          terrainResourceRejectedCount: 0
-        };
+  const initialResourceSpawnStats = resourceTargetCount > 0
+    ? spawnRandomResourcesAvoidingObstacles(resources, resourceTargetCount, rng, obstacleMask, { ...spawnConfig, terrain })
+    : { requestedCount: 0, spawnedCount: 0, blockedAttemptCount: 0, fallbackUsedCount: 0, failedCount: 0, terrainResourceSampleCount: 0, terrainResourceAffinitySum: 0, terrainResourceRejectedCount: 0 };
   buildSpatialHashGrid(spatialGrid, world);
   rebuildResourceGrid(resources);
 
   const step = (deltaSeconds: number): DemoSimulationStepResult => {
     const safeDeltaSeconds = Math.min(Math.max(deltaSeconds, 1 / 240), MAX_DELTA_SECONDS);
     const start = performance.now();
-
     applyDemoForces(world);
 
     const obstacleResponseStart = performance.now();
-    const obstacleResponseStats = applyObstacleSoftResponse(world, obstacleMask, {
-      responseRadius: obstacleResponseRadius,
-      forceScale: obstacleResponseForceScale,
-      maxForcePerAgent: obstacleResponseMaxForce,
-      includeWorldBounds: true,
-      boundsOnly: obstacleResponseBoundsOnly,
-      cellStride: obstacleResponseCellStride,
-      maxObstacleCellChecksPerAgent: obstacleResponseMaxCellChecksPerAgent
-    });
+    const obstacleResponseStats = applyObstacleSoftResponse(world, obstacleMask, { responseRadius: obstacleResponseRadius, forceScale: obstacleResponseForceScale, maxForcePerAgent: obstacleResponseMaxForce, includeWorldBounds: true, boundsOnly: obstacleResponseBoundsOnly, cellStride: obstacleResponseCellStride, maxObstacleCellChecksPerAgent: obstacleResponseMaxCellChecksPerAgent });
     const obstacleResponseMs = performance.now() - obstacleResponseStart;
 
-    const movementMetrics = stepMovement(world, {
-      deltaSeconds: safeDeltaSeconds,
-      boundsMode: "wrap",
-      clearForces: true,
-      minimumEnergy: -1_000_000,
-      terrain
-    });
+    const movementMetrics = stepMovement(world, { deltaSeconds: safeDeltaSeconds, boundsMode: "wrap", clearForces: true, minimumEnergy: -1_000_000, terrain });
 
     const gridStart = performance.now();
     const spatialBuildStats = buildSpatialHashGrid(spatialGrid, world);
     const gridBuildMs = performance.now() - gridStart;
 
     const neighborStart = performance.now();
-    const neighborQueryStats = sampleLocalNeighborStats(spatialGrid, world, {
-      radius: neighborRadius,
-      maxSampleCount: Math.min(world.count, 256),
-      stride: 5
-    });
+    const neighborQueryStats = sampleLocalNeighborStats(spatialGrid, world, { radius: neighborRadius, maxSampleCount: Math.min(world.count, 256), stride: 5 });
     const neighborQueryMs = performance.now() - neighborStart;
 
     const resourceGridStart = performance.now();
@@ -277,9 +220,11 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
       includeObstacles: true,
       resources,
       obstacleMask,
+      terrain,
       tick: world.tick,
       foodTickInterval: sensorFoodTickInterval,
       obstacleTickInterval: sensorObstacleTickInterval,
+      terrainTickInterval: sensorTerrainTickInterval,
       preserveSkippedSectorChannels: true,
       obstacleDetectionRadius: 128,
       allySignalScale: 1,
@@ -290,115 +235,33 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     const sensorMs = performance.now() - sensorStart;
 
     const predatorPreyStart = performance.now();
-    const predatorPreyStats = applyPredatorPreyInteraction(world, spatialGrid, {
-      attackRadius: predatorAttackRadius,
-      maxAttacksPerPredator: 1,
-      sameSpeciesProtection: true,
-      damageScale: 0.85,
-      actionEnergyCost: 0.2,
-      energyGainPerDamage: 0.35,
-      preyEnergyHarvestRatio: 0.25
-    });
+    const predatorPreyStats = applyPredatorPreyInteraction(world, spatialGrid, { attackRadius: predatorAttackRadius, maxAttacksPerPredator: 1, sameSpeciesProtection: true, damageScale: 0.85, actionEnergyCost: 0.2, energyGainPerDamage: 0.35, preyEnergyHarvestRatio: 0.25 });
     const predatorPreyMs = performance.now() - predatorPreyStart;
 
     const resourceStart = performance.now();
-    const resourcePickupStats = consumeResourcesForWorld(resources, world, {
-      pickupRadius: resourcePickupRadius,
-      maxPickupsPerAgent: 1
-    });
-    const resourceRespawnStats = respawnResourcesToTargetAvoidingObstacles(
-      resources,
-      resourceTargetCount,
-      rng,
-      obstacleMask,
-      { ...spawnConfig, terrain }
-    );
+    const resourcePickupStats = consumeResourcesForWorld(resources, world, { pickupRadius: resourcePickupRadius, maxPickupsPerAgent: 1 });
+    const resourceRespawnStats = respawnResourcesToTargetAvoidingObstacles(resources, resourceTargetCount, rng, obstacleMask, { ...spawnConfig, terrain });
     const resourceRespawnedCount = resourceRespawnStats.spawnedCount;
     const resourceMs = resourceGridMs + performance.now() - resourceStart;
 
     const energyStart = performance.now();
-    const energyStats = applyEnergySurvival(world, {
-      deltaSeconds: safeDeltaSeconds,
-      basalMetabolismScale: 0,
-      starvationEnergyThreshold: 0,
-      starvationDamagePerSecond: 18,
-      energyDebtDamageScale: 0.35,
-      killOnZeroHealth: true
-    });
+    const energyStats = applyEnergySurvival(world, { deltaSeconds: safeDeltaSeconds, basalMetabolismScale: 0, starvationEnergyThreshold: 0, starvationDamagePerSecond: 18, energyDebtDamageScale: 0.35, killOnZeroHealth: true });
     const energyMs = performance.now() - energyStart;
 
     const reproductionStart = performance.now();
-    const reproductionStats = applyReproduction(world, rng, {
-      energyThreshold: reproductionEnergyThreshold,
-      energyCost: 44,
-      childEnergy: 32,
-      minAgeSeconds: 2.5,
-      maxBirthsPerStep: 8,
-      spawnRadius: 14,
-      inheritVelocityScale: 0.35,
-      mutationChance: 0.35,
-      mutationStandardDeviationScale: 0.4,
-      obstacleMask,
-      offspringSpawnMaxAttempts: spawnMaxAttempts,
-      offspringClearanceRadius: spawnClearanceRadius
-    });
+    const reproductionStats = applyReproduction(world, rng, { energyThreshold: reproductionEnergyThreshold, energyCost: 44, childEnergy: 32, minAgeSeconds: 2.5, maxBirthsPerStep: 8, spawnRadius: 14, inheritVelocityScale: 0.35, mutationChance: 0.35, mutationStandardDeviationScale: 0.4, obstacleMask, offspringSpawnMaxAttempts: spawnMaxAttempts, offspringClearanceRadius: spawnClearanceRadius });
     const reproductionMs = performance.now() - reproductionStart;
 
-    const obstacleLifecycleTelemetry = makeObstacleLifecycleTelemetry({
-      sensorStats,
-      obstacleResponseStats,
-      resourceRespawnStats,
-      reproductionStats
-    });
-
+    const obstacleLifecycleTelemetry = makeObstacleLifecycleTelemetry({ sensorStats, obstacleResponseStats, resourceRespawnStats, reproductionStats });
     const snapshot = makeRenderSnapshot(world);
     const terrainRenderSnapshot = makeTerrainRenderSnapshot(terrain);
     const snapshotStats = analyzeRenderSnapshot(snapshot);
     const simMsPerTick = performance.now() - start;
 
-    return {
-      snapshot,
-      obstacleMaskSnapshot,
-      terrainRenderSnapshot,
-      snapshotStats,
-      movementMetrics,
-      obstacleResponseStats,
-      obstacleLifecycleTelemetry,
-      energyStats,
-      spatialBuildStats,
-      neighborQueryStats,
-      sensorStats,
-      predatorPreyStats,
-      reproductionStats,
-      resourceBuildStats,
-      resourcePickupStats,
-      resourceRespawnStats,
-      resourceAliveCount: resources.aliveCount,
-      resourceTargetCount,
-      resourceRespawnedCount,
-      gridBuildMs,
-      neighborQueryMs,
-      sensorMs,
-      obstacleResponseMs,
-      predatorPreyMs,
-      resourceMs,
-      energyMs,
-      reproductionMs,
-      simMsPerTick
-    };
+    return { snapshot, obstacleMaskSnapshot, terrainRenderSnapshot, snapshotStats, movementMetrics, obstacleResponseStats, obstacleLifecycleTelemetry, energyStats, spatialBuildStats, neighborQueryStats, sensorStats, predatorPreyStats, reproductionStats, resourceBuildStats, resourcePickupStats, resourceRespawnStats, resourceAliveCount: resources.aliveCount, resourceTargetCount, resourceRespawnedCount, gridBuildMs, neighborQueryMs, sensorMs, obstacleResponseMs, predatorPreyMs, resourceMs, energyMs, reproductionMs, simMsPerTick };
   };
 
-  return {
-    world,
-    spatialGrid,
-    resources,
-    obstacleMask,
-    terrain,
-    initialAgentSpawnStats,
-    initialResourceSpawnStats,
-    step,
-    getSnapshot: () => makeRenderSnapshot(world)
-  };
+  return { world, spatialGrid, resources, obstacleMask, terrain, initialAgentSpawnStats, initialResourceSpawnStats, step, getSnapshot: () => makeRenderSnapshot(world) };
 }
 
 function tuneDemoAgents(world: WorldState, rng: DeterministicRng): void {
@@ -408,7 +271,6 @@ function tuneDemoAgents(world: WorldState, rng: DeterministicRng): void {
     const speed = rng.range(12, 52);
     const isPredatorSpecies = species === 0 || species === 3;
     const isOmnivoreSpecies = species === 5;
-
     world.speciesId[index] = species;
     world.dietMask[index] = isPredatorSpecies ? DIET_MEAT : isOmnivoreSpecies ? DIET_OMNIVORE : DIET_PLANT;
     world.radius[index] = rng.range(1.4, 3.8);
@@ -419,11 +281,7 @@ function tuneDemoAgents(world: WorldState, rng: DeterministicRng): void {
     world.maxEnergy[index] = 100;
     world.health[index] = rng.range(65, 100);
     world.armor[index] = isPredatorSpecies ? rng.range(0.15, 0.65) : rng.range(0, 0.35);
-    world.mouthPower[index] = isPredatorSpecies
-      ? rng.range(7, 14)
-      : isOmnivoreSpecies
-        ? rng.range(4, 8)
-        : rng.range(1, 3);
+    world.mouthPower[index] = isPredatorSpecies ? rng.range(7, 14) : isOmnivoreSpecies ? rng.range(4, 8) : rng.range(1, 3);
     world.visionRadius[index] = isPredatorSpecies ? rng.range(92, 180) : rng.range(48, 132);
     world.visionCosHalfCone[index] = Math.cos(rng.range(0.45, 1.45));
     world.vx[index] = Math.cos(angle) * speed;
@@ -436,12 +294,8 @@ function applyDemoForces(world: WorldState): void {
   const centerX = world.worldWidth * 0.5;
   const centerY = world.worldHeight * 0.5;
   const time = world.timeSeconds;
-
   for (let index = 0; index < world.count; index += 1) {
-    if (world.alive[index] !== 1) {
-      continue;
-    }
-
+    if (world.alive[index] !== 1) continue;
     const dx = centerX - world.x[index];
     const dy = centerY - world.y[index];
     const distance = Math.max(Math.hypot(dx, dy), 1);
@@ -451,35 +305,22 @@ function applyDemoForces(world: WorldState): void {
     const tangentY = nx;
     const speciesBias = 0.7 + (world.speciesId[index] % 6) * 0.13;
     const pulse = Math.sin(time * (0.41 + speciesBias * 0.17) + index * 0.013) * 0.5 + 0.5;
-
     const centerForce = Math.min(distance * 0.045, 58) * speciesBias;
     const swirlForce = (18 + pulse * 34) * (index % 2 === 0 ? 1 : -1);
     const microX = Math.sin(time * 1.7 + index * 12.9898) * 6;
     const microY = Math.cos(time * 1.3 + index * 78.233) * 6;
-
-    addForce(
-      world,
-      index,
-      nx * centerForce + tangentX * swirlForce + microX,
-      ny * centerForce + tangentY * swirlForce + microY
-    );
+    addForce(world, index, nx * centerForce + tangentX * swirlForce + microX, ny * centerForce + tangentY * swirlForce + microY);
   }
 }
 
 function getSpeciesColorRGBA(species: number): number {
   switch (species % 6) {
-    case 0:
-      return 0x7cc7ffff;
-    case 1:
-      return 0xffb86cff;
-    case 2:
-      return 0xb7ff8aff;
-    case 3:
-      return 0xff7a90ff;
-    case 4:
-      return 0xc8a2ffff;
-    default:
-      return 0xfff08aff;
+    case 0: return 0x7cc7ffff;
+    case 1: return 0xffb86cff;
+    case 2: return 0xb7ff8aff;
+    case 3: return 0xff7a90ff;
+    case 4: return 0xc8a2ffff;
+    default: return 0xfff08aff;
   }
 }
 
