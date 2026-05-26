@@ -11,6 +11,8 @@ export type PerfOverlaySink = {
   destroy: () => void;
 };
 
+type OverlayGroupId = "runtime" | "field" | "terrain" | "obstacle" | "movement" | "spatial" | "sensors" | "combat" | "resources" | "reproduction" | "worldSlots" | "other";
+
 const DISPLAY_ORDER = [
   "fps", "frameMs", "renderMsPerFrame", "simMsPerTick", "gridBuildMs", "neighborQueryMs", "sensorMs",
   "fieldMovementSampleCount", "fieldFlowXSum", "fieldFlowYSum", "fieldFlowMagnitudeSum", "fieldRenderMs", "fieldRenderVectorCount", "fieldRenderTruncated",
@@ -27,6 +29,132 @@ const DISPLAY_ORDER = [
   "sensorVisibleNeighbors", "sensorSectorWrites", "sensorFoodVisibleCount", "sensorFoodSectorWrites", "sensorObstacleSectorWrites", "sensorObstacleMaskCellChecks", "sensorObstacleMaskHits", "sensorObstacleMaskSectorWrites", "sensorFoodSignalSum", "sensorObstacleSignalSum", "sensorFoodScheduled", "sensorObstacleScheduled", "sensorFoodSkippedByCadence", "sensorObstacleSkippedByCadence", "avgVisibleNeighborsPerAgent",
   "attacksThisStep", "killsThisStep", "predatorDamageDealt", "predatorEnergyGained", "resourceAliveCount", "resourceTargetCount", "foodPickupCount", "foodEnergyTransferred", "birthsThisStep", "reproductionEligibleCount", "blockedBirthsByCapacity", "reusableSlotCount", "spawnReusedSlotCount", "spawnAppendedSlotCount", "mutationChangedCount"
 ] as const;
+
+const GROUP_LABELS: Record<OverlayGroupId, string> = Object.freeze({
+  runtime: "runtime",
+  field: "field",
+  terrain: "terrain",
+  obstacle: "obstacle",
+  movement: "movement",
+  spatial: "spatial",
+  sensors: "sensors",
+  combat: "combat",
+  resources: "resources",
+  reproduction: "reproduction",
+  worldSlots: "world slots",
+  other: "other"
+});
+
+const KEY_GROUPS: Record<string, OverlayGroupId> = Object.freeze({
+  fps: "runtime",
+  frameMs: "runtime",
+  renderMsPerFrame: "runtime",
+  simMsPerTick: "runtime",
+  gridBuildMs: "runtime",
+  neighborQueryMs: "runtime",
+  sensorMs: "runtime",
+  predatorPreyMs: "runtime",
+  resourceMs: "runtime",
+  energyMs: "runtime",
+  reproductionMs: "runtime",
+  tick: "runtime",
+  entityCount: "runtime",
+  aliveCount: "runtime",
+  averageEnergy01: "runtime",
+
+  fieldMovementSampleCount: "field",
+  fieldFlowXSum: "field",
+  fieldFlowYSum: "field",
+  fieldFlowMagnitudeSum: "field",
+  fieldRenderMs: "field",
+  fieldRenderVectorCount: "field",
+  fieldRenderTruncated: "field",
+
+  terrainSensorSampleCount: "terrain",
+  terrainSensorMovementCostSum: "terrain",
+  terrainSensorFrictionSum: "terrain",
+  terrainSensorDragSum: "terrain",
+  terrainSensorResourceAffinitySum: "terrain",
+  terrainSensorScheduled: "terrain",
+  terrainSensorSkippedByCadence: "terrain",
+  terrainMovementSampleCount: "terrain",
+  terrainMovementCostSum: "terrain",
+  terrainFrictionSum: "terrain",
+  terrainDragSum: "terrain",
+  terrainResourceSampleCount: "terrain",
+  terrainResourceAffinitySum: "terrain",
+  terrainResourceRejectedCount: "terrain",
+  terrainOffspringSampleCount: "terrain",
+  terrainOffspringAffinitySum: "terrain",
+  terrainOffspringRejectedCount: "terrain",
+  terrainRenderMs: "terrain",
+  terrainRenderCellCount: "terrain",
+  terrainRenderTruncated: "terrain",
+
+  obstacleResponseMs: "obstacle",
+  obstacleResponseForces: "obstacle",
+  obstacleResponseHits: "obstacle",
+  obstacleResponseCellChecks: "obstacle",
+  obstacleResponseSkippedCells: "obstacle",
+  obstacleResponseLimitHits: "obstacle",
+  obstacleResponseBoundaryHits: "obstacle",
+  obstacleLifecycleEvents: "obstacle",
+  obstacleLifecyclePressure: "obstacle",
+  obstacleSpawnBlockedAttempts: "obstacle",
+  obstacleSpawnFallbacks: "obstacle",
+  obstacleSpawnFailures: "obstacle",
+  obstacleReproductionBlocked: "obstacle",
+  obstacleReproductionFailures: "obstacle",
+  obstacleResourceRespawns: "obstacle",
+  obstacleRenderMs: "obstacle",
+  obstacleRenderCellCount: "obstacle",
+
+  movementIntegratedCount: "movement",
+  deathsThisStep: "movement",
+  starvingCount: "movement",
+  starvationDamage: "movement",
+
+  spatialUsedCells: "spatial",
+  spatialMaxCellOccupancy: "spatial",
+  neighborCandidates: "spatial",
+  avgNeighborsPerAgent: "spatial",
+  maxNeighborsForAgent: "spatial",
+
+  sensorVisibleNeighbors: "sensors",
+  sensorSectorWrites: "sensors",
+  sensorFoodVisibleCount: "sensors",
+  sensorFoodSectorWrites: "sensors",
+  sensorObstacleSectorWrites: "sensors",
+  sensorObstacleMaskCellChecks: "sensors",
+  sensorObstacleMaskHits: "sensors",
+  sensorObstacleMaskSectorWrites: "sensors",
+  sensorFoodSignalSum: "sensors",
+  sensorObstacleSignalSum: "sensors",
+  sensorFoodScheduled: "sensors",
+  sensorObstacleScheduled: "sensors",
+  sensorFoodSkippedByCadence: "sensors",
+  sensorObstacleSkippedByCadence: "sensors",
+  avgVisibleNeighborsPerAgent: "sensors",
+
+  attacksThisStep: "combat",
+  killsThisStep: "combat",
+  predatorDamageDealt: "combat",
+  predatorEnergyGained: "combat",
+
+  resourceAliveCount: "resources",
+  resourceTargetCount: "resources",
+  foodPickupCount: "resources",
+  foodEnergyTransferred: "resources",
+
+  birthsThisStep: "reproduction",
+  reproductionEligibleCount: "reproduction",
+  blockedBirthsByCapacity: "reproduction",
+  mutationChangedCount: "reproduction",
+
+  reusableSlotCount: "worldSlots",
+  spawnReusedSlotCount: "worldSlots",
+  spawnAppendedSlotCount: "worldSlots"
+});
 
 const LABELS: Record<string, string> = {
   fps: "fps",
@@ -93,6 +221,7 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
   root.append(title);
 
   const rows = new Map<string, HTMLElement>();
+  const groups = new Map<OverlayGroupId, HTMLElement>();
   host.append(root);
 
   const update = (snapshot: PerfOverlaySnapshot): void => {
@@ -101,7 +230,7 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     for (const key of DISPLAY_ORDER) {
       const value = snapshot[key];
       if (typeof value === "number") {
-        getOrCreateRow(root, rows, key).textContent = formatValue(key, value);
+        getOrCreateRow(root, rows, groups, key).textContent = formatValue(key, value);
         emitted.add(key);
       }
     }
@@ -110,7 +239,7 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
       if (key === "metrics" || emitted.has(key) || typeof value !== "number") {
         continue;
       }
-      getOrCreateRow(root, rows, key).textContent = formatValue(key, value);
+      getOrCreateRow(root, rows, groups, key).textContent = formatValue(key, value);
     }
   };
 
@@ -120,15 +249,34 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
   };
 }
 
-function getOrCreateRow(root: HTMLElement, rows: Map<string, HTMLElement>, key: string): HTMLElement {
+function getOrCreateRow(root: HTMLElement, rows: Map<string, HTMLElement>, groups: Map<OverlayGroupId, HTMLElement>, key: string): HTMLElement {
   const existing = rows.get(key);
   if (existing) {
     return existing;
   }
 
-  const valueElement = createValueRow(root, LABELS[key] ?? makeLabel(key));
+  const group = getOrCreateGroup(root, groups, KEY_GROUPS[key] ?? "other");
+  const valueElement = createValueRow(group, LABELS[key] ?? makeLabel(key));
   rows.set(key, valueElement);
   return valueElement;
+}
+
+function getOrCreateGroup(root: HTMLElement, groups: Map<OverlayGroupId, HTMLElement>, groupId: OverlayGroupId): HTMLElement {
+  const existing = groups.get(groupId);
+  if (existing) {
+    return existing;
+  }
+
+  const group = document.createElement("section");
+  group.className = "qubok_evolve-perf-group";
+  group.dataset.group = groupId;
+  const heading = document.createElement("div");
+  heading.className = "qubok_evolve-perf-group-title";
+  heading.textContent = GROUP_LABELS[groupId];
+  group.append(heading);
+  root.append(group);
+  groups.set(groupId, group);
+  return group;
 }
 
 function createValueRow(root: HTMLElement, label: string): HTMLElement {
