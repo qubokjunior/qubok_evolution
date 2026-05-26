@@ -1,4 +1,4 @@
-﻿import { Application, Container, Graphics } from "pixi.js";
+import { Application, Container, Graphics } from "pixi.js";
 import type { EnergySurvivalStats } from "../sim/energy";
 import type { ObstacleLifecycleTelemetry } from "../sim/lifecycleTelemetry";
 import type { MovementStepMetrics } from "../sim/movement";
@@ -166,6 +166,13 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("sensorObstacleScheduled", frame.sensorStats.obstacleSensorScheduled ? 1 : 0);
     metrics.record("sensorFoodSkippedByCadence", frame.sensorStats.foodSkippedByCadence ? 1 : 0);
     metrics.record("sensorObstacleSkippedByCadence", frame.sensorStats.obstacleSkippedByCadence ? 1 : 0);
+    metrics.record("terrainSensorSampleCount", frame.sensorStats.terrainSensorSampleCount);
+    metrics.record("terrainSensorMovementCostSum", frame.sensorStats.terrainSensorMovementCostSum);
+    metrics.record("terrainSensorFrictionSum", frame.sensorStats.terrainSensorFrictionSum);
+    metrics.record("terrainSensorDragSum", frame.sensorStats.terrainSensorDragSum);
+    metrics.record("terrainSensorResourceAffinitySum", frame.sensorStats.terrainSensorResourceAffinitySum);
+    metrics.record("terrainSensorScheduled", frame.sensorStats.terrainSensorScheduled ? 1 : 0);
+    metrics.record("terrainSensorSkippedByCadence", frame.sensorStats.terrainSkippedByCadence ? 1 : 0);
     metrics.record("avgVisibleNeighborsPerAgent", frame.sensorStats.averageVisibleNeighborsPerCheckedAgent);
     metrics.record("attacksThisStep", frame.predatorPreyStats.attacksThisStep);
     metrics.record("killsThisStep", frame.predatorPreyStats.killsThisStep);
@@ -268,6 +275,13 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         sensorObstacleScheduled: snapshot.values.sensorObstacleScheduled,
         sensorFoodSkippedByCadence: snapshot.values.sensorFoodSkippedByCadence,
         sensorObstacleSkippedByCadence: snapshot.values.sensorObstacleSkippedByCadence,
+        terrainSensorSampleCount: snapshot.values.terrainSensorSampleCount,
+        terrainSensorMovementCostSum: snapshot.values.terrainSensorMovementCostSum,
+        terrainSensorFrictionSum: snapshot.values.terrainSensorFrictionSum,
+        terrainSensorDragSum: snapshot.values.terrainSensorDragSum,
+        terrainSensorResourceAffinitySum: snapshot.values.terrainSensorResourceAffinitySum,
+        terrainSensorScheduled: snapshot.values.terrainSensorScheduled,
+        terrainSensorSkippedByCadence: snapshot.values.terrainSensorSkippedByCadence,
         attacksThisStep: snapshot.values.attacksThisStep,
         killsThisStep: snapshot.values.killsThisStep,
         predatorDamageDealt: snapshot.values.predatorDamageDealt,
@@ -481,4 +495,3 @@ function drawGrid(layer: Graphics, width: number, height: number): void {
     alpha: 0.38
   });
 }
-
