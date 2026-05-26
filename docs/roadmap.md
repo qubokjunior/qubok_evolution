@@ -1,6 +1,6 @@
 # qubok_evolve roadmap
 
-Current status: m35 / 0.1.0-milestone.35.
+Current status: m36 / 0.1.0-milestone.36.
 
 This roadmap splits future work into independent architecture tracks so later milestones do not mix terrain, morphology, controller, renderer, worker, and WebGPU changes in one step.
 
@@ -10,16 +10,19 @@ m32 shipped: terrain/material typed-array layer, material definitions, position-
 
 m33 shipped: terrain render snapshot foundation for future terrain debug visualization.
 
-m35 shipped: terrain Pixi debug render layer with overlay metrics.
+m36 shipped: terrain Pixi debug render layer with overlay metrics.
 
-m35 shipped: terrain movement query integration using material friction, drag, and movement cost.
+m36 shipped: terrain movement query integration using material friction, drag, and movement cost.
+
+m36 shipped: terrain resource-affinity spawning and respawning.
 
 Goal: turn the flat world into layered 2D terrain data without coupling terrain to rendering.
 
 Near steps:
 - terrain material grid with ids, friction, drag, resource affinity, and movement modifiers;
 - terrain query API used by movement;
-- later terrain query integration for resources, sensors, spawning, and reproduction;
+- terrain resource-affinity integration for spawning and respawning;
+- later terrain query integration for sensors and reproduction;
 - debug snapshot and render layer for terrain fields.
 
 ## fluid-like field track

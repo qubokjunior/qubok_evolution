@@ -70,6 +70,9 @@ export type PerfOverlaySnapshot = {
   readonly predatorDamageDealt: number;
   readonly predatorEnergyGained: number;
   readonly resourceAliveCount: number;
+  readonly terrainResourceSampleCount: number;
+  readonly terrainResourceAffinitySum: number;
+  readonly terrainResourceRejectedCount: number;
   readonly resourceTargetCount: number;
   readonly foodPickupCount: number;
   readonly foodEnergyTransferred: number;
@@ -181,6 +184,9 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     predatorDamageDealt: createValueRow(root, "damage"),
     predatorEnergyGained: createValueRow(root, "hunt energy"),
     resourceAliveCount: createValueRow(root, "food alive"),
+    terrainResourceSampleCount: createValueRow(root, "terrain food samples"),
+    terrainResourceAffinitySum: createValueRow(root, "terrain food affinity"),
+    terrainResourceRejectedCount: createValueRow(root, "terrain food reject"),
     resourceTargetCount: createValueRow(root, "food target"),
     foodPickupCount: createValueRow(root, "food eaten"),
     foodEnergyTransferred: createValueRow(root, "food energy"),
@@ -264,6 +270,9 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     rows.predatorDamageDealt.textContent = formatDecimal(snapshot.predatorDamageDealt);
     rows.predatorEnergyGained.textContent = formatDecimal(snapshot.predatorEnergyGained);
     rows.resourceAliveCount.textContent = formatInt(snapshot.resourceAliveCount);
+    rows.terrainResourceSampleCount.textContent = formatInt(snapshot.terrainResourceSampleCount);
+    rows.terrainResourceAffinitySum.textContent = formatDecimal(snapshot.terrainResourceAffinitySum);
+    rows.terrainResourceRejectedCount.textContent = formatInt(snapshot.terrainResourceRejectedCount);
     rows.resourceTargetCount.textContent = formatInt(snapshot.resourceTargetCount);
     rows.foodPickupCount.textContent = formatInt(snapshot.foodPickupCount);
     rows.foodEnergyTransferred.textContent = formatDecimal(snapshot.foodEnergyTransferred);

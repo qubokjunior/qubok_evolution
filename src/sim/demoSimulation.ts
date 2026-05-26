@@ -45,7 +45,7 @@ import { createWorldState, type WorldState } from "./world";
 import { createTerrainLayer, setTerrainRectMaterial, type TerrainLayer } from "./terrain";
 import { makeTerrainRenderSnapshot, type TerrainRenderSnapshot } from "./terrainRenderSnapshot";
 
-export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v17" as const;
+export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v18" as const;
 
 export type DemoSimulationConfig = {
   readonly seed?: RngSeed;
@@ -203,7 +203,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     cellSize: DEFAULT_TERRAIN_CELL_SIZE
   });
 
-  const rng = createRng(config.seed ?? "qubok_evolve:demo:m35");
+  const rng = createRng(config.seed ?? "qubok_evolve:demo:m36");
   seedDemoObstacleMask(obstacleMask);
   seedDemoTerrain(terrain);
   const obstacleMaskSnapshot = makeObstacleMaskRenderSnapshot(obstacleMask);
@@ -212,13 +212,16 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   tuneDemoAgents(world, rng);
   const initialResourceSpawnStats =
     resourceTargetCount > 0
-      ? spawnRandomResourcesAvoidingObstacles(resources, resourceTargetCount, rng, obstacleMask, spawnConfig)
+      ? spawnRandomResourcesAvoidingObstacles(resources, resourceTargetCount, rng, obstacleMask, { ...spawnConfig, terrain })
       : {
           requestedCount: 0,
           spawnedCount: 0,
           blockedAttemptCount: 0,
           fallbackUsedCount: 0,
-          failedCount: 0
+          failedCount: 0,
+          terrainResourceSampleCount: 0,
+          terrainResourceAffinitySum: 0,
+          terrainResourceRejectedCount: 0
         };
   buildSpatialHashGrid(spatialGrid, world);
   rebuildResourceGrid(resources);
@@ -308,7 +311,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
       resourceTargetCount,
       rng,
       obstacleMask,
-      spawnConfig
+      { ...spawnConfig, terrain }
     );
     const resourceRespawnedCount = resourceRespawnStats.spawnedCount;
     const resourceMs = resourceGridMs + performance.now() - resourceStart;

@@ -1,4 +1,4 @@
-import { Application, Container, Graphics } from "pixi.js";
+﻿import { Application, Container, Graphics } from "pixi.js";
 import type { EnergySurvivalStats } from "../sim/energy";
 import type { ObstacleLifecycleTelemetry } from "../sim/lifecycleTelemetry";
 import type { MovementStepMetrics } from "../sim/movement";
@@ -12,6 +12,7 @@ import type { ReproductionStepStats } from "../sim/reproduction";
 import type { ResourceBuildStats, ResourcePickupStats } from "../sim/resources";
 import type { SensorPassStats } from "../sim/sensors";
 import type { SpatialHashBuildStats } from "../sim/spatialHash";
+import type { SpawnValidationStats } from "../sim/spawnValidation";
 import { createPerfMetricsBus } from "../shared/perfMetrics";
 import type { PerfOverlaySink } from "./debugOverlay";
 
@@ -31,6 +32,7 @@ export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly reproductionStats: ReproductionStepStats;
   readonly resourceBuildStats: ResourceBuildStats;
   readonly resourcePickupStats: ResourcePickupStats;
+  readonly resourceRespawnStats: SpawnValidationStats;
   readonly resourceAliveCount: number;
   readonly resourceTargetCount: number;
   readonly resourceRespawnedCount: number;
@@ -170,6 +172,9 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("predatorDamageDealt", frame.predatorPreyStats.damageDealt);
     metrics.record("predatorEnergyGained", frame.predatorPreyStats.energyGained);
     metrics.record("resourceAliveCount", frame.resourceAliveCount);
+    metrics.record("terrainResourceSampleCount", frame.resourceRespawnStats.terrainResourceSampleCount);
+    metrics.record("terrainResourceAffinitySum", frame.resourceRespawnStats.terrainResourceAffinitySum);
+    metrics.record("terrainResourceRejectedCount", frame.resourceRespawnStats.terrainResourceRejectedCount);
     metrics.record("foodPickupCount", frame.resourcePickupStats.consumedCount);
     metrics.record("foodEnergyTransferred", frame.resourcePickupStats.energyTransferred);
     metrics.record("birthsThisStep", frame.reproductionStats.birthsThisStep);
@@ -268,6 +273,9 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         predatorDamageDealt: snapshot.values.predatorDamageDealt,
         predatorEnergyGained: snapshot.values.predatorEnergyGained,
         resourceAliveCount: snapshot.values.resourceAliveCount,
+        terrainResourceSampleCount: snapshot.values.terrainResourceSampleCount,
+        terrainResourceAffinitySum: snapshot.values.terrainResourceAffinitySum,
+        terrainResourceRejectedCount: snapshot.values.terrainResourceRejectedCount,
         resourceTargetCount: frame.resourceTargetCount,
         foodPickupCount: snapshot.values.foodPickupCount,
         foodEnergyTransferred: snapshot.values.foodEnergyTransferred,
@@ -473,3 +481,4 @@ function drawGrid(layer: Graphics, width: number, height: number): void {
     alpha: 0.38
   });
 }
+
