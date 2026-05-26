@@ -17,6 +17,7 @@ const integrationM41 = readText("docs/integration_m41.md");
 const repoStatusTest = readText("scripts/test-repo-status.mjs");
 const roadmapStatusTest = readText("scripts/test-roadmap-status.mjs");
 
+const app = readText("src/ui/App.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
 const field = readText("src/sim/field.ts");
 const fieldRenderSnapshot = readText("src/sim/fieldRenderSnapshot.ts");
@@ -75,6 +76,13 @@ for (const [scriptName, command] of [
 ]) {
   assert(packageJson.scripts[scriptName] === command, `package.json must expose ${scriptName}.`);
   assert(packageJson.scripts.test.includes(scriptName), `npm run test must include ${scriptName}.`);
+}
+
+for (const requiredToken of ["DEFAULT_RENDER_DEBUG_CONFIG", "renderDebugConfig: DEFAULT_RENDER_DEBUG_CONFIG", "mountPixiRenderer", "createPerfOverlay", "createDemoSimulation"]) {
+  assert(app.includes(requiredToken), "App bridge missing token: " + requiredToken);
+}
+for (const forbiddenImport of ["pixi.js", "../sim/world", "../sim/movement", "../sim/sensors"]) {
+  assert(!app.includes(forbiddenImport), `App must not import low-level runtime/render internals directly: ${forbiddenImport}`);
 }
 
 for (const requiredToken of ["DEMO_SIMULATION_VERSION", "terrainRenderSnapshot", "fieldRenderSnapshot", "makeFieldRenderSnapshot", "fieldRenderStride", "createEnvironmentalFieldLayer", "seedDemoField", "sensorTerrainTickInterval", "offspringTerrainMaxAttempts", "makeObstacleMaskRenderSnapshot"]) {
