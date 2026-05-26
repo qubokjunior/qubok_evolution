@@ -147,6 +147,10 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("terrainMovementCostSum", frame.movementMetrics.terrainMovementCostSum);
     metrics.record("terrainFrictionSum", frame.movementMetrics.terrainFrictionSum);
     metrics.record("terrainDragSum", frame.movementMetrics.terrainDragSum);
+    metrics.record("fieldMovementSampleCount", frame.movementMetrics.fieldMovementSampleCount);
+    metrics.record("fieldFlowXSum", frame.movementMetrics.fieldFlowXSum);
+    metrics.record("fieldFlowYSum", frame.movementMetrics.fieldFlowYSum);
+    metrics.record("fieldFlowMagnitudeSum", frame.movementMetrics.fieldFlowMagnitudeSum);
     metrics.record("deathsThisStep", frame.energyStats.deathsThisStep);
     metrics.record("starvingCount", frame.energyStats.starvingCount);
     metrics.record("starvationDamage", frame.energyStats.starvationDamage);
@@ -255,6 +259,10 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         terrainMovementCostSum: snapshot.values.terrainMovementCostSum,
         terrainFrictionSum: snapshot.values.terrainFrictionSum,
         terrainDragSum: snapshot.values.terrainDragSum,
+        fieldMovementSampleCount: snapshot.values.fieldMovementSampleCount,
+        fieldFlowXSum: snapshot.values.fieldFlowXSum,
+        fieldFlowYSum: snapshot.values.fieldFlowYSum,
+        fieldFlowMagnitudeSum: snapshot.values.fieldFlowMagnitudeSum,
         deathsThisStep: snapshot.values.deathsThisStep,
         starvingCount: snapshot.values.starvingCount,
         starvationDamage: snapshot.values.starvationDamage,
