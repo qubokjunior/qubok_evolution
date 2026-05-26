@@ -10,6 +10,7 @@ import { createFieldVectorDebugPanel } from "./fieldVectorDebugPanel";
 import { toggleRenderDebugLayer, type RenderDebugConfig } from "../render/renderDebugConfig";
 import { loadStoredRenderDebugConfig, saveRenderDebugConfig } from "../render/renderDebugConfigPersistence";
 import { loadStoredFieldDampingConfig, saveFieldDampingConfig } from "../sim/fieldDampingConfigPersistence";
+import { loadStoredFieldAdvectionConfig, saveFieldAdvectionConfig } from "../sim/fieldAdvectionConfigPersistence";
 
 export type QubokEvolveAppHandle = {
   destroy: () => void;
@@ -41,6 +42,7 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
   root.replaceChildren();
 
   const initialFieldDampingConfig = loadStoredFieldDampingConfig();
+  const initialFieldAdvectionConfig = loadStoredFieldAdvectionConfig();
 
   const shell = document.createElement("div");
   shell.className = "qubok_evolve-shell";
@@ -62,11 +64,12 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
     capacity: 1536,
     worldWidth: 2048,
     worldHeight: 2048,
-    ...initialFieldDampingConfig
+    ...initialFieldDampingConfig,
+    ...initialFieldAdvectionConfig
   });
 
   const fieldDampingPanel = createFieldDampingControlPanel(controlStack, simulation, { onConfigChange: saveFieldDampingConfig });
-  const fieldAdvectionPanel = createFieldAdvectionControlPanel(controlStack, simulation);
+  const fieldAdvectionPanel = createFieldAdvectionControlPanel(controlStack, simulation, { onConfigChange: saveFieldAdvectionConfig });
 
   const perfOverlay = createPerfOverlay(overlayHost);
   const initialRenderDebugConfig = loadStoredRenderDebugConfig();

@@ -1,5 +1,6 @@
 import { clearStoredRenderDebugConfig } from "../render/renderDebugConfigPersistence";
 import { clearStoredFieldDampingConfig } from "../sim/fieldDampingConfigPersistence";
+import { clearStoredFieldAdvectionConfig } from "../sim/fieldAdvectionConfigPersistence";
 import { applyDebugConfigPresetText, serializeDebugConfigPreset, validateDebugConfigPresetText } from "./debugConfigPreset";
 import { createCollapsibleControlPanel, createControlSection, createControlSubsection } from "./controlPanelPrimitives";
 
