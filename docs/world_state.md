@@ -57,3 +57,13 @@ The tracked counters are:
 - spawnAppendedSlotCount: total spawns that appended at the historical end of world.count.
 
 These values are read-only observability surfaces. They do not change the reuse algorithm introduced in m26.
+
+## m28 lifecycle deaths and reusable slots
+
+Milestone 28 makes lifecycle death paths consume the same world-level death API as manual kills. Energy/starvation deaths and predator/prey kills now call `killAgent(world, index)` instead of directly writing `alive[index] = 0`.
+
+This matters because m26 introduced dead-slot reuse through `reusableSlots`, and direct `alive` writes bypassed that free-list. After m28, runtime deaths participate in the same lifecycle loop:
+
+`death -> reusableSlotCount increments -> reproduction/spawn reuses the slot -> spawnReusedSlotCount increments`.
+
+The new lifecycle-pressure test configures a full-capacity demo world, forces one energy death, keeps one parent reproduction-eligible, and verifies that the same tick kills an agent, creates a reusable slot, births a child, and reuses the dead slot without appending beyond capacity.
