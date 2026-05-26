@@ -15,10 +15,10 @@ const perfMetrics = readText("src/shared/perfMetrics.ts");
 const terrainRenderSnapshot = readText("src/sim/terrainRenderSnapshot.ts");
 const integrationM34 = readText("docs/integration_m34.md");
 
-assert(packageJson.version === "0.1.0-milestone.38", "package.json must expose current m38 version.");
-assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.38"'), "appVersion must expose current milestone.38.");
-assert(appVersion.includes('PROJECT_MILESTONE = 38'), "appVersion must expose current milestone number 38.");
-assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m38"'), "appVersion must expose current m38 label.");
+assert(packageJson.version === "0.1.0-milestone.39", "package.json must expose current m39 version.");
+assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.39"'), "appVersion must expose current milestone.39.");
+assert(appVersion.includes('PROJECT_MILESTONE = 39'), "appVersion must expose current milestone number 39.");
+assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m39"'), "appVersion must expose current m39 label.");
 assert(packageJson.scripts["test:terrain-debug-render-layer"] === "node scripts/test-terrain-debug-render-layer.mjs", "package.json must expose test:terrain-debug-render-layer.");
 assert(packageJson.scripts.test.includes("test:terrain-debug-render-layer"), "npm run test must include terrain debug render layer test.");
 
