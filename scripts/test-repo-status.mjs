@@ -13,14 +13,15 @@ const milestones = readText("docs/milestones.md");
 const integrationM40 = readText("docs/integration_m40.md");
 const integrationM41 = readText("docs/integration_m41.md");
 const integrationM42 = readText("docs/integration_m42.md");
+const integrationM43 = readText("docs/integration_m43.md");
 
-assert(packageJson.version === "0.1.0-milestone.42", "package.json must expose 0.1.0-milestone.42.");
-assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.42\""), "appVersion must expose milestone.42.");
-assert(appVersion.includes("PROJECT_MILESTONE = 42"), "appVersion must expose milestone number 42.");
-assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m42\""), "appVersion must expose m42 label.");
-assert(readme.includes("0.1.0-milestone.42"), "README.md must expose current milestone version.");
-assert(readme.includes("Current status: m42"), "README.md must expose current status m42.");
-for (const marker of ["| m32 |", "| m33 |", "| m34 |", "| m35 |", "| m36 |", "| m37 |", "| m38 |", "| m39 |", "| m40 |", "| m41 |", "| m42 |"]) assert(milestones.includes(marker), "docs/milestones.md missing marker: " + marker);
+assert(packageJson.version === "0.1.0-milestone.43", "package.json must expose 0.1.0-milestone.43.");
+assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.43\""), "appVersion must expose milestone.43.");
+assert(appVersion.includes("PROJECT_MILESTONE = 43"), "appVersion must expose milestone number 42.");
+assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m43\""), "appVersion must expose m43 label.");
+assert(readme.includes("0.1.0-milestone.43"), "README.md must expose current milestone version.");
+assert(readme.includes("Current status: m43"), "README.md must expose current status m43.");
+for (const marker of ["| m32 |", "| m33 |", "| m34 |", "| m35 |", "| m36 |", "| m37 |", "| m38 |", "| m39 |", "| m40 |", "| m41 |", "| m42 |", "| m43 |"]) assert(milestones.includes(marker), "docs/milestones.md missing marker: " + marker);
 assert(integrationM40.includes("environmental field render snapshot"), "integration_m40 must describe environmental field render snapshot.");
 assert(integrationM41.includes("render debug controls"), "integration_m41 must describe render debug controls.");
 assert(integrationM42.includes("decay") && integrationM42.includes("diffusion"), "integration_m42 must describe field decay/diffusion.");
@@ -29,4 +30,12 @@ assert(packageJson.scripts["test:field-dynamics-integration"] === "node scripts/
 assert(packageJson.scripts["bench:field-dynamics"] === "node scripts/bench-field-dynamics.mjs", "package.json must expose bench:field-dynamics.");
 assert(packageJson.scripts["test:repo-status"] === "node scripts/test-repo-status.mjs", "package.json must expose test:repo-status.");
 assert(packageJson.scripts.test.includes("test:repo-status"), "npm run test must include test:repo-status.");
+
+assert(integrationM43.includes("field sources") && integrationM43.includes("sinks"), "integration_m43 must describe field sources/sinks.");
+assert(packageJson.scripts["test:field-sources"] === "node scripts/test-field-sources.mjs", "package.json must expose test:field-sources.");
+assert(packageJson.scripts["test:field-sources-integration"] === "node scripts/test-field-sources-integration.mjs", "package.json must expose test:field-sources-integration.");
+assert(packageJson.scripts["bench:field-sources"] === "node scripts/bench-field-sources.mjs", "package.json must expose bench:field-sources.");
+assert(packageJson.scripts.test.includes("test:field-sources"), "npm run test must include test:field-sources.");
+assert(packageJson.scripts.test.includes("test:field-sources-integration"), "npm run test must include test:field-sources-integration.");
+
 console.log("repo status tests passed");

@@ -14,24 +14,26 @@ const architectureTracks = readText("docs/architecture_tracks.md");
 const integrationM40 = readText("docs/integration_m40.md");
 const integrationM41 = readText("docs/integration_m41.md");
 const integrationM42 = readText("docs/integration_m42.md");
+const integrationM43 = readText("docs/integration_m43.md");
 const field = readText("src/sim/field.ts");
 const fieldRenderSnapshot = readText("src/sim/fieldRenderSnapshot.ts");
 const fieldDynamics = readText("src/sim/fieldDynamics.ts");
+const fieldSources = readText("src/sim/fieldSources.ts");
 const movement = readText("src/sim/movement.ts");
 const debugOverlay = readText("src/render/debugOverlay.ts");
 const perfMetrics = readText("src/shared/perfMetrics.ts");
 const pixiRenderer = readText("src/render/pixiRenderer.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
 
-assert(packageJson.version === "0.1.0-milestone.42", "package.json must expose m42 version.");
-assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.42\""), "appVersion must expose milestone.42.");
-assert(appVersion.includes("PROJECT_MILESTONE = 42"), "appVersion must expose milestone number 42.");
-assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m42\""), "appVersion must expose m42 label.");
+assert(packageJson.version === "0.1.0-milestone.43", "package.json must expose m43 version.");
+assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.43\""), "appVersion must expose milestone.43.");
+assert(appVersion.includes("PROJECT_MILESTONE = 43"), "appVersion must expose milestone number 42.");
+assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m43\""), "appVersion must expose m43 label.");
 assert(readme.includes("docs/roadmap.md"), "README.md must link docs/roadmap.md.");
 assert(roadmap.includes("m39 shipped: low-resolution environmental flow field sampled by movement"), "roadmap must include m39 field milestone.");
 assert(roadmap.includes("m40 shipped: environmental field render snapshot and Pixi vector debug layer"), "roadmap must include m40 field render milestone.");
 assert(roadmap.includes("m41 shipped: render debug controls"), "roadmap must include m41 shipped milestone.");
-assert(roadmap.includes("m42 in progress: field decay/diffusion foundation"), "roadmap must include m42 current milestone.");
+assert(roadmap.includes("m43 in progress: field sources/sinks foundation"), "roadmap must include m42 current milestone.");
 assert(architectureTracks.includes("renderer must not own authoritative simulation state"), "architecture tracks must preserve sim/render boundary.");
 assert(field.includes("FIELD_LAYER_VERSION"), "field must expose FIELD_LAYER_VERSION.");
 assert(field.includes("sampleFieldAtPosition"), "field must expose sampleFieldAtPosition.");
@@ -58,4 +60,13 @@ assert(integrationM40.includes("environmental field render snapshot"), "integrat
 assert(integrationM41.includes("overlay grouping"), "integration_m41 must describe overlay grouping.");
 assert(integrationM42.includes("decay") && integrationM42.includes("diffusion"), "integration_m42 must describe field decay/diffusion.");
 assert(packageJson.scripts.test.includes("test:roadmap-status"), "npm run test must include test:roadmap-status.");
+
+assert(roadmap.includes("m43 in progress: field sources/sinks foundation"), "roadmap must include m43 current milestone.");
+assert(integrationM43.includes("field sources") && integrationM43.includes("sinks"), "integration_m43 must describe field sources/sinks.");
+for (const requiredToken of ["FIELD_SOURCES_VERSION", "applyFieldSourcesAndSinks", "FieldSourceStepMetrics", "measureTotalFieldMagnitude"]) assert(fieldSources.includes(requiredToken), "fieldSources missing token: " + requiredToken);
+for (const requiredToken of ["fieldSourceStats", "fieldSourcesMs", "applyFieldSourcesAndSinks"]) assert(demoSimulation.includes(requiredToken), "demoSimulation missing field source token: " + requiredToken);
+for (const requiredToken of ["fieldSourceStats", "fieldSourcesMs", "fieldSourceMagnitudeAfter"]) assert(pixiRenderer.includes(requiredToken), "pixiRenderer missing field source token: " + requiredToken);
+for (const requiredToken of ["field src", "field sink", "field src after"]) assert(debugOverlay.includes(requiredToken), "debugOverlay missing field source label: " + requiredToken);
+for (const requiredToken of ["fieldSourcesMs", "fieldSourceCount", "fieldSinkCount", "fieldSourceMagnitudeAfter"]) assert(perfMetrics.includes(requiredToken), "perf metrics missing field source token: " + requiredToken);
+
 console.log("roadmap status tests passed");
