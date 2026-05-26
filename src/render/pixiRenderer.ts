@@ -4,6 +4,7 @@ import type { ObstacleLifecycleTelemetry } from "../sim/lifecycleTelemetry";
 import type { MovementStepMetrics } from "../sim/movement";
 import type { ObstacleSoftResponseStats } from "../sim/obstacleResponse";
 import type { ObstacleMaskRenderSnapshot } from "../sim/obstacleRenderSnapshot";
+import type { TerrainRenderSnapshot } from "../sim/terrainRenderSnapshot";
 import type { LocalNeighborSummary } from "../sim/neighborQuery";
 import type { PredatorPreyInteractionStats } from "../sim/predatorPrey";
 import type { RenderSnapshot, RenderSnapshotStats } from "../sim/renderSnapshot";
@@ -17,6 +18,7 @@ import type { PerfOverlaySink } from "./debugOverlay";
 export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly snapshot: RenderSnapshot;
   readonly obstacleMaskSnapshot: ObstacleMaskRenderSnapshot;
+  readonly terrainRenderSnapshot: TerrainRenderSnapshot;
   readonly snapshotStats: RenderSnapshotStats;
   readonly movementMetrics: MovementStepMetrics;
   readonly obstacleResponseStats: ObstacleSoftResponseStats;
@@ -81,9 +83,10 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
   const backgroundLayer = new Graphics();
   const gridLayer = new Graphics();
   const obstacleLayer = new Graphics();
+  const terrainLayer = new Graphics();
   const agentLayer = new Container();
 
-  world.addChild(backgroundLayer, gridLayer, obstacleLayer, agentLayer);
+  world.addChild(backgroundLayer, gridLayer, terrainLayer, obstacleLayer, agentLayer);
   app.stage.addChild(world);
 
   const glyphs: AgentGlyph[] = [];
@@ -125,6 +128,8 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("obstacleReproductionFailures", frame.obstacleLifecycleTelemetry.reproductionPlacementFailures);
     metrics.record("obstacleResourceRespawns", frame.obstacleLifecycleTelemetry.resourceRespawnedCount);
     metrics.record("obstacleRenderCellCount", frame.obstacleMaskSnapshot.occupiedCellCount);
+    metrics.record("terrainRenderCellCount", frame.terrainRenderSnapshot.sampleCellCount);
+    metrics.record("terrainRenderTruncated", frame.terrainRenderSnapshot.truncated ? 1 : 0);
     metrics.record("predatorPreyMs", frame.predatorPreyMs);
     metrics.record("resourceMs", frame.resourceMs);
     metrics.record("energyMs", frame.energyMs);
@@ -171,6 +176,10 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("spawnAppendedSlotCount", frame.snapshot.spawnAppendedSlotCount);
     metrics.record("mutationChangedCount", frame.reproductionStats.mutationChangedCount);
 
+    const endTerrainRenderScope = metrics.beginScope("terrainRenderMs");
+    renderTerrainLayer(terrainLayer, frame.terrainRenderSnapshot, options.host.clientWidth, options.host.clientHeight);
+    const terrainRenderMs = endTerrainRenderScope();
+
     const endObstacleRenderScope = metrics.beginScope("obstacleRenderMs");
     renderObstacleMask(obstacleLayer, frame.obstacleMaskSnapshot, options.host.clientWidth, options.host.clientHeight);
     const obstacleRenderMs = endObstacleRenderScope();
@@ -211,6 +220,9 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         obstacleResourceRespawns: snapshot.values.obstacleResourceRespawns,
         obstacleRenderMs: snapshot.values.obstacleRenderMs || obstacleRenderMs,
         obstacleRenderCellCount: snapshot.values.obstacleRenderCellCount,
+        terrainRenderMs: snapshot.values.terrainRenderMs || terrainRenderMs,
+        terrainRenderCellCount: snapshot.values.terrainRenderCellCount,
+        terrainRenderTruncated: snapshot.values.terrainRenderTruncated,
         predatorPreyMs: snapshot.values.predatorPreyMs,
         resourceMs: snapshot.values.resourceMs,
         energyMs: snapshot.values.energyMs,
@@ -276,6 +288,50 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
       );
     }
   };
+}
+
+function renderTerrainLayer(
+  layer: Graphics,
+  snapshot: TerrainRenderSnapshot,
+  viewportWidth: number,
+  viewportHeight: number
+): void {
+  layer.clear();
+
+  if (snapshot.sampleCellCount <= 0) {
+    return;
+  }
+
+  const scaleX = viewportWidth / snapshot.worldWidth;
+  const scaleY = viewportHeight / snapshot.worldHeight;
+  const scale = Math.min(scaleX, scaleY);
+  const offsetX = (viewportWidth - snapshot.worldWidth * scale) * 0.5;
+  const offsetY = (viewportHeight - snapshot.worldHeight * scale) * 0.5;
+  const cellSizePx = Math.max(1, snapshot.cellSize * scale);
+
+  for (let index = 0; index < snapshot.sampleCellCount; index += 1) {
+    const cellId = snapshot.cellIds[index];
+    const cellX = cellId % snapshot.columns;
+    const cellY = Math.floor(cellId / snapshot.columns);
+    const materialId = snapshot.materialIds[index];
+    const x = offsetX + cellX * snapshot.cellSize * scale;
+    const y = offsetY + cellY * snapshot.cellSize * scale;
+    const palette = getTerrainMaterialColor(materialId);
+    layer.rect(x, y, cellSizePx, cellSizePx).fill({ color: palette.color, alpha: palette.alpha });
+  }
+}
+
+function getTerrainMaterialColor(materialId: number): { readonly color: number; readonly alpha: number } {
+  switch (materialId % 4) {
+    case 1:
+      return { color: 0x5c4a2f, alpha: 0.22 };
+    case 2:
+      return { color: 0x244d63, alpha: 0.26 };
+    case 3:
+      return { color: 0x535a61, alpha: 0.2 };
+    default:
+      return { color: 0x243a2d, alpha: 0.18 };
+  }
 }
 
 function renderObstacleMask(
