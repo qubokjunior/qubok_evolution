@@ -5,6 +5,10 @@ export type FieldAdvectionControlPanelHandle = {
   readonly destroy: () => void;
 };
 
+export type FieldAdvectionControlPanelOptions = {
+  readonly onConfigChange?: (config: DemoSimulationFieldAdvectionConfig) => void;
+};
+
 type NumericConfigKey = "fieldAdvectionStrength" | "fieldAdvectionSubsteps" | "fieldAdvectionMinActiveMagnitude";
 
 const NUMERIC_CONTROLS: readonly NumericControlSpec<NumericConfigKey>[] = Object.freeze([
@@ -13,7 +17,7 @@ const NUMERIC_CONTROLS: readonly NumericControlSpec<NumericConfigKey>[] = Object
   { key: "fieldAdvectionMinActiveMagnitude", label: "min active", valueKind: "float", sliderMin: 0, sliderMax: 0.01, inputMin: 0, inputMax: 1000000, step: 0.0001 }
 ]);
 
-export function createFieldAdvectionControlPanel(host: HTMLElement, simulation: DemoSimulationHandle): FieldAdvectionControlPanelHandle {
+export function createFieldAdvectionControlPanel(host: HTMLElement, simulation: DemoSimulationHandle, options: FieldAdvectionControlPanelOptions = {}): FieldAdvectionControlPanelHandle {
   const initialConfig = simulation.getFieldAdvectionConfig();
   const panel = createCollapsibleControlPanel({
     host,
@@ -26,7 +30,7 @@ export function createFieldAdvectionControlPanel(host: HTMLElement, simulation: 
     label: "enable advection",
     getValue: (config) => config.enableFieldAdvection,
     setValue: (value) => {
-      simulation.updateFieldAdvectionConfig({ enableFieldAdvection: value });
+      options.onConfigChange?.(simulation.updateFieldAdvectionConfig({ enableFieldAdvection: value }));
       sync();
     },
     changeEventName: "qubok-field-advection-control-change"
@@ -35,7 +39,7 @@ export function createFieldAdvectionControlPanel(host: HTMLElement, simulation: 
   const numericControls = NUMERIC_CONTROLS.map((spec) => createNumericControl<DemoSimulationFieldAdvectionConfig, NumericConfigKey>(spec, {
     getValue: (config) => config[spec.key],
     setValue: (value) => {
-      simulation.updateFieldAdvectionConfig({ [spec.key]: value } as DemoSimulationFieldAdvectionConfigPatch);
+      options.onConfigChange?.(simulation.updateFieldAdvectionConfig({ [spec.key]: value } as DemoSimulationFieldAdvectionConfigPatch));
       sync();
     }
   }));
@@ -43,7 +47,7 @@ export function createFieldAdvectionControlPanel(host: HTMLElement, simulation: 
   const footer = createControlFooter({
     infoText: "demo transport only",
     onReset: () => {
-      simulation.updateFieldAdvectionConfig(initialConfig);
+      options.onConfigChange?.(simulation.updateFieldAdvectionConfig(initialConfig));
       sync();
     }
   });
