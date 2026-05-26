@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+﻿import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -28,10 +28,10 @@ const perfMetrics = readText("src/shared/perfMetrics.ts");
 const pixiRenderer = readText("src/render/pixiRenderer.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
 
-assert(packageJson.version === "0.1.0-milestone.46", "package.json must expose m45 version.");
+assert(packageJson.version === "0.1.0-milestone.46", "package.json must expose m46 version.");
 assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.46\""), "appVersion must expose milestone.46.");
-assert(appVersion.includes("PROJECT_MILESTONE = 46"), "appVersion must expose milestone number 45.");
-assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m45\""), "appVersion must expose m46 label.");
+assert(appVersion.includes("PROJECT_MILESTONE = 46"), "appVersion must expose milestone number 46.");
+assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m46\""), "appVersion must expose m46 label.");
 assert(readme.includes("docs/roadmap.md"), "README.md must link docs/roadmap.md.");
 assert(roadmap.includes("m39 shipped: low-resolution environmental flow field sampled by movement"), "roadmap must include m39 field milestone.");
 assert(roadmap.includes("m40 shipped: environmental field render snapshot and Pixi vector debug layer"), "roadmap must include m40 field render milestone.");
@@ -98,3 +98,4 @@ const integrationM46 = readText("docs/integration_m46.md");
 assert(roadmap.includes("m46 shipped: deterministic environmental field advection"), "roadmap must include m46 shipped milestone.");
 assert(integrationM46.includes("## Final status") && integrationM46.includes("M46 is closed"), "integration_m46 must document final closed status.");
 assert(integrationM46.includes("## Final validation set") && integrationM46.includes("npm run bench:field-advection") && integrationM46.includes("npm run build"), "integration_m46 must document final validation set.");
+
