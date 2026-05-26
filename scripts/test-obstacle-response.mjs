@@ -12,7 +12,7 @@ const temporaryDirectory = join(projectRoot, ".tmp_obstacle_response_test");
 await rm(temporaryDirectory, { force: true, recursive: true });
 await mkdir(temporaryDirectory, { recursive: true });
 
-for (const moduleName of ["arrays.ts", "world.ts", "movement.ts", "obstacleMask.ts", "obstacleResponse.ts"]) {
+for (const moduleName of ["arrays.ts", "world.ts", "terrain.ts", "movement.ts", "obstacleMask.ts", "obstacleResponse.ts"]) {
   await transpileSimModule(moduleName, moduleName.replace(".ts", ".mjs"));
 }
 
@@ -65,7 +65,7 @@ const boundary = spawnAgent(world, {
   energy: 100
 });
 
-setObstacleCell(mask, 6, 5, true); // center around x=65, y=55, pushes near agent left
+setObstacleCell(mask, 6, 5, true);
 
 const stats = applyObstacleSoftResponse(world, mask, {
   responseRadius: 24,
@@ -157,6 +157,8 @@ async function transpileSimModule(sourceName, outputName) {
   const outputText = transpiled.outputText
     .replaceAll('from "./arrays"', 'from "./arrays.mjs"')
     .replaceAll("from './arrays'", "from './arrays.mjs'")
+    .replaceAll('from "./terrain"', 'from "./terrain.mjs"')
+    .replaceAll("from './terrain'", "from './terrain.mjs'")
     .replaceAll('from "./world"', 'from "./world.mjs"')
     .replaceAll("from './world'", "from './world.mjs'")
     .replaceAll('from "./movement"', 'from "./movement.mjs"')
