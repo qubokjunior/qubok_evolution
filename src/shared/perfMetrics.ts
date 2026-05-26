@@ -6,6 +6,7 @@ export const PERF_METRIC_NAMES = [
   "fieldDynamicsMs", "fieldDynamicsActiveCellCount", "fieldDynamicsUpdatedCellCount", "fieldDynamicsTransferCount", "fieldDynamicsMagnitudeLoss", "fieldDynamicsMagnitudeAfter",
   "fieldSourcesMs", "fieldSourceCount", "fieldSinkCount", "fieldSourceEmittedCellCount", "fieldSinkAbsorbedCellCount", "fieldSourceMagnitudeEmitted", "fieldSinkMagnitudeAbsorbed", "fieldSourceMagnitudeAfter",
   "fieldDampingMs", "fieldDampingObstacleSampleCount", "fieldDampingObstacleDampedCellCount", "fieldDampingTerrainSampleCount", "fieldDampingTerrainDampedCellCount", "fieldDampingMagnitudeBefore", "fieldDampingMagnitudeAfter", "fieldDampingMagnitudeDamped",
+  "fieldAdvectionMs", "fieldAdvectionSampleCount", "fieldAdvectionAdvectedCellCount", "fieldAdvectionMaxBacktraceDistanceCells", "fieldAdvectionMagnitudeBefore", "fieldAdvectionMagnitudeAfter", "fieldAdvectionMagnitudeDelta",
   "fieldDampingObstacleEnabled", "fieldDampingTerrainEnabled", "fieldDampingObstaclePerSecond", "fieldDampingTerrainScalePerSecond", "fieldDampingMaxObstacleCells", "fieldDampingMaxTerrainCells",
   "obstacleResponseMs", "obstacleResponseForces", "obstacleResponseHits", "obstacleResponseCellChecks", "obstacleResponseSkippedCells", "obstacleResponseLimitHits", "obstacleResponseBoundaryHits",
   "obstacleLifecycleEvents", "obstacleLifecyclePressure", "obstacleSpawnBlockedAttempts", "obstacleSpawnFallbacks", "obstacleSpawnFailures", "obstacleReproductionBlocked", "obstacleReproductionFailures", "obstacleResourceRespawns",

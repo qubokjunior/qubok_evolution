@@ -4,6 +4,7 @@ import type { FieldRenderSnapshot } from "../sim/fieldRenderSnapshot";
 import type { FieldSourceStepMetrics } from "../sim/fieldSources";
 import type { FieldDynamicsStepMetrics } from "../sim/fieldDynamics";
 import type { FieldDampingStepMetrics } from "../sim/fieldDamping";
+import type { FieldAdvectionStepMetrics } from "../sim/fieldAdvection";
 import type { ObstacleLifecycleTelemetry } from "../sim/lifecycleTelemetry";
 import type { MovementStepMetrics } from "../sim/movement";
 import type { ObstacleSoftResponseStats } from "../sim/obstacleResponse";
@@ -29,6 +30,7 @@ export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly fieldDynamicsStats: FieldDynamicsStepMetrics;
   readonly fieldSourceStats: FieldSourceStepMetrics;
   readonly fieldDampingStats: FieldDampingStepMetrics;
+  readonly fieldAdvectionStats: FieldAdvectionStepMetrics;
   readonly fieldDampingConfig: FieldDampingConfigReadout;
   readonly snapshotStats: RenderSnapshotStats;
   readonly movementMetrics: MovementStepMetrics;
@@ -57,6 +59,7 @@ export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly fieldDynamicsMs: number;
   readonly fieldSourcesMs: number;
   readonly fieldDampingMs: number;
+  readonly fieldAdvectionMs: number;
   readonly simMsPerTick: number;
 };
 
@@ -212,6 +215,13 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("fieldDampingMagnitudeBefore", frame.fieldDampingStats.totalMagnitudeBefore);
     metrics.record("fieldDampingMagnitudeAfter", frame.fieldDampingStats.totalMagnitudeAfter);
     metrics.record("fieldDampingMagnitudeDamped", frame.fieldDampingStats.totalMagnitudeDamped);
+    metrics.record("fieldAdvectionMs", frame.fieldAdvectionMs);
+    metrics.record("fieldAdvectionSampleCount", frame.fieldAdvectionStats.sampleCount);
+    metrics.record("fieldAdvectionAdvectedCellCount", frame.fieldAdvectionStats.advectedCellCount);
+    metrics.record("fieldAdvectionMaxBacktraceDistanceCells", frame.fieldAdvectionStats.maxBacktraceDistanceCells);
+    metrics.record("fieldAdvectionMagnitudeBefore", frame.fieldAdvectionStats.totalMagnitudeBefore);
+    metrics.record("fieldAdvectionMagnitudeAfter", frame.fieldAdvectionStats.totalMagnitudeAfter);
+    metrics.record("fieldAdvectionMagnitudeDelta", frame.fieldAdvectionStats.totalMagnitudeDelta);
     metrics.record("fieldDampingObstacleEnabled", frame.fieldDampingConfig.enableObstacleFieldDamping ? 1 : 0);
     metrics.record("fieldDampingTerrainEnabled", frame.fieldDampingConfig.enableTerrainFieldDamping ? 1 : 0);
     metrics.record("fieldDampingObstaclePerSecond", frame.fieldDampingConfig.obstacleFieldDampingPerSecond);
@@ -377,6 +387,13 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         fieldDampingMagnitudeBefore: snapshot.values.fieldDampingMagnitudeBefore,
         fieldDampingMagnitudeAfter: snapshot.values.fieldDampingMagnitudeAfter,
         fieldDampingMagnitudeDamped: snapshot.values.fieldDampingMagnitudeDamped,
+        fieldAdvectionMs: snapshot.values.fieldAdvectionMs,
+        fieldAdvectionSampleCount: snapshot.values.fieldAdvectionSampleCount,
+        fieldAdvectionAdvectedCellCount: snapshot.values.fieldAdvectionAdvectedCellCount,
+        fieldAdvectionMaxBacktraceDistanceCells: snapshot.values.fieldAdvectionMaxBacktraceDistanceCells,
+        fieldAdvectionMagnitudeBefore: snapshot.values.fieldAdvectionMagnitudeBefore,
+        fieldAdvectionMagnitudeAfter: snapshot.values.fieldAdvectionMagnitudeAfter,
+        fieldAdvectionMagnitudeDelta: snapshot.values.fieldAdvectionMagnitudeDelta,
         fieldDampingObstacleEnabled: snapshot.values.fieldDampingObstacleEnabled,
         fieldDampingTerrainEnabled: snapshot.values.fieldDampingTerrainEnabled,
         fieldDampingObstaclePerSecond: snapshot.values.fieldDampingObstaclePerSecond,
