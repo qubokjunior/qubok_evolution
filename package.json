@@ -1,7 +1,7 @@
 {
   "name": "qubok_evolve",
   "private": true,
-  "version": "0.1.0-milestone.41",
+  "version": "0.1.0-milestone.42",
   "type": "module",
   "scripts": {
     "preview": "vite preview --host 127.0.0.1",
