@@ -20,7 +20,8 @@ export function createDebugLayoutPanel(host: HTMLElement): DebugLayoutPanelHandl
     className: "qubok_evolve-control-panel qubok_evolve-control-panel--layout-state",
     ariaLabel: "debug ui layout controls",
     title: "debug ui layout",
-    hint: "stored panel state"
+    hint: "stored panel state",
+    defaultCollapsed: true
   });
 
   const resetButton = document.createElement("button");

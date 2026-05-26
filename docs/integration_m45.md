@@ -61,6 +61,8 @@ M45-H7 adds a debug UI layout panel with a reset action that clears persisted pa
 
 M45-I1 moves right-side editable panels into a single scrollable control stack. Panels no longer rely on fixed top offsets, preventing lower panels from falling off-screen on shorter viewports.
 
+M45-I2 polishes the editable control stack: tighter vertical spacing, safer max panel width, hover scrollbar affordance, and default-collapsed debug UI layout panel.
+
 M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel change event when damping checkboxes are toggled.
 
 ## Validation target
@@ -82,6 +84,7 @@ M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel ch
 - npm run test:editable-collapse-persistence
 - npm run test:debug-layout-panel
 - npm run test:control-stack
+- npm run test:control-stack-polish
 - npm run test:editable-panel-resize
 - npm run test:demo-integration
 - npm run build

@@ -28,6 +28,7 @@ export function createCollapsibleControlPanel(options: {
   readonly hint?: string;
   readonly resizeStorageKey?: string;
   readonly collapseStorageKey?: string;
+  readonly defaultCollapsed?: boolean;
   readonly minWidth?: number;
   readonly maxWidth?: number;
 }): ControlPanelHandle {
@@ -60,11 +61,10 @@ export function createCollapsibleControlPanel(options: {
 
   const collapseStorageKey = options.collapseStorageKey ?? `qubok_evolve.control_panel_collapsed.${slugifyPanelTitle(options.title)}`;
   const storedCollapsed = readStoredBoolean(collapseStorageKey);
-  if (storedCollapsed !== undefined) {
-    root.dataset.collapsed = storedCollapsed ? "true" : "false";
-    body.hidden = storedCollapsed;
-    title.setAttribute("aria-expanded", storedCollapsed ? "false" : "true");
-  }
+  const initialCollapsed = storedCollapsed ?? options.defaultCollapsed ?? false;
+  root.dataset.collapsed = initialCollapsed ? "true" : "false";
+  body.hidden = initialCollapsed;
+  title.setAttribute("aria-expanded", initialCollapsed ? "false" : "true");
 
   const togglePanelCollapsed = (): void => {
     const collapsed = root.dataset.collapsed !== "true";
