@@ -1,5 +1,6 @@
 import { applyEnergySurvival, type EnergySurvivalStats } from "./energy";
 import { createEnvironmentalFieldLayer, setFieldCell, type EnvironmentalFieldLayer } from "./field";
+import { makeFieldRenderSnapshot, type FieldRenderSnapshot } from "./fieldRenderSnapshot";
 import { createRng, type DeterministicRng, type RngSeed } from "./rng";
 import { addForce, stepMovement, type MovementStepMetrics } from "./movement";
 import {
@@ -46,7 +47,7 @@ import { createWorldState, type WorldState } from "./world";
 import { createTerrainLayer, setTerrainRectMaterial, type TerrainLayer } from "./terrain";
 import { makeTerrainRenderSnapshot, type TerrainRenderSnapshot } from "./terrainRenderSnapshot";
 
-export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v21" as const;
+export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v22" as const;
 
 export type DemoSimulationConfig = {
   readonly seed?: RngSeed;
@@ -69,6 +70,9 @@ export type DemoSimulationConfig = {
   readonly obstacleResponseBoundsOnly?: boolean;
   readonly fieldCellSize?: number;
   readonly fieldForceScale?: number;
+  readonly fieldRenderStride?: number;
+  readonly fieldRenderMaxVectors?: number;
+  readonly fieldRenderMinMagnitude?: number;
   readonly spawnMaxAttempts?: number;
   readonly spawnClearanceRadius?: number;
   readonly sensorRadiusScale?: number;
@@ -85,6 +89,7 @@ export type DemoSimulationStepResult = {
   readonly snapshot: RenderSnapshot;
   readonly obstacleMaskSnapshot: ObstacleMaskRenderSnapshot;
   readonly terrainRenderSnapshot: TerrainRenderSnapshot;
+  readonly fieldRenderSnapshot: FieldRenderSnapshot;
   readonly snapshotStats: RenderSnapshotStats;
   readonly movementMetrics: MovementStepMetrics;
   readonly obstacleResponseStats: ObstacleSoftResponseStats;
@@ -138,6 +143,9 @@ const DEFAULT_OBSTACLE_CELL_SIZE = 64;
 const DEFAULT_TERRAIN_CELL_SIZE = 64;
 const DEFAULT_FIELD_CELL_SIZE = 128;
 const DEFAULT_FIELD_FORCE_SCALE = 2.5;
+const DEFAULT_FIELD_RENDER_STRIDE = 2;
+const DEFAULT_FIELD_RENDER_MAX_VECTORS = 192;
+const DEFAULT_FIELD_RENDER_MIN_MAGNITUDE = 0.05;
 const DEFAULT_OBSTACLE_RESPONSE_RADIUS = 42;
 const DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE = 140;
 const DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE = 220;
@@ -165,6 +173,9 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const resourceTargetCount = Math.min(config.targetResourceCount ?? DEFAULT_TARGET_RESOURCE_COUNT, resourceCapacity);
   const resourcePickupRadius = config.resourcePickupRadius ?? DEFAULT_RESOURCE_PICKUP_RADIUS;
   const fieldForceScale = config.fieldForceScale ?? DEFAULT_FIELD_FORCE_SCALE;
+  const fieldRenderStride = config.fieldRenderStride ?? DEFAULT_FIELD_RENDER_STRIDE;
+  const fieldRenderMaxVectors = config.fieldRenderMaxVectors ?? DEFAULT_FIELD_RENDER_MAX_VECTORS;
+  const fieldRenderMinMagnitude = config.fieldRenderMinMagnitude ?? DEFAULT_FIELD_RENDER_MIN_MAGNITUDE;
   const obstacleResponseRadius = config.obstacleResponseRadius ?? DEFAULT_OBSTACLE_RESPONSE_RADIUS;
   const obstacleResponseForceScale = config.obstacleResponseForceScale ?? DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE;
   const obstacleResponseMaxForce = config.obstacleResponseMaxForce ?? DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE;
@@ -189,7 +200,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const terrain = createTerrainLayer({ worldWidth, worldHeight, cellSize: DEFAULT_TERRAIN_CELL_SIZE });
   const field = createEnvironmentalFieldLayer({ worldWidth, worldHeight, cellSize: config.fieldCellSize ?? DEFAULT_FIELD_CELL_SIZE });
 
-  const rng = createRng(config.seed ?? "qubok_evolve:demo:m39");
+  const rng = createRng(config.seed ?? "qubok_evolve:demo:m40");
   seedDemoObstacleMask(obstacleMask);
   seedDemoTerrain(terrain);
   seedDemoField(field);
@@ -270,10 +281,11 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     const obstacleLifecycleTelemetry = makeObstacleLifecycleTelemetry({ sensorStats, obstacleResponseStats, resourceRespawnStats, reproductionStats });
     const snapshot = makeRenderSnapshot(world);
     const terrainRenderSnapshot = makeTerrainRenderSnapshot(terrain);
+    const fieldRenderSnapshot = makeFieldRenderSnapshot(field, { maxVectors: fieldRenderMaxVectors, stride: fieldRenderStride, minMagnitude: fieldRenderMinMagnitude });
     const snapshotStats = analyzeRenderSnapshot(snapshot);
     const simMsPerTick = performance.now() - start;
 
-    return { snapshot, obstacleMaskSnapshot, terrainRenderSnapshot, snapshotStats, movementMetrics, obstacleResponseStats, obstacleLifecycleTelemetry, energyStats, spatialBuildStats, neighborQueryStats, sensorStats, predatorPreyStats, reproductionStats, resourceBuildStats, resourcePickupStats, resourceRespawnStats, resourceAliveCount: resources.aliveCount, resourceTargetCount, resourceRespawnedCount, gridBuildMs, neighborQueryMs, sensorMs, obstacleResponseMs, predatorPreyMs, resourceMs, energyMs, reproductionMs, simMsPerTick };
+    return { snapshot, obstacleMaskSnapshot, terrainRenderSnapshot, fieldRenderSnapshot, snapshotStats, movementMetrics, obstacleResponseStats, obstacleLifecycleTelemetry, energyStats, spatialBuildStats, neighborQueryStats, sensorStats, predatorPreyStats, reproductionStats, resourceBuildStats, resourcePickupStats, resourceRespawnStats, resourceAliveCount: resources.aliveCount, resourceTargetCount, resourceRespawnedCount, gridBuildMs, neighborQueryMs, sensorMs, obstacleResponseMs, predatorPreyMs, resourceMs, energyMs, reproductionMs, simMsPerTick };
   };
 
   return { world, spatialGrid, resources, obstacleMask, terrain, field, initialAgentSpawnStats, initialResourceSpawnStats, step, getSnapshot: () => makeRenderSnapshot(world) };
