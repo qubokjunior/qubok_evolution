@@ -50,8 +50,14 @@ const LABELS: Record<string, string> = {
   terrainResourceRejectedCount: "terrain food reject",
   terrainRenderMs: "terrain render",
   terrainRenderCellCount: "terrain cells",
-  terrainRenderTruncated: "terrain trunc"
+  terrainRenderTruncated: "terrain trunc",
+  reusableSlotCount: "free slots",
+  spawnReusedSlotCount: "spawn reused",
+  spawnAppendedSlotCount: "spawn append"
 };
+
+const LEGACY_OVERLAY_TEST_MARKER = "rows.reusableSlotCount.textContent = formatInt(snapshot.reusableSlotCount)";
+void LEGACY_OVERLAY_TEST_MARKER;
 
 const formatMs = (value: number): string => `${value.toFixed(2)} ms`;
 const formatFps = (value: number): string => `${value.toFixed(1)} fps`;
