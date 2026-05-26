@@ -21,6 +21,12 @@ M44 should make field source semantics easier to reason about and easier to debu
 - emitted magnitude must remain positive and stronger than sink absorption in the QA config;
 - field render snapshot must expose finite visible vectors without truncation.
 
+## Overlay/readout QA
+
+- field source/sink metrics must exist in `PERF_METRIC_NAMES`;
+- Pixi renderer must record all source/sink metrics used by QA;
+- debug overlay must expose readable labels for source/sink counts, touched cells, emitted/absorbed magnitude, post-step magnitude, vector count, and truncation.
+
 ## Out of scope
 
 - advection;
