@@ -92,6 +92,7 @@ function createBooleanControl(labelText: string, key: BooleanConfigKey, simulati
   input.type = "checkbox";
   input.addEventListener("change", () => {
     simulation.updateFieldDampingConfig({ [key]: input.checked } as DemoSimulationFieldDampingConfigPatch);
+    input.dispatchEvent(new CustomEvent("qubok-field-damping-control-change", { bubbles: true }));
   });
 
   const label = document.createElement("span");

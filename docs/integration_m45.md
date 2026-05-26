@@ -35,6 +35,8 @@ M45-C adds runtime-editable damping controls: 6/7 toggle obstacle/terrain field 
 
 M45-D adds a compact field damping control panel with checkboxes, sliders, exact number fields, min/max ranges, float/integer steps, and reset-to-initial behavior.
 
+M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel change event when damping checkboxes are toggled.
+
 ## Validation target
 
 - npm run test:repo-status

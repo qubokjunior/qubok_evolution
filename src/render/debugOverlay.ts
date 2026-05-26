@@ -353,6 +353,7 @@ function createValueRow(root: HTMLElement, label: string): HTMLElement {
 }
 
 function formatValue(key: string, value: number): string {
+  if (key.endsWith("Enabled")) return value >= 0.5 ? "on" : "off";
   if (key === "fps") return formatFps(value);
   if (key.endsWith("Ms") || key.endsWith("MsPerFrame") || key.endsWith("MsPerTick")) return formatMs(value);
   if (key.endsWith("01")) return formatPercent(value);
