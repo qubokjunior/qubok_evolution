@@ -17,12 +17,14 @@ const appVersion = readText("src/shared/appVersion.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
 const debugOverlay = readText("src/render/debugOverlay.ts");
 const pixiRenderer = readText("src/render/pixiRenderer.ts");
+const sensors = readText("src/sim/sensors.ts");
 
-assert(packageJson.version === "0.1.0-milestone.16", "package.json version must be 0.1.0-milestone.16.");
-assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.16"'), "appVersion must expose milestone.16.");
-assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m16"'), "appVersion must expose m16 overlay label.");
+assert(packageJson.version === "0.1.0-milestone.17", "package.json version must be 0.1.0-milestone.17.");
+assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.17"'), "appVersion must expose milestone.17.");
+assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m17"'), "appVersion must expose m17 overlay label.");
 
 assert(!debugOverlay.includes('badge.textContent = "m10"'), "debug overlay must not hardcode m10.");
+assert(!debugOverlay.includes('badge.textContent = "m16"'), "debug overlay must not hardcode m16.");
 assert(debugOverlay.includes("../shared/appVersion"), "debug overlay must read milestone label from shared/appVersion.");
 
 for (const forbiddenImport of ["../render/", "./render/", "../ui/", "./ui/", "pixi.js", "react"]) {
@@ -38,14 +40,33 @@ for (const requiredDemoToken of [
   "reproductionStats",
   "sensorMs",
   "predatorPreyMs",
-  "reproductionMs"
+  "reproductionMs",
+  "resources",
+  "resourceBuildStats"
 ]) {
   assert(demoSimulation.includes(requiredDemoToken), `demoSimulation is missing live integration token: ${requiredDemoToken}`);
+}
+
+for (const requiredSensorToken of [
+  "sectorFood",
+  "sectorObstacle",
+  "foodSignalSum",
+  "obstacleSignalSum",
+  "includeFood",
+  "includeObstacles",
+  "foodSectorWrites",
+  "obstacleSectorWrites"
+]) {
+  assert(sensors.includes(requiredSensorToken), `sensors m17 contract is missing token: ${requiredSensorToken}`);
 }
 
 for (const requiredOverlayToken of [
   "sensorVisibleNeighbors",
   "sensorSectorWrites",
+  "sensorFoodSectorWrites",
+  "sensorObstacleSectorWrites",
+  "sensorFoodSignalSum",
+  "sensorObstacleSignalSum",
   "attacksThisStep",
   "killsThisStep",
   "birthsThisStep",

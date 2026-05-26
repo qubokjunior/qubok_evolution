@@ -28,6 +28,11 @@ export type PerfOverlaySnapshot = {
   readonly maxNeighborsForAgent: number;
   readonly sensorVisibleNeighbors: number;
   readonly sensorSectorWrites: number;
+  readonly sensorFoodVisibleCount: number;
+  readonly sensorFoodSectorWrites: number;
+  readonly sensorObstacleSectorWrites: number;
+  readonly sensorFoodSignalSum: number;
+  readonly sensorObstacleSignalSum: number;
   readonly avgVisibleNeighborsPerAgent: number;
   readonly attacksThisStep: number;
   readonly killsThisStep: number;
@@ -100,6 +105,11 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     maxNeighborsForAgent: createValueRow(root, "max neigh"),
     sensorVisibleNeighbors: createValueRow(root, "visible"),
     sensorSectorWrites: createValueRow(root, "sector writes"),
+    sensorFoodVisibleCount: createValueRow(root, "food visible"),
+    sensorFoodSectorWrites: createValueRow(root, "food sectors"),
+    sensorObstacleSectorWrites: createValueRow(root, "obs sectors"),
+    sensorFoodSignalSum: createValueRow(root, "food signal"),
+    sensorObstacleSignalSum: createValueRow(root, "obs signal"),
     avgVisibleNeighborsPerAgent: createValueRow(root, "avg visible"),
     attacksThisStep: createValueRow(root, "attacks"),
     killsThisStep: createValueRow(root, "kills"),
@@ -144,6 +154,11 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     rows.maxNeighborsForAgent.textContent = formatInt(snapshot.maxNeighborsForAgent);
     rows.sensorVisibleNeighbors.textContent = formatInt(snapshot.sensorVisibleNeighbors);
     rows.sensorSectorWrites.textContent = formatInt(snapshot.sensorSectorWrites);
+    rows.sensorFoodVisibleCount.textContent = formatInt(snapshot.sensorFoodVisibleCount);
+    rows.sensorFoodSectorWrites.textContent = formatInt(snapshot.sensorFoodSectorWrites);
+    rows.sensorObstacleSectorWrites.textContent = formatInt(snapshot.sensorObstacleSectorWrites);
+    rows.sensorFoodSignalSum.textContent = formatDecimal(snapshot.sensorFoodSignalSum);
+    rows.sensorObstacleSignalSum.textContent = formatDecimal(snapshot.sensorObstacleSignalSum);
     rows.avgVisibleNeighborsPerAgent.textContent = formatDecimal(snapshot.avgVisibleNeighborsPerAgent);
     rows.attacksThisStep.textContent = formatInt(snapshot.attacksThisStep);
     rows.killsThisStep.textContent = formatInt(snapshot.killsThisStep);

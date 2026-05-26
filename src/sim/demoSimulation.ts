@@ -25,7 +25,7 @@ import { applyAgentSensors, type SensorPassStats } from "./sensors";
 import { buildSpatialHashGrid, createSpatialHashGrid, type SpatialHashBuildStats, type SpatialHashGrid } from "./spatialHash";
 import { createWorldState, spawnRandomAgents, type WorldState } from "./world";
 
-export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v7" as const;
+export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v8" as const;
 
 export type DemoSimulationConfig = {
   readonly seed?: RngSeed;
@@ -128,7 +128,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     cellSize: config.resourceCellSize ?? config.spatialCellSize ?? DEFAULT_SPATIAL_CELL_SIZE
   });
 
-  const rng = createRng(config.seed ?? "qubok_evolve:demo:m16");
+  const rng = createRng(config.seed ?? "qubok_evolve:demo:m17");
   spawnDemoAgents(world, initialAgentCount, rng);
   spawnRandomResources(resources, resourceTargetCount, rng);
   buildSpatialHashGrid(spatialGrid, world);
@@ -158,11 +158,23 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     });
     const neighborQueryMs = performance.now() - neighborStart;
 
+    const resourceGridStart = performance.now();
+    const resourceBuildStats = rebuildResourceGrid(resources);
+    const resourceGridMs = performance.now() - resourceGridStart;
+
     const sensorStart = performance.now();
     const sensorStats = applyAgentSensors(world, spatialGrid, {
       radiusScale: sensorRadiusScale,
       includeAllies: true,
-      includeThreats: true
+      includeThreats: true,
+      includeFood: true,
+      includeObstacles: true,
+      resources,
+      obstacleDetectionRadius: 96,
+      allySignalScale: 1,
+      threatSignalScale: 1,
+      foodSignalScale: 1,
+      obstacleSignalScale: 0.75
     });
     const sensorMs = performance.now() - sensorStart;
 
@@ -179,13 +191,12 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     const predatorPreyMs = performance.now() - predatorPreyStart;
 
     const resourceStart = performance.now();
-    const resourceBuildStats = rebuildResourceGrid(resources);
     const resourcePickupStats = consumeResourcesForWorld(resources, world, {
       pickupRadius: resourcePickupRadius,
       maxPickupsPerAgent: 1
     });
     const resourceRespawnedCount = respawnResourcesToTarget(resources, resourceTargetCount, rng);
-    const resourceMs = performance.now() - resourceStart;
+    const resourceMs = resourceGridMs + performance.now() - resourceStart;
 
     const energyStart = performance.now();
     const energyStats = applyEnergySurvival(world, {

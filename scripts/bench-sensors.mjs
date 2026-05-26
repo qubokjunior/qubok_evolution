@@ -18,40 +18,62 @@ await transpileSimModule("rng.ts", "rng.mjs");
 await transpileSimModule("world.ts", "world.mjs");
 await transpileSimModule("spatialHash.ts", "spatialHash.mjs");
 await transpileSimModule("neighborQuery.ts", "neighborQuery.mjs");
+await transpileSimModule("resources.ts", "resources.mjs");
 await transpileSimModule("sensors.ts", "sensors.mjs");
 
 const { createRng } = await import(pathToFileURL(join(temporaryDirectory, "rng.mjs")).href);
 const { createWorldState, spawnRandomAgents } = await import(pathToFileURL(join(temporaryDirectory, "world.mjs")).href);
 const { buildSpatialHashGrid, createSpatialHashGrid } = await import(pathToFileURL(join(temporaryDirectory, "spatialHash.mjs")).href);
+const { createResourceLayer, rebuildResourceGrid, spawnRandomResources } = await import(pathToFileURL(join(temporaryDirectory, "resources.mjs")).href);
 const { applyAgentSensors } = await import(pathToFileURL(join(temporaryDirectory, "sensors.mjs")).href);
 
 const entityCount = 5000;
+const resourceCount = 2500;
 const world = createWorldState({ capacity: entityCount, worldWidth: 1024, worldHeight: 1024, sectorCount: 8 });
 const grid = createSpatialHashGrid({ capacity: entityCount, worldWidth: 1024, worldHeight: 1024, cellSize: 48 });
-const rng = createRng("qubok_evolve:bench:sensors:m15");
+const resources = createResourceLayer({ capacity: resourceCount, worldWidth: 1024, worldHeight: 1024, cellSize: 48 });
+const rng = createRng("qubok_evolve:bench:sensors:m17");
 spawnRandomAgents(world, entityCount, rng);
+spawnRandomResources(resources, resourceCount, rng);
 
 const gridStart = performance.now();
 const gridStats = buildSpatialHashGrid(grid, world);
 const gridBuildMs = performance.now() - gridStart;
 
+const resourceGridStart = performance.now();
+const resourceStats = rebuildResourceGrid(resources);
+const resourceGridBuildMs = performance.now() - resourceGridStart;
+
 const start = performance.now();
-const stats = applyAgentSensors(world, grid);
+const stats = applyAgentSensors(world, grid, {
+  resources,
+  obstacleDetectionRadius: 96
+});
 const sensorMs = performance.now() - start;
 
 await rm(temporaryDirectory, { force: true, recursive: true });
 
 console.log(JSON.stringify({
-  bench: "sensors:m15",
+  bench: "sensors:m17",
   entityCount,
+  resourceCount,
   gridBuildMs: round3(gridBuildMs),
+  resourceGridBuildMs: round3(resourceGridBuildMs),
   sensorMs: round3(sensorMs),
   insertedCount: gridStats.insertedCount,
+  insertedResourceCount: resourceStats.insertedCount,
   checkedCount: stats.checkedCount,
   neighborCandidates: stats.neighborCandidates,
   radiusNeighborCount: stats.radiusNeighborCount,
   visibleNeighborCount: stats.visibleNeighborCount,
+  foodVisibleCount: stats.foodVisibleCount,
   sectorWrites: stats.sectorWrites,
+  foodSectorWrites: stats.foodSectorWrites,
+  obstacleSectorWrites: stats.obstacleSectorWrites,
+  allySignalSum: round3(stats.allySignalSum),
+  threatSignalSum: round3(stats.threatSignalSum),
+  foodSignalSum: round3(stats.foodSignalSum),
+  obstacleSignalSum: round3(stats.obstacleSignalSum),
   averageVisibleNeighborsPerCheckedAgent: round3(stats.averageVisibleNeighborsPerCheckedAgent),
   averageCandidatesPerCheckedAgent: round3(stats.averageCandidatesPerCheckedAgent),
   maxVisibleNeighborsForAgent: stats.maxVisibleNeighborsForAgent
@@ -80,6 +102,8 @@ async function transpileSimModule(sourceName, outputName) {
     .replaceAll("from './spatialHash'", "from './spatialHash.mjs'")
     .replaceAll('from "./neighborQuery"', 'from "./neighborQuery.mjs"')
     .replaceAll("from './neighborQuery'", "from './neighborQuery.mjs'")
+    .replaceAll('from "./resources"', 'from "./resources.mjs"')
+    .replaceAll("from './resources'", "from './resources.mjs'")
     .replaceAll('from "./sensors"', 'from "./sensors.mjs"')
     .replaceAll("from './sensors'", "from './sensors.mjs'");
 
