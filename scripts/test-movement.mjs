@@ -13,6 +13,7 @@ await mkdir(temporaryDirectory, { recursive: true });
 
 await transpileSimModule("arrays.ts", "arrays.mjs");
 await transpileSimModule("rng.ts", "rng.mjs");
+await transpileSimModule("terrain.ts", "terrain.mjs");
 await transpileSimModule("world.ts", "world.mjs");
 await transpileSimModule("movement.ts", "movement.mjs");
 
@@ -20,7 +21,7 @@ const { createRng } = await import(pathToFileURL(join(temporaryDirectory, "rng.m
 const { createWorldState, makeWorldSnapshot, spawnAgent, spawnRandomAgents } = await import(pathToFileURL(join(temporaryDirectory, "world.mjs")).href);
 const { MOVEMENT_SYSTEM_VERSION, addForce, clearForces, setVelocityFromHeading, stepMovement } = await import(pathToFileURL(join(temporaryDirectory, "movement.mjs")).href);
 
-assertEqual(MOVEMENT_SYSTEM_VERSION, "qubok_evolve.movement.v1", "movement version");
+assertEqual(MOVEMENT_SYSTEM_VERSION, "qubok_evolve.movement.v2", "movement version");
 
 const world = createWorldState({ capacity: 4, worldWidth: 100, worldHeight: 100, sectorCount: 8 });
 const first = spawnAgent(world, { x: 10, y: 20, vx: 3, vy: 4, mass: 1, drag: 0, maxSpeed: 10, metabolism: 0, energy: 100 });
@@ -73,6 +74,7 @@ const deathWorld = createWorldState({ capacity: 1, worldWidth: 100, worldHeight:
 spawnAgent(deathWorld, { vx: 0, vy: 0, metabolism: 10, energy: 1 });
 const deathMetrics = stepMovement(deathWorld, { deltaSeconds: 0.2, boundsMode: "none" });
 assertEqual(deathWorld.alive[0], 0, "dead after energy depletion");
+assertEqual(deathWorld.reusableSlotCount, 1, "dead slot is reusable");
 assertEqual(deathMetrics.deadCount, 1, "dead metric");
 
 const deterministicA = createWorldState({ capacity: 32, worldWidth: 256, worldHeight: 128, sectorCount: 8 });
@@ -110,6 +112,8 @@ async function transpileSimModule(sourceName, outputName) {
     .replaceAll("from './arrays'", "from './arrays.mjs'")
     .replaceAll('from "./rng"', 'from "./rng.mjs"')
     .replaceAll("from './rng'", "from './rng.mjs'")
+    .replaceAll('from "./terrain"', 'from "./terrain.mjs"')
+    .replaceAll("from './terrain'", "from './terrain.mjs'")
     .replaceAll('from "./world"', 'from "./world.mjs"')
     .replaceAll("from './world'", "from './world.mjs'");
   await writeFile(outputPath, outputText, "utf8");
