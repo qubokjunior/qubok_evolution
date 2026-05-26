@@ -43,3 +43,6 @@ Resources are not entity objects. They use typed arrays:
 - No predator/prey roles yet.
 - No smell fields yet.
 - No rendering of food particles yet; this step proves the sim/resource loop and metrics first.
+## m22 obstacle-aware resource spawning
+
+Resources can now be spawned through `spawnRandomResourcesAvoidingObstacles()` and respawned through `respawnResourcesToTargetAvoidingObstacles()`. The resource layer itself remains unchanged; validation lives in `spawnValidation.ts`.

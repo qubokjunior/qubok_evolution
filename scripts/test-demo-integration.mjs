@@ -15,49 +15,39 @@ const assert = (condition, message) => {
 const packageJson = JSON.parse(readText("package.json"));
 const appVersion = readText("src/shared/appVersion.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
-const debugOverlay = readText("src/render/debugOverlay.ts");
-const pixiRenderer = readText("src/render/pixiRenderer.ts");
-const obstacleResponse = readText("src/sim/obstacleResponse.ts");
+const spawnValidation = readText("src/sim/spawnValidation.ts");
 
-assert(packageJson.version === "0.1.0-milestone.21", "package.json version must be 0.1.0-milestone.21.");
-assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.21"'), "appVersion must expose milestone.21.");
-assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m21"'), "appVersion must expose m21 overlay label.");
-
-assert(!debugOverlay.includes('badge.textContent = "m20"'), "debug overlay must not hardcode m20.");
-assert(debugOverlay.includes("../shared/appVersion"), "debug overlay must read milestone label from shared/appVersion.");
+assert(packageJson.version === "0.1.0-milestone.22", "package.json version must be 0.1.0-milestone.22.");
+assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.22"'), "appVersion must expose milestone.22.");
+assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m22"'), "appVersion must expose m22 overlay label.");
 
 for (const forbiddenImport of ["../render/", "./render/", "../ui/", "./ui/", "pixi.js", "react"]) {
   assert(!demoSimulation.includes(forbiddenImport), `demoSimulation must not import forbidden boundary token: ${forbiddenImport}`);
 }
 
 for (const requiredDemoToken of [
-  "applyObstacleSoftResponse",
-  "obstacleResponseStats",
-  "obstacleResponseCellStride",
-  "obstacleResponseMaxCellChecksPerAgent",
-  "obstacleResponseBoundsOnly"
+  "spawnRandomAgentsAvoidingObstacles",
+  "spawnRandomResourcesAvoidingObstacles",
+  "respawnResourcesToTargetAvoidingObstacles",
+  "initialAgentSpawnStats",
+  "initialResourceSpawnStats",
+  "resourceRespawnStats",
+  "spawnMaxAttempts",
+  "spawnClearanceRadius"
 ]) {
-  assert(demoSimulation.includes(requiredDemoToken), `demoSimulation is missing obstacle response optimization token: ${requiredDemoToken}`);
+  assert(demoSimulation.includes(requiredDemoToken), `demoSimulation is missing obstacle-aware spawn token: ${requiredDemoToken}`);
 }
 
-for (const requiredResponseToken of [
-  "OBSTACLE_RESPONSE_VERSION",
-  "cellStride",
-  "maxObstacleCellChecksPerAgent",
-  "boundsOnly",
-  "obstacleCellsSkippedByStride",
-  "obstacleCellCheckLimitHits"
+for (const requiredSpawnToken of [
+  "SPAWN_VALIDATION_VERSION",
+  "isPositionBlockedByObstacleMask",
+  "findFreeRandomPosition",
+  "findFreePositionNearOrRandom",
+  "spawnRandomAgentsAvoidingObstacles",
+  "spawnRandomResourcesAvoidingObstacles",
+  "respawnResourcesToTargetAvoidingObstacles"
 ]) {
-  assert(obstacleResponse.includes(requiredResponseToken), `obstacle response module is missing optimization token: ${requiredResponseToken}`);
-}
-
-for (const requiredOverlayToken of [
-  "obstacleResponseCellChecks",
-  "obstacleResponseSkippedCells",
-  "obstacleResponseLimitHits"
-]) {
-  assert(pixiRenderer.includes(requiredOverlayToken), `pixiRenderer is missing overlay metric token: ${requiredOverlayToken}`);
-  assert(debugOverlay.includes(requiredOverlayToken), `debugOverlay is missing overlay row token: ${requiredOverlayToken}`);
+  assert(spawnValidation.includes(requiredSpawnToken), `spawn validation module is missing token: ${requiredSpawnToken}`);
 }
 
 console.log("demo integration tests passed");

@@ -58,3 +58,17 @@ m21 adds cheap controls for obstacle response cost:
 | `maxObstacleCellChecksPerAgent` | hard cap for per-agent obstacle checks |
 
 These controls trade precision for a bounded hot path while keeping `world.fx/world.fy` output stable.
+## m22 obstacle-aware spawning
+
+m22 adds spawn validation helpers that reject positions overlapping `ObstacleMask`.
+
+| Helper | Purpose |
+|---|---|
+| `isPositionBlockedByObstacleMask` | test a point plus optional clearance radius |
+| `findFreeRandomPosition` | random attempts then deterministic grid fallback |
+| `findFreePositionNearOrRandom` | near-origin search with random fallback |
+| `spawnRandomAgentsAvoidingObstacles` | creates agents only on free cells |
+| `spawnRandomResourcesAvoidingObstacles` | creates resources only on free cells |
+| `respawnResourcesToTargetAvoidingObstacles` | keeps food target without spawning inside obstacles |
+
+This is placement validation only, not pathfinding or collision solving.
