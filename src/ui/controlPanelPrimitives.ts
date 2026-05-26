@@ -27,6 +27,7 @@ export function createCollapsibleControlPanel(options: {
   readonly title: string;
   readonly hint?: string;
   readonly resizeStorageKey?: string;
+  readonly collapseStorageKey?: string;
   readonly minWidth?: number;
   readonly maxWidth?: number;
 }): ControlPanelHandle {
@@ -57,11 +58,20 @@ export function createCollapsibleControlPanel(options: {
   title.textContent = options.title;
   title.setAttribute("aria-expanded", "true");
 
+  const collapseStorageKey = options.collapseStorageKey ?? `qubok_evolve.control_panel_collapsed.${slugifyPanelTitle(options.title)}`;
+  const storedCollapsed = readStoredBoolean(collapseStorageKey);
+  if (storedCollapsed !== undefined) {
+    root.dataset.collapsed = storedCollapsed ? "true" : "false";
+    body.hidden = storedCollapsed;
+    title.setAttribute("aria-expanded", storedCollapsed ? "false" : "true");
+  }
+
   const togglePanelCollapsed = (): void => {
     const collapsed = root.dataset.collapsed !== "true";
     root.dataset.collapsed = collapsed ? "true" : "false";
     body.hidden = collapsed;
     title.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    writeStoredBoolean(collapseStorageKey, collapsed);
   };
 
   title.addEventListener("click", togglePanelCollapsed);
@@ -106,15 +116,25 @@ export function createControlSubsection(titleText: string, ...children: readonly
   title.textContent = titleText;
   title.setAttribute("aria-expanded", "true");
 
+  const collapseStorageKey = `qubok_evolve.control_subsection_collapsed.${slugifyPanelTitle(titleText)}`;
+
   const body = document.createElement("div");
   body.className = "qubok_evolve-control-subsection-body";
   body.append(...children);
+
+  const storedCollapsed = readStoredBoolean(collapseStorageKey);
+  if (storedCollapsed !== undefined) {
+    section.dataset.collapsed = storedCollapsed ? "true" : "false";
+    body.hidden = storedCollapsed;
+    title.setAttribute("aria-expanded", storedCollapsed ? "false" : "true");
+  }
 
   const toggleSubsectionCollapsed = (): void => {
     const collapsed = section.dataset.collapsed !== "true";
     section.dataset.collapsed = collapsed ? "true" : "false";
     body.hidden = collapsed;
     title.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    writeStoredBoolean(collapseStorageKey, collapsed);
   };
 
   title.addEventListener("click", toggleSubsectionCollapsed);
@@ -285,6 +305,24 @@ function attachHorizontalResize(panel: HTMLElement, handle: HTMLElement, storage
     handle.addEventListener("pointerup", onEnd);
     handle.addEventListener("pointercancel", onEnd);
   });
+}
+
+function readStoredBoolean(storageKey: string): boolean | undefined {
+  try {
+    const rawValue = localStorage.getItem(storageKey);
+    if (rawValue === null) return undefined;
+    return rawValue === "true";
+  } catch {
+    return undefined;
+  }
+}
+
+function writeStoredBoolean(storageKey: string, value: boolean): void {
+  try {
+    localStorage.setItem(storageKey, value ? "true" : "false");
+  } catch {
+    // localStorage can be unavailable in restricted contexts.
+  }
 }
 
 function readStoredPanelWidth(storageKey: string, minWidth: number, maxWidth: number): number | undefined {
