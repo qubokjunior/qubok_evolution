@@ -12,7 +12,7 @@ const temporaryDirectory = join(projectRoot, ".tmp_reproduction_test");
 await rm(temporaryDirectory, { force: true, recursive: true });
 await mkdir(temporaryDirectory, { recursive: true });
 
-for (const moduleName of ["arrays.ts", "rng.ts", "mutation.ts", "world.ts", "obstacleMask.ts", "resources.ts", "spawnValidation.ts", "reproduction.ts"]) {
+for (const moduleName of ["arrays.ts", "rng.ts", "mutation.ts", "world.ts", "obstacleMask.ts", "resources.ts", "terrain.ts", "spawnValidation.ts", "reproduction.ts"]) {
   await transpileSimModule(moduleName, moduleName.replace(".ts", ".mjs"));
 }
 
@@ -293,6 +293,7 @@ async function transpileSimModule(sourceName, outputName) {
   output = output.replaceAll('from "./mutation"', 'from "./mutation.mjs"');
   output = output.replaceAll('from "./obstacleMask"', 'from "./obstacleMask.mjs"');
   output = output.replaceAll('from "./resources"', 'from "./resources.mjs"');
+  output = output.replaceAll('from "./terrain"', 'from "./terrain.mjs"');
   output = output.replaceAll('from "./spawnValidation"', 'from "./spawnValidation.mjs"');
   await writeFile(join(temporaryDirectory, outputName), output, "utf8");
 }
