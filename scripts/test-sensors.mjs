@@ -12,13 +12,14 @@ const temporaryDirectory = join(projectRoot, ".tmp_sensors_test");
 await rm(temporaryDirectory, { force: true, recursive: true });
 await mkdir(temporaryDirectory, { recursive: true });
 
-for (const moduleName of ["arrays.ts", "world.ts", "spatialHash.ts", "neighborQuery.ts", "resources.ts", "sensors.ts"]) {
+for (const moduleName of ["arrays.ts", "world.ts", "spatialHash.ts", "neighborQuery.ts", "resources.ts", "obstacleMask.ts", "sensors.ts"]) {
   await transpileSimModule(moduleName, moduleName.replace(".ts", ".mjs"));
 }
 
 const { createWorldState, getSectorOffset, spawnAgent } = await import(pathToFileURL(join(temporaryDirectory, "world.mjs")).href);
 const { buildSpatialHashGrid, createSpatialHashGrid } = await import(pathToFileURL(join(temporaryDirectory, "spatialHash.mjs")).href);
 const { createResourceLayer, rebuildResourceGrid, spawnResource } = await import(pathToFileURL(join(temporaryDirectory, "resources.mjs")).href);
+const { createObstacleMask, setObstacleCell } = await import(pathToFileURL(join(temporaryDirectory, "obstacleMask.mjs")).href);
 const {
   SENSOR_SYSTEM_VERSION,
   applyAgentSensors,
@@ -26,7 +27,7 @@ const {
   getSensorSectorIndex
 } = await import(pathToFileURL(join(temporaryDirectory, "sensors.mjs")).href);
 
-assertEqual(SENSOR_SYSTEM_VERSION, "qubok_evolve.sensors.v3", "sensor system version");
+assertEqual(SENSOR_SYSTEM_VERSION, "qubok_evolve.sensors.v4", "sensor system version");
 assertEqual(getSensorSectorIndex(1, 0, 1, 0, 8), 0, "forward sector");
 assertEqual(getSensorSectorIndex(1, 0, 0, 1, 8), 2, "left sector");
 assertEqual(getSensorSectorIndex(1, 0, -1, 0, 8), 4, "back sector");
@@ -35,13 +36,14 @@ assertEqual(getSensorSectorIndex(1, 0, 0, -1, 8), 6, "right sector");
 const world = createWorldState({ capacity: 12, worldWidth: 200, worldHeight: 200, sectorCount: 8 });
 const grid = createSpatialHashGrid({ capacity: 12, worldWidth: 200, worldHeight: 200, cellSize: 20 });
 const resources = createResourceLayer({ capacity: 8, worldWidth: 200, worldHeight: 200, cellSize: 20 });
+const obstacleMask = createObstacleMask({ worldWidth: 200, worldHeight: 200, cellSize: 10 });
 
 const center = spawnAgent(world, {
   x: 50,
   y: 50,
   headingX: 1,
   headingY: 0,
-  visionRadius: 30,
+  visionRadius: 40,
   visionCosHalfCone: Math.cos(Math.PI / 4),
   speciesId: 1
 });
@@ -86,7 +88,7 @@ const edge = spawnAgent(world, {
   y: 100,
   headingX: 1,
   headingY: 0,
-  visionRadius: 30,
+  visionRadius: 40,
   visionCosHalfCone: Math.cos(Math.PI / 3),
   speciesId: 3
 });
@@ -95,9 +97,14 @@ spawnResource(resources, { x: 65, y: 50, energy: 18, radius: 3, kindId: 0 });
 spawnResource(resources, { x: 30, y: 50, energy: 18, radius: 3, kindId: 0 });
 rebuildResourceGrid(resources);
 
+setObstacleCell(obstacleMask, 7, 5, true); // center near x=75, y=55, visible in front of center
+setObstacleCell(obstacleMask, 3, 5, true); // behind center, should be rejected by cone
+setObstacleCell(obstacleMask, 19, 10, true); // border-side obstacle near edge agent
+
 buildSpatialHashGrid(grid, world);
 const stats = applyAgentSensors(world, grid, {
   resources,
+  obstacleMask,
   tick: 0,
   foodTickInterval: 4,
   obstacleTickInterval: 2
@@ -113,6 +120,9 @@ assertEqual(stats.obstacleSkippedByCadence, false, "obstacle not skipped on tick
 assertGreater(stats.foodVisibleCount, 0, "food visible count");
 assertGreater(stats.foodSectorWrites, 0, "food sector writes");
 assertGreater(stats.obstacleSectorWrites, 0, "obstacle sector writes");
+assertGreater(stats.obstacleMaskCellChecks, 0, "obstacle mask cell checks");
+assertGreater(stats.obstacleMaskHits, 0, "obstacle mask hits");
+assertGreater(stats.obstacleMaskSectorWrites, 0, "obstacle mask sector writes");
 assertGreater(stats.foodSignalSum, 0, "food signal sum");
 assertGreater(stats.obstacleSignalSum, 0, "obstacle signal sum");
 
@@ -122,6 +132,7 @@ const edgeForwardOffset = getSectorOffset(world, edge, 0);
 assertGreater(world.sectorAlly[forwardOffset], 0, "forward ally signal");
 assertGreater(world.sectorThreat[forwardOffset], 0, "forward threat signal");
 assertGreater(world.sectorFood[forwardOffset], 0, "forward food signal");
+assertGreater(world.sectorObstacle[forwardOffset], 0, "forward obstacle mask signal");
 assertGreater(world.sectorObstacle[edgeForwardOffset], 0, "edge obstacle signal");
 assertEqual(world.sectorFood[backOffset], 0, "behind food rejected by cone");
 assertEqual(world.sectorThreat[backOffset], 0, "behind threat rejected by cone");
@@ -130,9 +141,10 @@ assertAlmostEqual(world.localCentroidY[center], 52.5, 0.0001, "local centroid y"
 assertGreater(-world.separationX[center], 0, "separation x pushes away from forward neighbors");
 
 const preservedFood = world.sectorFood[forwardOffset];
-const preservedObstacle = world.sectorObstacle[edgeForwardOffset];
+const preservedObstacle = world.sectorObstacle[forwardOffset];
 const skippedStats = applyAgentSensors(world, grid, {
   resources,
+  obstacleMask,
   tick: 1,
   foodTickInterval: 4,
   obstacleTickInterval: 2
@@ -145,17 +157,18 @@ assertEqual(skippedStats.obstacleSkippedByCadence, true, "obstacle skipped by ca
 assertEqual(skippedStats.foodSectorWrites, 0, "no food writes on skipped tick");
 assertEqual(skippedStats.obstacleSectorWrites, 0, "no obstacle writes on skipped tick");
 assertAlmostEqual(world.sectorFood[forwardOffset], preservedFood, 0.000001, "skipped food buffer preserved");
-assertAlmostEqual(world.sectorObstacle[edgeForwardOffset], preservedObstacle, 0.000001, "skipped obstacle buffer preserved");
+assertAlmostEqual(world.sectorObstacle[forwardOffset], preservedObstacle, 0.000001, "skipped obstacle buffer preserved");
 
 applyAgentSensors(world, grid, {
   resources,
+  obstacleMask,
   tick: 1,
   foodTickInterval: 4,
   obstacleTickInterval: 2,
   preserveSkippedSectorChannels: false
 });
 assertEqual(world.sectorFood[forwardOffset], 0, "skipped food buffer cleared when preserve is false");
-assertEqual(world.sectorObstacle[edgeForwardOffset], 0, "skipped obstacle buffer cleared when preserve is false");
+assertEqual(world.sectorObstacle[forwardOffset], 0, "skipped obstacle buffer cleared when preserve is false");
 
 clearAgentSensorOutputs(world);
 assertEqual(world.sectorAlly[forwardOffset], 0, "clear ally buffer");
@@ -168,6 +181,7 @@ assertThrows(() => getSensorSectorIndex(1, 0, 1, 0, 0), "invalid sector count");
 assertThrows(() => applyAgentSensors(world, grid, { radiusScale: 0 }), "invalid radius scale");
 assertThrows(() => applyAgentSensors(world, grid, { foodTickInterval: 0 }), "invalid food interval");
 assertThrows(() => applyAgentSensors(world, grid, { obstacleTickInterval: 0 }), "invalid obstacle interval");
+assertThrows(() => applyAgentSensors(world, grid, { obstacleMask: createObstacleMask({ worldWidth: 100, worldHeight: 100, cellSize: 10 }) }), "incompatible obstacle mask");
 
 await rm(temporaryDirectory, { force: true, recursive: true });
 console.log("sensors tests passed");
@@ -195,6 +209,8 @@ async function transpileSimModule(sourceName, outputName) {
     .replaceAll("from './neighborQuery'", "from './neighborQuery.mjs'")
     .replaceAll('from "./resources"', 'from "./resources.mjs"')
     .replaceAll("from './resources'", "from './resources.mjs'")
+    .replaceAll('from "./obstacleMask"', 'from "./obstacleMask.mjs"')
+    .replaceAll("from './obstacleMask'", "from './obstacleMask.mjs'")
     .replaceAll('from "./sensors"', 'from "./sensors.mjs"')
     .replaceAll("from './sensors'", "from './sensors.mjs'");
 
