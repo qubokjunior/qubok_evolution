@@ -1,6 +1,6 @@
 # qubok_evolve milestones
 
-Compact milestone index through m39. Older early milestones are summarized at the system level; recent lifecycle, terrain, and field milestones are listed with stricter implementation detail.
+Compact milestone index through m40. Older early milestones are summarized at the system level; recent lifecycle, terrain, and field milestones are listed with stricter implementation detail.
 
 | Milestone | Focus | Status |
 |---|---|---|
@@ -43,8 +43,9 @@ Compact milestone index through m39. Older early milestones are summarized at th
 | m37 | Terrain-aware sensor sampling on controlled cadence. | complete |
 | m38 | Terrain-aware reproduction placement using offspring habitat acceptance. | complete |
 | m39 | Low-resolution environmental flow field sampled by movement. | complete |
+| m40 | Environmental field render snapshot and Pixi vector debug layer. | complete |
 
 ## Current next-step candidates
 
-- m40: environmental field render snapshot and Pixi vector debug layer.
+- m41: field render controls / overlay grouping / visibility toggle.
 - Later: field transport/decay, signed-distance-field correction, controller/brain layer, morphology compiler/editor, workerization, and WebGPU experiments.
