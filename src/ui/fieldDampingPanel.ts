@@ -30,10 +30,31 @@ export function createFieldDampingControlPanel(host: HTMLElement, simulation: De
   const root = document.createElement("section");
   root.className = "qubok_evolve-control-panel";
   root.setAttribute("aria-label", "field damping controls");
+  root.dataset.collapsed = "false";
+
+  const body = document.createElement("div");
+  body.className = "qubok_evolve-control-body";
+
 
   const title = document.createElement("div");
   title.className = "qubok_evolve-control-title";
   title.textContent = "field damping";
+  title.tabIndex = 0;
+  title.setAttribute("role", "button");
+  title.setAttribute("aria-expanded", "true");
+  const togglePanelCollapsed = (): void => {
+    const collapsed = root.dataset.collapsed !== "true";
+    root.dataset.collapsed = collapsed ? "true" : "false";
+    body.hidden = collapsed;
+    title.setAttribute("aria-expanded", collapsed ? "false" : "true");
+  };
+  title.addEventListener("click", togglePanelCollapsed);
+  title.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      togglePanelCollapsed();
+    }
+  });
 
   const hint = document.createElement("div");
   hint.className = "qubok_evolve-control-hint";
@@ -67,7 +88,8 @@ export function createFieldDampingControlPanel(host: HTMLElement, simulation: De
   shortcutText.textContent = "6/7 toggles · [] ;'";
   footer.append(resetButton, shortcutText);
 
-  root.append(title, hint, toggles, numericSection, footer);
+  body.append(hint, toggles, numericSection, footer);
+  root.append(title, body);
   host.append(root);
 
   const sync = (): void => {

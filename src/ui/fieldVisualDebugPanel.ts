@@ -31,10 +31,31 @@ export function createFieldVisualDebugPanel(host: HTMLElement, renderer: PixiRen
   const root = document.createElement("section");
   root.className = "qubok_evolve-control-panel qubok_evolve-control-panel--visual-debug";
   root.setAttribute("aria-label", "agent field visual debug controls");
+  root.dataset.collapsed = "false";
+
+  const body = document.createElement("div");
+  body.className = "qubok_evolve-control-body";
+
 
   const title = document.createElement("div");
   title.className = "qubok_evolve-control-title";
   title.textContent = "agent field debug";
+  title.tabIndex = 0;
+  title.setAttribute("role", "button");
+  title.setAttribute("aria-expanded", "true");
+  const togglePanelCollapsed = (): void => {
+    const collapsed = root.dataset.collapsed !== "true";
+    root.dataset.collapsed = collapsed ? "true" : "false";
+    body.hidden = collapsed;
+    title.setAttribute("aria-expanded", collapsed ? "false" : "true");
+  };
+  title.addEventListener("click", togglePanelCollapsed);
+  title.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      togglePanelCollapsed();
+    }
+  });
 
   const hint = document.createElement("div");
   hint.className = "qubok_evolve-control-hint";
@@ -71,7 +92,8 @@ export function createFieldVisualDebugPanel(host: HTMLElement, renderer: PixiRen
   modeText.textContent = "separate from field vectors";
   footer.append(resetButton, modeText);
 
-  root.append(title, hint, toggles, numericSection, footer);
+  body.append(hint, toggles, numericSection, footer);
+  root.append(title, body);
   host.append(root);
 
   const sync = (): void => {

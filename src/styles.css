@@ -291,3 +291,35 @@ body {
   color: #f0f6ff;
 }
 
+
+
+.qubok_evolve-control-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.qubok_evolve-control-title::before {
+  content: "▾";
+  width: 10px;
+  color: #5f7184;
+}
+
+.qubok_evolve-control-panel[data-collapsed="true"] .qubok_evolve-control-title::before {
+  content: "▸";
+}
+
+.qubok_evolve-control-title:hover {
+  color: #f0f6ff;
+}
+
+.qubok_evolve-control-body[hidden] {
+  display: none;
+}
