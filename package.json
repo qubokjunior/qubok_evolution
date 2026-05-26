@@ -17,6 +17,7 @@
     "bench:perf-metrics": "node scripts/bench-perf-metrics.mjs",
     "bench:terrain": "node scripts/bench-terrain.mjs",
     "bench:terrain-render-snapshot": "node scripts/bench-terrain-render-snapshot.mjs",
+    "bench:field-dynamics": "node scripts/bench-field-dynamics.mjs",
     "dev": "vite --host 127.0.0.1",
     "build": "tsc && vite build",
     "check:boundaries": "node scripts/check-boundaries.mjs",
