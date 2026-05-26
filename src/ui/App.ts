@@ -1,6 +1,7 @@
 import { createDemoSimulation } from "../sim/demoSimulation";
 import { createPerfOverlay } from "../render/debugOverlay";
 import { mountPixiRenderer } from "../render/pixiRenderer";
+import { DEFAULT_RENDER_DEBUG_CONFIG } from "../render/renderDebugConfig";
 
 export type QubokEvolveAppHandle = {
   destroy: () => void;
@@ -32,6 +33,7 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
   const pixiRenderer = await mountPixiRenderer({
     host: canvasHost,
     perfOverlay,
+    renderDebugConfig: DEFAULT_RENDER_DEBUG_CONFIG,
     snapshotSource: (deltaSeconds) => simulation.step(deltaSeconds)
   });
 
