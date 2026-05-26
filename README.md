@@ -2,7 +2,7 @@
 
 High-performance realtime 2D artificial-life ecosystem simulator.
 
-Current status: m41 / 0.1.0-milestone.41.
+Current status: m42 / 0.1.0-milestone.42.
 
 ## What exists now
 
@@ -24,7 +24,8 @@ Implemented runtime foundations:
 - terrain-aware offspring placement for reproduction;
 - low-resolution environmental flow field with movement integration and debug overlay metrics;
 - environmental field render snapshot and Pixi vector debug layer;
-- m41 milestone setup for render debug controls and overlay grouping.
+- render debug controls, keyboard layer toggles, and grouped overlay metrics;
+- m42 milestone setup for field decay/diffusion foundation.
 
 ## Commands
 
@@ -52,6 +53,7 @@ npm run test:terrain-sensor-sampling
 npm run test:terrain-reproduction-placement
 npm run test:death-path-audit
 npm run test:lifecycle-pressure
+npm run test:debug-overlay-groups
 npm run bench:world-free-list
 npm run bench:terrain-render-snapshot
 ```
@@ -64,8 +66,8 @@ http://127.0.0.1:5173/
 
 ## Milestones and docs
 
-- `docs/milestones.md` — compact milestone index through m41.
-- `docs/roadmap.md` — development tracks after m41.
+- `docs/milestones.md` — compact milestone index through m42.
+- `docs/roadmap.md` — development tracks after m42.
 - `docs/architecture_tracks.md` — boundary contracts for future work.
 - `docs/world_state.md` — typed-array world state and lifecycle slot contract.
 - `docs/integration_m36.md` — terrain resource-affinity milestone.
@@ -73,7 +75,8 @@ http://127.0.0.1:5173/
 - `docs/integration_m38.md` — terrain-aware reproduction placement milestone.
 - `docs/integration_m39.md` — environmental flow field milestone.
 - `docs/integration_m40.md` — environmental field render snapshot and Pixi vector debug layer.
-- `docs/integration_m41.md` — render debug controls and overlay grouping milestone setup.
+- `docs/integration_m41.md` — render debug controls and overlay grouping milestone.
+- `docs/integration_m42.md` — field decay/diffusion foundation milestone setup.
 
 ## Boundary rule
 
