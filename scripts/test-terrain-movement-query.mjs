@@ -7,6 +7,7 @@ const require = createRequire(import.meta.url);
 const ts = require("typescript");
 const projectRoot = process.cwd();
 const temporaryDirectory = join(projectRoot, ".tmp_terrain_movement_query_test");
+const TEST_DELTA_SECONDS = 0.25;
 
 await rm(temporaryDirectory, { force: true, recursive: true });
 await mkdir(temporaryDirectory, { recursive: true });
@@ -68,8 +69,8 @@ const agentInput = {
 spawnAgent(worldWithoutTerrain, agentInput);
 spawnAgent(worldWithTerrain, agentInput);
 
-const baseline = stepMovement(worldWithoutTerrain, { deltaSeconds: 1, boundsMode: "none", clearForces: false, minimumEnergy: -1 });
-const terrainInfluenced = stepMovement(worldWithTerrain, { deltaSeconds: 1, boundsMode: "none", clearForces: false, minimumEnergy: -1, terrain });
+const baseline = stepMovement(worldWithoutTerrain, { deltaSeconds: TEST_DELTA_SECONDS, boundsMode: "none", clearForces: false, minimumEnergy: -1 });
+const terrainInfluenced = stepMovement(worldWithTerrain, { deltaSeconds: TEST_DELTA_SECONDS, boundsMode: "none", clearForces: false, minimumEnergy: -1, terrain });
 
 assertEqual(baseline.terrainMovementSampleCount, 0, "baseline terrain sample count");
 assertEqual(terrainInfluenced.terrainMovementSampleCount, 1, "terrain sample count");
