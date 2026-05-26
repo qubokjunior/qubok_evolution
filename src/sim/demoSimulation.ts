@@ -1,4 +1,4 @@
-﻿import { applyEnergySurvival, type EnergySurvivalStats } from "./energy";
+import { applyEnergySurvival, type EnergySurvivalStats } from "./energy";
 import { createRng, type DeterministicRng, type RngSeed } from "./rng";
 import { addForce, stepMovement, type MovementStepMetrics } from "./movement";
 import {
@@ -45,7 +45,7 @@ import { createWorldState, type WorldState } from "./world";
 import { createTerrainLayer, setTerrainRectMaterial, type TerrainLayer } from "./terrain";
 import { makeTerrainRenderSnapshot, type TerrainRenderSnapshot } from "./terrainRenderSnapshot";
 
-export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v16" as const;
+export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v17" as const;
 
 export type DemoSimulationConfig = {
   readonly seed?: RngSeed;
@@ -203,7 +203,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     cellSize: DEFAULT_TERRAIN_CELL_SIZE
   });
 
-  const rng = createRng(config.seed ?? "qubok_evolve:demo:m25");
+  const rng = createRng(config.seed ?? "qubok_evolve:demo:m35");
   seedDemoObstacleMask(obstacleMask);
   seedDemoTerrain(terrain);
   const obstacleMaskSnapshot = makeObstacleMaskRenderSnapshot(obstacleMask);
@@ -245,7 +245,8 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
       deltaSeconds: safeDeltaSeconds,
       boundsMode: "wrap",
       clearForces: true,
-      minimumEnergy: -1_000_000
+      minimumEnergy: -1_000_000,
+      terrain
     });
 
     const gridStart = performance.now();
@@ -484,4 +485,3 @@ function seedDemoTerrain(terrain: TerrainLayer): void {
   setTerrainRectMaterial(terrain, terrain.worldWidth * 0.35, terrain.worldHeight * 0.18, terrain.worldWidth * 0.66, terrain.worldHeight * 0.46, 2);
   setTerrainRectMaterial(terrain, terrain.worldWidth * 0.58, terrain.worldHeight * 0.58, terrain.worldWidth, terrain.worldHeight, 3);
 }
-
