@@ -3,6 +3,7 @@ import type { EnergySurvivalStats } from "../sim/energy";
 import type { FieldRenderSnapshot } from "../sim/fieldRenderSnapshot";
 import type { FieldSourceStepMetrics } from "../sim/fieldSources";
 import type { FieldDynamicsStepMetrics } from "../sim/fieldDynamics";
+import type { FieldDampingStepMetrics } from "../sim/fieldDamping";
 import type { ObstacleLifecycleTelemetry } from "../sim/lifecycleTelemetry";
 import type { MovementStepMetrics } from "../sim/movement";
 import type { ObstacleSoftResponseStats } from "../sim/obstacleResponse";
@@ -27,6 +28,7 @@ export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly fieldRenderSnapshot: FieldRenderSnapshot;
   readonly fieldDynamicsStats: FieldDynamicsStepMetrics;
   readonly fieldSourceStats: FieldSourceStepMetrics;
+  readonly fieldDampingStats: FieldDampingStepMetrics;
   readonly snapshotStats: RenderSnapshotStats;
   readonly movementMetrics: MovementStepMetrics;
   readonly obstacleResponseStats: ObstacleSoftResponseStats;
@@ -53,6 +55,7 @@ export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly reproductionMs: number;
   readonly fieldDynamicsMs: number;
   readonly fieldSourcesMs: number;
+  readonly fieldDampingMs: number;
   readonly simMsPerTick: number;
 };
 
@@ -187,6 +190,14 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("fieldSourceMagnitudeEmitted", frame.fieldSourceStats.totalMagnitudeEmitted);
     metrics.record("fieldSinkMagnitudeAbsorbed", frame.fieldSourceStats.totalMagnitudeAbsorbed);
     metrics.record("fieldSourceMagnitudeAfter", frame.fieldSourceStats.totalMagnitudeAfter);
+    metrics.record("fieldDampingMs", frame.fieldDampingMs);
+    metrics.record("fieldDampingObstacleSampleCount", frame.fieldDampingStats.obstacleSampleCount);
+    metrics.record("fieldDampingObstacleDampedCellCount", frame.fieldDampingStats.obstacleDampedCellCount);
+    metrics.record("fieldDampingTerrainSampleCount", frame.fieldDampingStats.terrainSampleCount);
+    metrics.record("fieldDampingTerrainDampedCellCount", frame.fieldDampingStats.terrainDampedCellCount);
+    metrics.record("fieldDampingMagnitudeBefore", frame.fieldDampingStats.totalMagnitudeBefore);
+    metrics.record("fieldDampingMagnitudeAfter", frame.fieldDampingStats.totalMagnitudeAfter);
+    metrics.record("fieldDampingMagnitudeDamped", frame.fieldDampingStats.totalMagnitudeDamped);
     metrics.record("deathsThisStep", frame.energyStats.deathsThisStep);
     metrics.record("starvingCount", frame.energyStats.starvingCount);
     metrics.record("starvationDamage", frame.energyStats.starvationDamage);
@@ -332,6 +343,14 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         fieldSourceMagnitudeEmitted: snapshot.values.fieldSourceMagnitudeEmitted,
         fieldSinkMagnitudeAbsorbed: snapshot.values.fieldSinkMagnitudeAbsorbed,
         fieldSourceMagnitudeAfter: snapshot.values.fieldSourceMagnitudeAfter,
+        fieldDampingMs: snapshot.values.fieldDampingMs,
+        fieldDampingObstacleSampleCount: snapshot.values.fieldDampingObstacleSampleCount,
+        fieldDampingObstacleDampedCellCount: snapshot.values.fieldDampingObstacleDampedCellCount,
+        fieldDampingTerrainSampleCount: snapshot.values.fieldDampingTerrainSampleCount,
+        fieldDampingTerrainDampedCellCount: snapshot.values.fieldDampingTerrainDampedCellCount,
+        fieldDampingMagnitudeBefore: snapshot.values.fieldDampingMagnitudeBefore,
+        fieldDampingMagnitudeAfter: snapshot.values.fieldDampingMagnitudeAfter,
+        fieldDampingMagnitudeDamped: snapshot.values.fieldDampingMagnitudeDamped,
         deathsThisStep: snapshot.values.deathsThisStep,
         starvingCount: snapshot.values.starvingCount,
         starvationDamage: snapshot.values.starvationDamage,

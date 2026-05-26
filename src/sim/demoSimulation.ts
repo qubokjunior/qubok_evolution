@@ -1,6 +1,7 @@
 import { applyEnergySurvival, type EnergySurvivalStats } from "./energy";
 import { createEnvironmentalFieldLayer, setFieldCell, type EnvironmentalFieldLayer } from "./field";
 import { applyFieldSourcesAndSinks, type FieldPointSink, type FieldPointSource, type FieldSourceStepMetrics } from "./fieldSources";
+import { applyFieldDamping, type FieldDampingStepMetrics } from "./fieldDamping";
 import { createFieldDynamicsScratch, stepEnvironmentalFieldDynamics, type FieldDynamicsStepMetrics } from "./fieldDynamics";
 import { makeFieldRenderSnapshot, type FieldRenderSnapshot } from "./fieldRenderSnapshot";
 import { createRng, type DeterministicRng, type RngSeed } from "./rng";
@@ -82,6 +83,12 @@ export type DemoSimulationConfig = {
   readonly fieldAgentSinkAbsorptionPerSecond?: number;
   readonly fieldSourceMaxResources?: number;
   readonly fieldSinkMaxAgents?: number;
+  readonly enableObstacleFieldDamping?: boolean;
+  readonly enableTerrainFieldDamping?: boolean;
+  readonly obstacleFieldDampingPerSecond?: number;
+  readonly terrainFieldDampingScalePerSecond?: number;
+  readonly fieldDampingMaxObstacleCells?: number;
+  readonly fieldDampingMaxTerrainCells?: number;
   readonly spawnMaxAttempts?: number;
   readonly spawnClearanceRadius?: number;
   readonly sensorRadiusScale?: number;
@@ -101,6 +108,7 @@ export type DemoSimulationStepResult = {
   readonly fieldRenderSnapshot: FieldRenderSnapshot;
   readonly fieldDynamicsStats: FieldDynamicsStepMetrics;
   readonly fieldSourceStats: FieldSourceStepMetrics;
+  readonly fieldDampingStats: FieldDampingStepMetrics;
   readonly snapshotStats: RenderSnapshotStats;
   readonly movementMetrics: MovementStepMetrics;
   readonly obstacleResponseStats: ObstacleSoftResponseStats;
@@ -127,6 +135,7 @@ export type DemoSimulationStepResult = {
   readonly reproductionMs: number;
   readonly fieldDynamicsMs: number;
   readonly fieldSourcesMs: number;
+  readonly fieldDampingMs: number;
   readonly simMsPerTick: number;
 };
 
@@ -166,6 +175,10 @@ const DEFAULT_FIELD_RESOURCE_SOURCE_STRENGTH_PER_SECOND = 0.35;
 const DEFAULT_FIELD_AGENT_SINK_ABSORPTION_PER_SECOND = 0.08;
 const DEFAULT_FIELD_SOURCE_MAX_RESOURCES = 512;
 const DEFAULT_FIELD_SINK_MAX_AGENTS = 512;
+const DEFAULT_OBSTACLE_FIELD_DAMPING_PER_SECOND = 0.32;
+const DEFAULT_TERRAIN_FIELD_DAMPING_SCALE_PER_SECOND = 1;
+const DEFAULT_FIELD_DAMPING_MAX_OBSTACLE_CELLS = 512;
+const DEFAULT_FIELD_DAMPING_MAX_TERRAIN_CELLS = 512;
 const DEFAULT_OBSTACLE_RESPONSE_RADIUS = 42;
 const DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE = 140;
 const DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE = 220;
@@ -203,6 +216,12 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const fieldAgentSinkAbsorptionPerSecond = config.fieldAgentSinkAbsorptionPerSecond ?? DEFAULT_FIELD_AGENT_SINK_ABSORPTION_PER_SECOND;
   const fieldSourceMaxResources = Math.max(0, Math.floor(config.fieldSourceMaxResources ?? DEFAULT_FIELD_SOURCE_MAX_RESOURCES));
   const fieldSinkMaxAgents = Math.max(0, Math.floor(config.fieldSinkMaxAgents ?? DEFAULT_FIELD_SINK_MAX_AGENTS));
+  const enableObstacleFieldDamping = config.enableObstacleFieldDamping ?? true;
+  const enableTerrainFieldDamping = config.enableTerrainFieldDamping ?? true;
+  const obstacleFieldDampingPerSecond = config.obstacleFieldDampingPerSecond ?? DEFAULT_OBSTACLE_FIELD_DAMPING_PER_SECOND;
+  const terrainFieldDampingScalePerSecond = config.terrainFieldDampingScalePerSecond ?? DEFAULT_TERRAIN_FIELD_DAMPING_SCALE_PER_SECOND;
+  const fieldDampingMaxObstacleCells = Math.max(0, Math.floor(config.fieldDampingMaxObstacleCells ?? DEFAULT_FIELD_DAMPING_MAX_OBSTACLE_CELLS));
+  const fieldDampingMaxTerrainCells = Math.max(0, Math.floor(config.fieldDampingMaxTerrainCells ?? DEFAULT_FIELD_DAMPING_MAX_TERRAIN_CELLS));
   const obstacleResponseRadius = config.obstacleResponseRadius ?? DEFAULT_OBSTACLE_RESPONSE_RADIUS;
   const obstacleResponseForceScale = config.obstacleResponseForceScale ?? DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE;
   const obstacleResponseMaxForce = config.obstacleResponseMaxForce ?? DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE;
@@ -258,6 +277,10 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     fillAgentFieldSinks(world, fieldSinkBuffer, fieldSinkMaxAgents, fieldAgentSinkAbsorptionPerSecond * safeDeltaSeconds);
     const fieldSourceStats = applyFieldSourcesAndSinks(field, fieldSourceBuffer, fieldSinkBuffer);
     const fieldSourcesMs = performance.now() - fieldSourcesStart;
+
+    const fieldDampingStart = performance.now();
+    const fieldDampingStats = applyFieldDamping(field, { enableObstacleDamping: enableObstacleFieldDamping, enableTerrainDamping: enableTerrainFieldDamping, obstacleDamping01: clamp01(obstacleFieldDampingPerSecond * safeDeltaSeconds), terrainDampingScale01: clamp01(terrainFieldDampingScalePerSecond * safeDeltaSeconds), maxObstacleCells: fieldDampingMaxObstacleCells, maxTerrainCells: fieldDampingMaxTerrainCells }, obstacleMask, terrain);
+    const fieldDampingMs = performance.now() - fieldDampingStart;
 
     const fieldDynamicsStart = performance.now();
     const fieldDynamicsStats = stepEnvironmentalFieldDynamics(field, safeDeltaSeconds, { decayPerSecond: fieldDecayPerSecond, diffusionRatePerSecond: fieldDiffusionRatePerSecond, minActiveMagnitude: fieldDynamicsMinActiveMagnitude }, fieldDynamicsScratch);
@@ -325,7 +348,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     const snapshotStats = analyzeRenderSnapshot(snapshot);
     const simMsPerTick = performance.now() - start;
 
-    return { snapshot, obstacleMaskSnapshot, terrainRenderSnapshot, fieldRenderSnapshot, fieldDynamicsStats, fieldSourceStats, snapshotStats, movementMetrics, obstacleResponseStats, obstacleLifecycleTelemetry, energyStats, spatialBuildStats, neighborQueryStats, sensorStats, predatorPreyStats, reproductionStats, resourceBuildStats, resourcePickupStats, resourceRespawnStats, resourceAliveCount: resources.aliveCount, resourceTargetCount, resourceRespawnedCount, gridBuildMs, neighborQueryMs, sensorMs, obstacleResponseMs, predatorPreyMs, resourceMs, energyMs, reproductionMs, fieldDynamicsMs, fieldSourcesMs, simMsPerTick };
+    return { snapshot, obstacleMaskSnapshot, terrainRenderSnapshot, fieldRenderSnapshot, fieldDynamicsStats, fieldSourceStats, fieldDampingStats, snapshotStats, movementMetrics, obstacleResponseStats, obstacleLifecycleTelemetry, energyStats, spatialBuildStats, neighborQueryStats, sensorStats, predatorPreyStats, reproductionStats, resourceBuildStats, resourcePickupStats, resourceRespawnStats, resourceAliveCount: resources.aliveCount, resourceTargetCount, resourceRespawnedCount, gridBuildMs, neighborQueryMs, sensorMs, obstacleResponseMs, predatorPreyMs, resourceMs, energyMs, reproductionMs, fieldDynamicsMs, fieldSourcesMs, fieldDampingMs, simMsPerTick };
   };
 
   return { world, spatialGrid, resources, obstacleMask, terrain, field, initialAgentSpawnStats, initialResourceSpawnStats, step, getSnapshot: () => makeRenderSnapshot(world) };

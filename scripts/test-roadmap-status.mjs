@@ -88,5 +88,12 @@ assert(roadmap.includes("m45 in progress: obstacle/terrain damping sources and e
 assert(fieldDamping.includes("FIELD_DAMPING_VERSION") && fieldDamping.includes("applyFieldDamping"), "fieldDamping must expose m45 core damping API.");
 assert(packageJson.scripts["test:field-damping"] === "node scripts/test-field-damping.mjs", "package.json must expose test:field-damping.");
 assert(packageJson.scripts.test.includes("test:field-damping"), "npm run test must include test:field-damping.");
+assert(packageJson.scripts["test:field-damping-integration"] === "node scripts/test-field-damping-integration.mjs", "package.json must expose test:field-damping-integration.");
+assert(packageJson.scripts.test.includes("test:field-damping-integration"), "npm run test must include test:field-damping-integration.");
+for (const requiredToken of ["applyFieldDamping", "fieldDampingStats", "fieldDampingMs", "enableObstacleFieldDamping", "enableTerrainFieldDamping"]) assert(demoSimulation.includes(requiredToken), "demoSimulation missing m45 damping wiring token: " + requiredToken);
+for (const requiredToken of ["fieldDampingMs", "fieldDampingObstacleSampleCount", "fieldDampingTerrainSampleCount", "fieldDampingMagnitudeDamped"]) assert(perfMetrics.includes(requiredToken), "perf metrics missing m45 damping token: " + requiredToken);
+for (const requiredToken of ["field damp", "field damp obst samples", "field damp terrain samples", "field damp mag"]) assert(debugOverlay.includes(requiredToken), "debugOverlay missing m45 damping label: " + requiredToken);
+for (const requiredToken of ["FieldDampingStepMetrics", "fieldDampingStats", "fieldDampingMs"]) assert(pixiRenderer.includes(requiredToken), "pixiRenderer missing m45 damping token: " + requiredToken);
+assert(integrationM45.includes("fieldDampingStats") && integrationM45.includes("fieldDampingMs"), "integration_m45 must document m45 damping runtime outputs.");
 
 console.log("roadmap status tests passed");

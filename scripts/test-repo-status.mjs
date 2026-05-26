@@ -16,6 +16,7 @@ const integrationM42 = readText("docs/integration_m42.md");
 const integrationM43 = readText("docs/integration_m43.md");
 const integrationM44 = readText("docs/integration_m44.md");
 const integrationM45 = readText("docs/integration_m45.md");
+const fieldDamping = readText("src/sim/fieldDamping.ts");
 
 assert(packageJson.version === "0.1.0-milestone.45", "package.json must expose 0.1.0-milestone.45.");
 assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.45\""), "appVersion must expose milestone.45.");
@@ -50,5 +51,8 @@ assert(integrationM45.includes("obstacle/terrain damping sources") && integratio
 assert(fieldDamping.includes("FIELD_DAMPING_VERSION") && fieldDamping.includes("applyFieldDamping"), "fieldDamping must expose m45 core damping API.");
 assert(packageJson.scripts["test:field-damping"] === "node scripts/test-field-damping.mjs", "package.json must expose test:field-damping.");
 assert(packageJson.scripts.test.includes("test:field-damping"), "npm run test must include test:field-damping.");
+assert(packageJson.scripts["test:field-damping-integration"] === "node scripts/test-field-damping-integration.mjs", "package.json must expose test:field-damping-integration.");
+assert(packageJson.scripts.test.includes("test:field-damping-integration"), "npm run test must include test:field-damping-integration.");
+assert(integrationM45.includes("fieldDampingStats") && integrationM45.includes("fieldDampingMs"), "integration_m45 must document damping runtime outputs.");
 
 console.log("repo status tests passed");
