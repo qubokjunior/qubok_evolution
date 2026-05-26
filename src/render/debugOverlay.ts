@@ -33,6 +33,8 @@ export type PerfOverlaySnapshot = {
   readonly obstacleReproductionBlocked: number;
   readonly obstacleReproductionFailures: number;
   readonly obstacleResourceRespawns: number;
+  readonly obstacleRenderMs: number;
+  readonly obstacleRenderCellCount: number;
   readonly deathsThisStep: number;
   readonly starvingCount: number;
   readonly starvationDamage: number;
@@ -132,6 +134,8 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     obstacleReproductionBlocked: createValueRow(root, "obs repro block"),
     obstacleReproductionFailures: createValueRow(root, "obs repro fail"),
     obstacleResourceRespawns: createValueRow(root, "obs food respawn"),
+    obstacleRenderMs: createValueRow(root, "obs render"),
+    obstacleRenderCellCount: createValueRow(root, "obs cells"),
     deathsThisStep: createValueRow(root, "deaths/tick"),
     starvingCount: createValueRow(root, "starving"),
     starvationDamage: createValueRow(root, "starve dmg"),
@@ -203,6 +207,8 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     rows.obstacleReproductionBlocked.textContent = formatInt(snapshot.obstacleReproductionBlocked);
     rows.obstacleReproductionFailures.textContent = formatInt(snapshot.obstacleReproductionFailures);
     rows.obstacleResourceRespawns.textContent = formatInt(snapshot.obstacleResourceRespawns);
+    rows.obstacleRenderMs.textContent = formatMs(snapshot.obstacleRenderMs);
+    rows.obstacleRenderCellCount.textContent = formatInt(snapshot.obstacleRenderCellCount);
     rows.deathsThisStep.textContent = formatInt(snapshot.deathsThisStep);
     rows.starvingCount.textContent = formatInt(snapshot.starvingCount);
     rows.starvationDamage.textContent = formatDecimal(snapshot.starvationDamage);

@@ -27,6 +27,8 @@ export const PERF_METRIC_NAMES = [
   "obstacleReproductionBlocked",
   "obstacleReproductionFailures",
   "obstacleResourceRespawns",
+  "obstacleRenderMs",
+  "obstacleRenderCellCount",
   "gridBuildMs",
   "neighborQueryMs",
   "neighborCandidates",

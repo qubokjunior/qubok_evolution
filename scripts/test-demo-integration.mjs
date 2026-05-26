@@ -15,53 +15,61 @@ const assert = (condition, message) => {
 const packageJson = JSON.parse(readText("package.json"));
 const appVersion = readText("src/shared/appVersion.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
-const lifecycleTelemetry = readText("src/sim/lifecycleTelemetry.ts");
-const perfMetrics = readText("src/shared/perfMetrics.ts");
-const debugOverlay = readText("src/render/debugOverlay.ts");
+const obstacleRenderSnapshot = readText("src/sim/obstacleRenderSnapshot.ts");
 const pixiRenderer = readText("src/render/pixiRenderer.ts");
+const debugOverlay = readText("src/render/debugOverlay.ts");
+const perfMetrics = readText("src/shared/perfMetrics.ts");
 
-assert(packageJson.version === "0.1.0-milestone.24", "package.json version must be 0.1.0-milestone.24.");
-assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.24"'), "appVersion must expose milestone.24.");
-assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m24"'), "appVersion must expose m24 overlay label.");
+assert(packageJson.version === "0.1.0-milestone.25", "package.json version must be 0.1.0-milestone.25.");
+assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.25"'), "appVersion must expose milestone.25.");
+assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m25"'), "appVersion must expose m25 overlay label.");
 
 for (const forbiddenImport of ["../render/", "./render/", "../ui/", "./ui/", "pixi.js", "react"]) {
   assert(!demoSimulation.includes(forbiddenImport), `demoSimulation must not import forbidden boundary token: ${forbiddenImport}`);
 }
 
 for (const requiredDemoToken of [
-  "makeObstacleLifecycleTelemetry",
-  "ObstacleLifecycleTelemetry",
-  "obstacleLifecycleTelemetry",
-  "resourceRespawnStats",
-  "reproductionStats"
+  "makeObstacleMaskRenderSnapshot",
+  "ObstacleMaskRenderSnapshot",
+  "obstacleMaskSnapshot"
 ]) {
-  assert(demoSimulation.includes(requiredDemoToken), `demoSimulation is missing lifecycle telemetry token: ${requiredDemoToken}`);
+  assert(demoSimulation.includes(requiredDemoToken), `demoSimulation is missing obstacle render token: ${requiredDemoToken}`);
 }
 
-for (const requiredLifecycleToken of [
-  "LIFECYCLE_TELEMETRY_VERSION",
-  "makeObstacleLifecycleTelemetry",
-  "lifecycleEventCount",
-  "lifecyclePressureScore",
-  "spawnBlockedAttempts",
-  "reproductionPlacementFailures"
+for (const requiredSnapshotToken of [
+  "OBSTACLE_RENDER_SNAPSHOT_VERSION",
+  "makeObstacleMaskRenderSnapshot",
+  "occupiedCellIds",
+  "occupiedCellCount"
 ]) {
-  assert(lifecycleTelemetry.includes(requiredLifecycleToken), `lifecycle telemetry module is missing token: ${requiredLifecycleToken}`);
+  assert(obstacleRenderSnapshot.includes(requiredSnapshotToken), `obstacle render snapshot module is missing token: ${requiredSnapshotToken}`);
+}
+
+for (const requiredRendererToken of [
+  "obstacleLayer",
+  "renderObstacleMask",
+  "obstacleRenderMs",
+  "obstacleRenderCellCount",
+  "ObstacleMaskRenderSnapshot"
+]) {
+  assert(pixiRenderer.includes(requiredRendererToken), `pixiRenderer missing obstacle render token: ${requiredRendererToken}`);
 }
 
 for (const requiredMetricToken of [
-  "obstacleLifecycleEvents",
-  "obstacleLifecyclePressure",
-  "obstacleSpawnBlockedAttempts",
-  "obstacleSpawnFallbacks",
-  "obstacleSpawnFailures",
-  "obstacleReproductionBlocked",
-  "obstacleReproductionFailures",
-  "obstacleResourceRespawns"
+  "obstacleRenderMs",
+  "obstacleRenderCellCount"
 ]) {
-  assert(perfMetrics.includes(requiredMetricToken), `perf metrics missing lifecycle token: ${requiredMetricToken}`);
-  assert(pixiRenderer.includes(requiredMetricToken), `pixiRenderer missing lifecycle token: ${requiredMetricToken}`);
-  assert(debugOverlay.includes(requiredMetricToken), `debugOverlay missing lifecycle token: ${requiredMetricToken}`);
+  assert(perfMetrics.includes(requiredMetricToken), `perf metrics missing obstacle render metric: ${requiredMetricToken}`);
+  assert(pixiRenderer.includes(requiredMetricToken), `pixiRenderer missing obstacle render metric: ${requiredMetricToken}`);
+}
+
+for (const requiredOverlayToken of [
+  "obstacleRenderMs",
+  "obstacleRenderCellCount",
+  "obs render",
+  "obs cells"
+]) {
+  assert(debugOverlay.includes(requiredOverlayToken), `debugOverlay missing obstacle render token: ${requiredOverlayToken}`);
 }
 
 console.log("demo integration tests passed");
