@@ -16,7 +16,7 @@ m39 shipped: low-resolution environmental flow field sampled by movement.
 
 m40 shipped: environmental field render snapshot and Pixi vector debug layer.
 
-m41 in progress: field render controls / overlay grouping / visibility toggle.
+m41 shipped: render debug controls, keyboard layer visibility toggles, and grouped overlay metrics.
 
 ## terrain/material track
 
@@ -40,13 +40,14 @@ Shipped sequence:
 - movement integration using flow vectors;
 - field movement metrics and overlay labels;
 - field render snapshot;
-- Pixi vector debug layer with decimated arrows and field render metrics.
+- Pixi vector debug layer with decimated arrows and field render metrics;
+- field vector visibility and render debug controls.
 
-Current milestone:
-- m41 field render controls / overlay grouping / visibility toggle.
+Next likely milestone:
+- m42 field decay/diffusion foundation or controller/brain first pass.
 
 Follow-up candidates:
-- simple decay/diffusion rules for food scent / pressure / current maps;
+- simple decay/diffusion rules for field maps;
 - field force integration separated from movement if field systems grow;
 - later field transport/advection branch.
 
@@ -58,8 +59,13 @@ Goal: introduce decision logic after sensing and morphology foundations are stab
 
 Goal: keep visual debugging useful while entity counts grow.
 
+Shipped in m41:
+- overlay grouping and keyboard visibility toggles;
+- render debug config defaults;
+- field vector alpha, scale, stride, and minimum magnitude config;
+- grouped overlay metrics for runtime, field, terrain, obstacle, movement, spatial, sensors, combat, resources, reproduction, and world slots.
+
 Near steps:
-- overlay grouping and toggles;
 - render snapshot cost checks;
 - chunk size/code-splitting follow-up for the current Vite warning.
 
