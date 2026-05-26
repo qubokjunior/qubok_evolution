@@ -26,12 +26,17 @@ for (const absolutePath of listTypeScriptFiles(simRoot)) {
 
   for (const pattern of directAliveZeroPatterns) {
     for (const match of source.matchAll(pattern)) {
+      const text = match[0];
+      if (isAllowedResourceLayerAliveWrite(relativePath, text)) {
+        continue;
+      }
+
       const location = getLineColumn(source, match.index ?? 0);
       violations.push({
         file: relativePath,
         line: location.line,
         column: location.column,
-        text: match[0]
+        text
       });
     }
   }
@@ -50,11 +55,13 @@ if (violations.length > 0) {
 }
 
 const worldSource = readText("src/sim/world.ts");
+const movementSource = readText("src/sim/movement.ts");
 const energySource = readText("src/sim/energy.ts");
 const predatorPreySource = readText("src/sim/predatorPrey.ts");
 
 assert(worldSource.includes("export function killAgent"), "world.ts must expose killAgent.");
 assert(worldSource.includes("reusableSlotCount"), "world.ts must own reusable slot state.");
+assert(movementSource.includes("killAgent(world, index)"), "movement.ts must route energy death through killAgent.");
 assert(energySource.includes("killAgent(world, index)"), "energy.ts must route death through killAgent.");
 assert(predatorPreySource.includes("killAgent(world, preyIndex)"), "predatorPrey.ts must route kills through killAgent.");
 
@@ -88,6 +95,10 @@ function stripComments(source) {
   return source
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/(^|[^:])\/\/.*$/gm, "$1");
+}
+
+function isAllowedResourceLayerAliveWrite(relativePath, text) {
+  return relativePath === "src/sim/resources.ts" && (text === "layer.alive[resourceIndex] = 0" || text === "alive[resourceIndex] = 0");
 }
 
 function getLineColumn(source, index) {
