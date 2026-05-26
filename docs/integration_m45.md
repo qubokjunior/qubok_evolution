@@ -27,11 +27,11 @@ M45 should make the environmental field respond to non-agent environment structu
 - WebGPU;
 - render rewrite.
 
-## Validation target## Runtime wiring
+## Runtime wiring
 
 M45-B wires `applyFieldDamping` into the demo runtime after `applyFieldSourcesAndSinks(...)` and before `stepEnvironmentalFieldDynamics(...)`. The step result emits `fieldDampingStats` and `fieldDampingMs`. Renderer and overlay metrics include damping runtime cost, obstacle/terrain sample counts, damped cell counts, and field magnitude before/after/damped totals.
 
-
+## Validation target
 
 - npm run test:repo-status
 - npm run test:roadmap-status
