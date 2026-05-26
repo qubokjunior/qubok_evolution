@@ -1,6 +1,6 @@
 # qubok_evolve milestones
 
-Compact milestone index through m30. Older early milestones are summarized at the system level; recent lifecycle milestones are listed with stricter implementation detail.
+Compact milestone index through m33. Older early milestones are summarized at the system level; recent lifecycle and terrain milestones are listed with stricter implementation detail.
 
 | Milestone | Focus | Status |
 |---|---|---|
@@ -36,9 +36,10 @@ Compact milestone index through m30. Older early milestones are summarized at th
 | m30 | README/status sync, milestone index, and repo-status test. | complete |
 | m31 | Roadmap and architecture-track split for future work. | complete |
 | m32 | Terrain/material typed-array layer foundation with query API. | complete |
+| m33 | Terrain render snapshot foundation for future debug visualization. | complete |
 
 ## Current next-step candidates
 
-- m31: README-backed roadmap split for terrain/editor/controller research tracks.
-- m31 alternative: obstacle visibility controls or render caching if runtime polish is preferred.
-- Later: terrain material grid, signed-distance-field correction, field transport, controller/brain layer, morphology compiler/editor, workerization, and WebGPU experiments.
+- m34: terrain debug render layer in Pixi using the m33 snapshot.
+- m35: terrain query integration into movement/resource/sensor systems.
+- Later: signed-distance-field correction, field transport, controller/brain layer, morphology compiler/editor, workerization, and WebGPU experiments.
