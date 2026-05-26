@@ -2,93 +2,55 @@ import { PROJECT_MILESTONE_LABEL, PROJECT_NAME } from "../shared/appVersion";
 import type { PerfMetricsSnapshot } from "../shared/perfMetrics";
 
 export type PerfOverlaySnapshot = {
-  readonly fps: number;
-  readonly frameMs: number;
-  readonly renderMsPerFrame: number;
-  readonly simMsPerTick: number;
-  readonly gridBuildMs: number;
-  readonly neighborQueryMs: number;
-  readonly sensorMs: number;
-  readonly predatorPreyMs: number;
-  readonly resourceMs: number;
-  readonly energyMs: number;
-  readonly reproductionMs: number;
-  readonly entityCount: number;
-  readonly aliveCount: number;
-  readonly averageEnergy01: number;
-  readonly tick: number;
-  readonly movementIntegratedCount: number;
-  readonly terrainMovementSampleCount: number;
-  readonly terrainMovementCostSum: number;
-  readonly terrainFrictionSum: number;
-  readonly terrainDragSum: number;
-  readonly obstacleResponseMs: number;
-  readonly obstacleResponseForces: number;
-  readonly obstacleResponseHits: number;
-  readonly obstacleResponseCellChecks: number;
-  readonly obstacleResponseSkippedCells: number;
-  readonly obstacleResponseLimitHits: number;
-  readonly obstacleResponseBoundaryHits: number;
-  readonly obstacleLifecycleEvents: number;
-  readonly obstacleLifecyclePressure: number;
-  readonly obstacleSpawnBlockedAttempts: number;
-  readonly obstacleSpawnFallbacks: number;
-  readonly obstacleSpawnFailures: number;
-  readonly obstacleReproductionBlocked: number;
-  readonly obstacleReproductionFailures: number;
-  readonly obstacleResourceRespawns: number;
-  readonly obstacleRenderMs: number;
-  readonly obstacleRenderCellCount: number;
-  readonly terrainRenderMs: number;
-  readonly terrainRenderCellCount: number;
-  readonly terrainRenderTruncated: number;
-  readonly deathsThisStep: number;
-  readonly starvingCount: number;
-  readonly starvationDamage: number;
-  readonly spatialUsedCells: number;
-  readonly spatialMaxCellOccupancy: number;
-  readonly neighborCandidates: number;
-  readonly avgNeighborsPerAgent: number;
-  readonly maxNeighborsForAgent: number;
-  readonly sensorVisibleNeighbors: number;
-  readonly sensorSectorWrites: number;
-  readonly sensorFoodVisibleCount: number;
-  readonly sensorFoodSectorWrites: number;
-  readonly sensorObstacleSectorWrites: number;
-  readonly sensorObstacleMaskCellChecks: number;
-  readonly sensorObstacleMaskHits: number;
-  readonly sensorObstacleMaskSectorWrites: number;
-  readonly sensorFoodSignalSum: number;
-  readonly sensorObstacleSignalSum: number;
-  readonly sensorFoodScheduled: number;
-  readonly sensorObstacleScheduled: number;
-  readonly sensorFoodSkippedByCadence: number;
-  readonly sensorObstacleSkippedByCadence: number;
-  readonly avgVisibleNeighborsPerAgent: number;
-  readonly attacksThisStep: number;
-  readonly killsThisStep: number;
-  readonly predatorDamageDealt: number;
-  readonly predatorEnergyGained: number;
-  readonly resourceAliveCount: number;
-  readonly terrainResourceSampleCount: number;
-  readonly terrainResourceAffinitySum: number;
-  readonly terrainResourceRejectedCount: number;
-  readonly resourceTargetCount: number;
-  readonly foodPickupCount: number;
-  readonly foodEnergyTransferred: number;
-  readonly birthsThisStep: number;
-  readonly reproductionEligibleCount: number;
-  readonly blockedBirthsByCapacity: number;
-  readonly reusableSlotCount: number;
-  readonly spawnReusedSlotCount: number;
-  readonly spawnAppendedSlotCount: number;
-  readonly mutationChangedCount: number;
   readonly metrics?: PerfMetricsSnapshot;
+  readonly [key: string]: number | PerfMetricsSnapshot | undefined;
 };
 
 export type PerfOverlaySink = {
   update: (snapshot: PerfOverlaySnapshot) => void;
   destroy: () => void;
+};
+
+const DISPLAY_ORDER = [
+  "fps", "frameMs", "renderMsPerFrame", "simMsPerTick", "gridBuildMs", "neighborQueryMs", "sensorMs",
+  "terrainSensorSampleCount", "terrainSensorMovementCostSum", "terrainSensorFrictionSum", "terrainSensorDragSum", "terrainSensorResourceAffinitySum", "terrainSensorScheduled", "terrainSensorSkippedByCadence",
+  "terrainMovementSampleCount", "terrainMovementCostSum", "terrainFrictionSum", "terrainDragSum",
+  "terrainResourceSampleCount", "terrainResourceAffinitySum", "terrainResourceRejectedCount",
+  "terrainRenderMs", "terrainRenderCellCount", "terrainRenderTruncated",
+  "obstacleResponseMs", "obstacleResponseForces", "obstacleResponseHits", "obstacleResponseCellChecks", "obstacleResponseSkippedCells", "obstacleResponseLimitHits", "obstacleResponseBoundaryHits",
+  "obstacleLifecycleEvents", "obstacleLifecyclePressure", "obstacleSpawnBlockedAttempts", "obstacleSpawnFallbacks", "obstacleSpawnFailures", "obstacleReproductionBlocked", "obstacleReproductionFailures", "obstacleResourceRespawns",
+  "obstacleRenderMs", "obstacleRenderCellCount",
+  "predatorPreyMs", "resourceMs", "energyMs", "reproductionMs", "entityCount", "aliveCount", "averageEnergy01", "tick", "movementIntegratedCount", "deathsThisStep", "starvingCount", "starvationDamage",
+  "spatialUsedCells", "spatialMaxCellOccupancy", "neighborCandidates", "avgNeighborsPerAgent", "maxNeighborsForAgent",
+  "sensorVisibleNeighbors", "sensorSectorWrites", "sensorFoodVisibleCount", "sensorFoodSectorWrites", "sensorObstacleSectorWrites", "sensorObstacleMaskCellChecks", "sensorObstacleMaskHits", "sensorObstacleMaskSectorWrites", "sensorFoodSignalSum", "sensorObstacleSignalSum", "sensorFoodScheduled", "sensorObstacleScheduled", "sensorFoodSkippedByCadence", "sensorObstacleSkippedByCadence", "avgVisibleNeighborsPerAgent",
+  "attacksThisStep", "killsThisStep", "predatorDamageDealt", "predatorEnergyGained", "resourceAliveCount", "resourceTargetCount", "foodPickupCount", "foodEnergyTransferred", "birthsThisStep", "reproductionEligibleCount", "blockedBirthsByCapacity", "reusableSlotCount", "spawnReusedSlotCount", "spawnAppendedSlotCount", "mutationChangedCount"
+] as const;
+
+const LABELS: Record<string, string> = {
+  fps: "fps",
+  frameMs: "frame",
+  renderMsPerFrame: "render",
+  simMsPerTick: "sim tick",
+  gridBuildMs: "grid build",
+  neighborQueryMs: "neighbor q",
+  sensorMs: "sensor",
+  terrainSensorSampleCount: "terrain sensor samples",
+  terrainSensorMovementCostSum: "terrain sensor cost",
+  terrainSensorFrictionSum: "terrain sensor friction",
+  terrainSensorDragSum: "terrain sensor drag",
+  terrainSensorResourceAffinitySum: "terrain sensor affinity",
+  terrainSensorScheduled: "terrain sensor sched",
+  terrainSensorSkippedByCadence: "terrain sensor skip",
+  terrainMovementSampleCount: "terrain move samples",
+  terrainMovementCostSum: "terrain move cost",
+  terrainFrictionSum: "terrain friction",
+  terrainDragSum: "terrain drag",
+  terrainResourceSampleCount: "terrain food samples",
+  terrainResourceAffinitySum: "terrain food affinity",
+  terrainResourceRejectedCount: "terrain food reject",
+  terrainRenderMs: "terrain render",
+  terrainRenderCellCount: "terrain cells",
+  terrainRenderTruncated: "terrain trunc"
 };
 
 const formatMs = (value: number): string => `${value.toFixed(2)} ms`;
@@ -104,185 +66,34 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
 
   const title = document.createElement("div");
   title.className = "qubok_evolve-perf-title";
-
   const titleText = document.createElement("span");
   titleText.textContent = PROJECT_NAME;
-
   const badge = document.createElement("span");
   badge.className = "qubok_evolve-perf-badge";
   badge.textContent = PROJECT_MILESTONE_LABEL;
-
   title.append(titleText, badge);
   root.append(title);
 
-  const rows = {
-    fps: createValueRow(root, "fps"),
-    frameMs: createValueRow(root, "frame"),
-    renderMsPerFrame: createValueRow(root, "render"),
-    simMsPerTick: createValueRow(root, "sim tick"),
-    gridBuildMs: createValueRow(root, "grid build"),
-    neighborQueryMs: createValueRow(root, "neighbor q"),
-    sensorMs: createValueRow(root, "sensor"),
-    predatorPreyMs: createValueRow(root, "pred/prey"),
-    resourceMs: createValueRow(root, "resource"),
-    energyMs: createValueRow(root, "energy"),
-    reproductionMs: createValueRow(root, "repro"),
-    entityCount: createValueRow(root, "entities"),
-    aliveCount: createValueRow(root, "alive"),
-    averageEnergy01: createValueRow(root, "avg energy"),
-    tick: createValueRow(root, "tick"),
-    movementIntegratedCount: createValueRow(root, "integrated"),
-    terrainMovementSampleCount: createValueRow(root, "terrain move samples"),
-    terrainMovementCostSum: createValueRow(root, "terrain move cost"),
-    terrainFrictionSum: createValueRow(root, "terrain friction"),
-    terrainDragSum: createValueRow(root, "terrain drag"),
-    obstacleResponseMs: createValueRow(root, "obs response"),
-    obstacleResponseForces: createValueRow(root, "obs forces"),
-    obstacleResponseHits: createValueRow(root, "obs hits"),
-    obstacleResponseCellChecks: createValueRow(root, "obs checks"),
-    obstacleResponseSkippedCells: createValueRow(root, "obs skip cells"),
-    obstacleResponseLimitHits: createValueRow(root, "obs limits"),
-    obstacleResponseBoundaryHits: createValueRow(root, "obs boundary"),
-    obstacleLifecycleEvents: createValueRow(root, "obs life ev"),
-    obstacleLifecyclePressure: createValueRow(root, "obs pressure"),
-    obstacleSpawnBlockedAttempts: createValueRow(root, "obs spawn block"),
-    obstacleSpawnFallbacks: createValueRow(root, "obs fallback"),
-    obstacleSpawnFailures: createValueRow(root, "obs failures"),
-    obstacleReproductionBlocked: createValueRow(root, "obs repro block"),
-    obstacleReproductionFailures: createValueRow(root, "obs repro fail"),
-    obstacleResourceRespawns: createValueRow(root, "obs food respawn"),
-    obstacleRenderMs: createValueRow(root, "obs render"),
-    obstacleRenderCellCount: createValueRow(root, "obs cells"),
-    terrainRenderMs: createValueRow(root, "terrain render"),
-    terrainRenderCellCount: createValueRow(root, "terrain cells"),
-    terrainRenderTruncated: createValueRow(root, "terrain trunc"),
-    deathsThisStep: createValueRow(root, "deaths/tick"),
-    starvingCount: createValueRow(root, "starving"),
-    starvationDamage: createValueRow(root, "starve dmg"),
-    spatialUsedCells: createValueRow(root, "grid cells"),
-    spatialMaxCellOccupancy: createValueRow(root, "max/cell"),
-    neighborCandidates: createValueRow(root, "candidates"),
-    avgNeighborsPerAgent: createValueRow(root, "avg neigh"),
-    maxNeighborsForAgent: createValueRow(root, "max neigh"),
-    sensorVisibleNeighbors: createValueRow(root, "visible"),
-    sensorSectorWrites: createValueRow(root, "sector writes"),
-    sensorFoodVisibleCount: createValueRow(root, "food visible"),
-    sensorFoodSectorWrites: createValueRow(root, "food sectors"),
-    sensorObstacleSectorWrites: createValueRow(root, "obs sectors"),
-    sensorObstacleMaskCellChecks: createValueRow(root, "obs cell checks"),
-    sensorObstacleMaskHits: createValueRow(root, "obs mask hits"),
-    sensorObstacleMaskSectorWrites: createValueRow(root, "obs mask sectors"),
-    sensorFoodSignalSum: createValueRow(root, "food signal"),
-    sensorObstacleSignalSum: createValueRow(root, "obs signal"),
-    sensorFoodScheduled: createValueRow(root, "food sched"),
-    sensorObstacleScheduled: createValueRow(root, "obs sched"),
-    sensorFoodSkippedByCadence: createValueRow(root, "food skip"),
-    sensorObstacleSkippedByCadence: createValueRow(root, "obs skip"),
-    avgVisibleNeighborsPerAgent: createValueRow(root, "avg visible"),
-    attacksThisStep: createValueRow(root, "attacks"),
-    killsThisStep: createValueRow(root, "kills"),
-    predatorDamageDealt: createValueRow(root, "damage"),
-    predatorEnergyGained: createValueRow(root, "hunt energy"),
-    resourceAliveCount: createValueRow(root, "food alive"),
-    terrainResourceSampleCount: createValueRow(root, "terrain food samples"),
-    terrainResourceAffinitySum: createValueRow(root, "terrain food affinity"),
-    terrainResourceRejectedCount: createValueRow(root, "terrain food reject"),
-    resourceTargetCount: createValueRow(root, "food target"),
-    foodPickupCount: createValueRow(root, "food eaten"),
-    foodEnergyTransferred: createValueRow(root, "food energy"),
-    birthsThisStep: createValueRow(root, "births"),
-    reproductionEligibleCount: createValueRow(root, "repro elig"),
-    blockedBirthsByCapacity: createValueRow(root, "birth block"),
-    reusableSlotCount: createValueRow(root, "free slots"),
-    spawnReusedSlotCount: createValueRow(root, "spawn reused"),
-    spawnAppendedSlotCount: createValueRow(root, "spawn append"),
-    mutationChangedCount: createValueRow(root, "mut changed")
-  };
-
+  const rows = new Map<string, HTMLElement>();
   host.append(root);
 
   const update = (snapshot: PerfOverlaySnapshot): void => {
-    rows.fps.textContent = formatFps(snapshot.fps);
-    rows.frameMs.textContent = formatMs(snapshot.frameMs);
-    rows.renderMsPerFrame.textContent = formatMs(snapshot.renderMsPerFrame);
-    rows.simMsPerTick.textContent = formatMs(snapshot.simMsPerTick);
-    rows.gridBuildMs.textContent = formatMs(snapshot.gridBuildMs);
-    rows.neighborQueryMs.textContent = formatMs(snapshot.neighborQueryMs);
-    rows.sensorMs.textContent = formatMs(snapshot.sensorMs);
-    rows.predatorPreyMs.textContent = formatMs(snapshot.predatorPreyMs);
-    rows.resourceMs.textContent = formatMs(snapshot.resourceMs);
-    rows.energyMs.textContent = formatMs(snapshot.energyMs);
-    rows.reproductionMs.textContent = formatMs(snapshot.reproductionMs);
-    rows.entityCount.textContent = formatInt(snapshot.entityCount);
-    rows.aliveCount.textContent = formatInt(snapshot.aliveCount);
-    rows.averageEnergy01.textContent = formatPercent(snapshot.averageEnergy01);
-    rows.tick.textContent = formatInt(snapshot.tick);
-    rows.movementIntegratedCount.textContent = formatInt(snapshot.movementIntegratedCount);
-    rows.terrainMovementSampleCount.textContent = formatInt(snapshot.terrainMovementSampleCount);
-    rows.terrainMovementCostSum.textContent = formatDecimal(snapshot.terrainMovementCostSum);
-    rows.terrainFrictionSum.textContent = formatDecimal(snapshot.terrainFrictionSum);
-    rows.terrainDragSum.textContent = formatDecimal(snapshot.terrainDragSum);
-    rows.obstacleResponseMs.textContent = formatMs(snapshot.obstacleResponseMs);
-    rows.obstacleResponseForces.textContent = formatInt(snapshot.obstacleResponseForces);
-    rows.obstacleResponseHits.textContent = formatInt(snapshot.obstacleResponseHits);
-    rows.obstacleResponseCellChecks.textContent = formatInt(snapshot.obstacleResponseCellChecks);
-    rows.obstacleResponseSkippedCells.textContent = formatInt(snapshot.obstacleResponseSkippedCells);
-    rows.obstacleResponseLimitHits.textContent = formatInt(snapshot.obstacleResponseLimitHits);
-    rows.obstacleResponseBoundaryHits.textContent = formatInt(snapshot.obstacleResponseBoundaryHits);
-    rows.obstacleLifecycleEvents.textContent = formatInt(snapshot.obstacleLifecycleEvents);
-    rows.obstacleLifecyclePressure.textContent = formatDecimal(snapshot.obstacleLifecyclePressure);
-    rows.obstacleSpawnBlockedAttempts.textContent = formatInt(snapshot.obstacleSpawnBlockedAttempts);
-    rows.obstacleSpawnFallbacks.textContent = formatInt(snapshot.obstacleSpawnFallbacks);
-    rows.obstacleSpawnFailures.textContent = formatInt(snapshot.obstacleSpawnFailures);
-    rows.obstacleReproductionBlocked.textContent = formatInt(snapshot.obstacleReproductionBlocked);
-    rows.obstacleReproductionFailures.textContent = formatInt(snapshot.obstacleReproductionFailures);
-    rows.obstacleResourceRespawns.textContent = formatInt(snapshot.obstacleResourceRespawns);
-    rows.obstacleRenderMs.textContent = formatMs(snapshot.obstacleRenderMs);
-    rows.obstacleRenderCellCount.textContent = formatInt(snapshot.obstacleRenderCellCount);
-    rows.terrainRenderMs.textContent = formatMs(snapshot.terrainRenderMs);
-    rows.terrainRenderCellCount.textContent = formatInt(snapshot.terrainRenderCellCount);
-    rows.terrainRenderTruncated.textContent = formatInt(snapshot.terrainRenderTruncated);
-    rows.deathsThisStep.textContent = formatInt(snapshot.deathsThisStep);
-    rows.starvingCount.textContent = formatInt(snapshot.starvingCount);
-    rows.starvationDamage.textContent = formatDecimal(snapshot.starvationDamage);
-    rows.spatialUsedCells.textContent = formatInt(snapshot.spatialUsedCells);
-    rows.spatialMaxCellOccupancy.textContent = formatInt(snapshot.spatialMaxCellOccupancy);
-    rows.neighborCandidates.textContent = formatInt(snapshot.neighborCandidates);
-    rows.avgNeighborsPerAgent.textContent = formatDecimal(snapshot.avgNeighborsPerAgent);
-    rows.maxNeighborsForAgent.textContent = formatInt(snapshot.maxNeighborsForAgent);
-    rows.sensorVisibleNeighbors.textContent = formatInt(snapshot.sensorVisibleNeighbors);
-    rows.sensorSectorWrites.textContent = formatInt(snapshot.sensorSectorWrites);
-    rows.sensorFoodVisibleCount.textContent = formatInt(snapshot.sensorFoodVisibleCount);
-    rows.sensorFoodSectorWrites.textContent = formatInt(snapshot.sensorFoodSectorWrites);
-    rows.sensorObstacleSectorWrites.textContent = formatInt(snapshot.sensorObstacleSectorWrites);
-    rows.sensorObstacleMaskCellChecks.textContent = formatInt(snapshot.sensorObstacleMaskCellChecks);
-    rows.sensorObstacleMaskHits.textContent = formatInt(snapshot.sensorObstacleMaskHits);
-    rows.sensorObstacleMaskSectorWrites.textContent = formatInt(snapshot.sensorObstacleMaskSectorWrites);
-    rows.sensorFoodSignalSum.textContent = formatDecimal(snapshot.sensorFoodSignalSum);
-    rows.sensorObstacleSignalSum.textContent = formatDecimal(snapshot.sensorObstacleSignalSum);
-    rows.sensorFoodScheduled.textContent = formatInt(snapshot.sensorFoodScheduled);
-    rows.sensorObstacleScheduled.textContent = formatInt(snapshot.sensorObstacleScheduled);
-    rows.sensorFoodSkippedByCadence.textContent = formatInt(snapshot.sensorFoodSkippedByCadence);
-    rows.sensorObstacleSkippedByCadence.textContent = formatInt(snapshot.sensorObstacleSkippedByCadence);
-    rows.avgVisibleNeighborsPerAgent.textContent = formatDecimal(snapshot.avgVisibleNeighborsPerAgent);
-    rows.attacksThisStep.textContent = formatInt(snapshot.attacksThisStep);
-    rows.killsThisStep.textContent = formatInt(snapshot.killsThisStep);
-    rows.predatorDamageDealt.textContent = formatDecimal(snapshot.predatorDamageDealt);
-    rows.predatorEnergyGained.textContent = formatDecimal(snapshot.predatorEnergyGained);
-    rows.resourceAliveCount.textContent = formatInt(snapshot.resourceAliveCount);
-    rows.terrainResourceSampleCount.textContent = formatInt(snapshot.terrainResourceSampleCount);
-    rows.terrainResourceAffinitySum.textContent = formatDecimal(snapshot.terrainResourceAffinitySum);
-    rows.terrainResourceRejectedCount.textContent = formatInt(snapshot.terrainResourceRejectedCount);
-    rows.resourceTargetCount.textContent = formatInt(snapshot.resourceTargetCount);
-    rows.foodPickupCount.textContent = formatInt(snapshot.foodPickupCount);
-    rows.foodEnergyTransferred.textContent = formatDecimal(snapshot.foodEnergyTransferred);
-    rows.birthsThisStep.textContent = formatInt(snapshot.birthsThisStep);
-    rows.reproductionEligibleCount.textContent = formatInt(snapshot.reproductionEligibleCount);
-    rows.blockedBirthsByCapacity.textContent = formatInt(snapshot.blockedBirthsByCapacity);
-    rows.reusableSlotCount.textContent = formatInt(snapshot.reusableSlotCount);
-    rows.spawnReusedSlotCount.textContent = formatInt(snapshot.spawnReusedSlotCount);
-    rows.spawnAppendedSlotCount.textContent = formatInt(snapshot.spawnAppendedSlotCount);
-    rows.mutationChangedCount.textContent = formatInt(snapshot.mutationChangedCount);
+    const emitted = new Set<string>();
+
+    for (const key of DISPLAY_ORDER) {
+      const value = snapshot[key];
+      if (typeof value === "number") {
+        getOrCreateRow(root, rows, key).textContent = formatValue(key, value);
+        emitted.add(key);
+      }
+    }
+
+    for (const [key, value] of Object.entries(snapshot)) {
+      if (key === "metrics" || emitted.has(key) || typeof value !== "number") {
+        continue;
+      }
+      getOrCreateRow(root, rows, key).textContent = formatValue(key, value);
+    }
   };
 
   return {
@@ -291,18 +102,37 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
   };
 }
 
+function getOrCreateRow(root: HTMLElement, rows: Map<string, HTMLElement>, key: string): HTMLElement {
+  const existing = rows.get(key);
+  if (existing) {
+    return existing;
+  }
+
+  const valueElement = createValueRow(root, LABELS[key] ?? makeLabel(key));
+  rows.set(key, valueElement);
+  return valueElement;
+}
+
 function createValueRow(root: HTMLElement, label: string): HTMLElement {
   const row = document.createElement("div");
   row.className = "qubok_evolve-perf-row";
-
   const labelElement = document.createElement("span");
   labelElement.textContent = label;
-
   const valueElement = document.createElement("strong");
   valueElement.textContent = "--";
-
   row.append(labelElement, valueElement);
   root.append(row);
-
   return valueElement;
+}
+
+function formatValue(key: string, value: number): string {
+  if (key === "fps") return formatFps(value);
+  if (key.endsWith("Ms") || key.endsWith("MsPerFrame") || key.endsWith("MsPerTick")) return formatMs(value);
+  if (key.endsWith("01")) return formatPercent(value);
+  if (key.endsWith("Count") || key.endsWith("Hits") || key.endsWith("Failures") || key.endsWith("Writes") || key.endsWith("Scheduled") || key.endsWith("Cadence") || key === "tick") return formatInt(value);
+  return formatDecimal(value);
+}
+
+function makeLabel(key: string): string {
+  return key.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase();
 }
