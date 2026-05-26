@@ -10,9 +10,10 @@ import {
 import type { ObstacleMask } from "./obstacleMask";
 import type { DeterministicRng } from "./rng";
 import { findFreePositionNearOrRandom } from "./spawnValidation";
+import { sampleTerrainAtPosition, type TerrainLayer } from "./terrain";
 import { canSpawnAgent, spawnAgent, type WorldState } from "./world";
 
-export const REPRODUCTION_SYSTEM_VERSION = "qubok_evolve.reproduction.v3" as const;
+export const REPRODUCTION_SYSTEM_VERSION = "qubok_evolve.reproduction.v4" as const;
 
 export type ReproductionConfig = {
   readonly energyThreshold?: number;
@@ -26,11 +27,20 @@ export type ReproductionConfig = {
   /** Optional obstacle mask used to avoid placing offspring inside occupied cells. */
   readonly obstacleMask?: ObstacleMask;
 
+  /** Optional terrain layer used to bias offspring placement toward lower-cost / higher-affinity cells. */
+  readonly terrain?: TerrainLayer;
+
   /** Attempts used for obstacle-aware offspring placement. */
   readonly offspringSpawnMaxAttempts?: number;
 
   /** Extra radius used when checking whether an offspring position overlaps an obstacle cell. */
   readonly offspringClearanceRadius?: number;
+
+  /** Terrain-biased candidate samples before accepting the last free fallback position. */
+  readonly offspringTerrainMaxAttempts?: number;
+
+  /** Minimum terrain acceptance probability, preventing hard rejection dead-zones. */
+  readonly offspringTerrainMinAcceptance?: number;
 
   /**
    * Global per-parameter mutation probability override.
@@ -60,6 +70,9 @@ export type ReproductionStepStats = {
   readonly obstacleFallbackUsedCount: number;
   readonly obstaclePlacementFailedCount: number;
   readonly obstacleBlockedAttemptCount: number;
+  readonly terrainOffspringSampleCount: number;
+  readonly terrainOffspringAffinitySum: number;
+  readonly terrainOffspringRejectedCount: number;
   readonly parentEnergySpent: number;
   readonly childEnergyCreated: number;
   readonly averageChildMutationAbs: number;
@@ -79,6 +92,8 @@ const DEFAULT_MUTATION_STANDARD_DEVIATION_SCALE = 1;
 const DEFAULT_INHERIT_VELOCITY_SCALE = 0.35;
 const DEFAULT_OFFSPRING_SPAWN_MAX_ATTEMPTS = 24;
 const DEFAULT_OFFSPRING_CLEARANCE_RADIUS = 0;
+const DEFAULT_OFFSPRING_TERRAIN_MAX_ATTEMPTS = 8;
+const DEFAULT_OFFSPRING_TERRAIN_MIN_ACCEPTANCE = 0.05;
 const MAX_BIRTHS_PER_STEP = 4096;
 
 const REPRODUCTION_MUTATION_PARAMETERS = [
@@ -129,7 +144,13 @@ export function applyReproduction(
     DEFAULT_OFFSPRING_CLEARANCE_RADIUS,
     "offspringClearanceRadius"
   );
+  const offspringTerrainMinAcceptance = finiteOrDefault(
+    config.offspringTerrainMinAcceptance,
+    DEFAULT_OFFSPRING_TERRAIN_MIN_ACCEPTANCE,
+    "offspringTerrainMinAcceptance"
+  );
   const offspringSpawnMaxAttempts = config.offspringSpawnMaxAttempts ?? DEFAULT_OFFSPRING_SPAWN_MAX_ATTEMPTS;
+  const offspringTerrainMaxAttempts = config.offspringTerrainMaxAttempts ?? DEFAULT_OFFSPRING_TERRAIN_MAX_ATTEMPTS;
   const maxBirthsPerStep = config.maxBirthsPerStep ?? MAX_BIRTHS_PER_STEP;
 
   assertNonNegativeInteger(maxBirthsPerStep, "maxBirthsPerStep");
@@ -144,6 +165,14 @@ export function applyReproduction(
 
   if (!Number.isInteger(offspringSpawnMaxAttempts) || offspringSpawnMaxAttempts <= 0) {
     throw new Error(`offspringSpawnMaxAttempts must be a positive integer. Received: ${offspringSpawnMaxAttempts}`);
+  }
+
+  if (!Number.isInteger(offspringTerrainMaxAttempts) || offspringTerrainMaxAttempts <= 0) {
+    throw new Error(`offspringTerrainMaxAttempts must be a positive integer. Received: ${offspringTerrainMaxAttempts}`);
+  }
+
+  if (offspringTerrainMinAcceptance < 0 || offspringTerrainMinAcceptance > 1) {
+    throw new Error(`offspringTerrainMinAcceptance must be between 0 and 1. Received: ${offspringTerrainMinAcceptance}`);
   }
 
   if (mutationChance < 0 || mutationChance > 1) {
@@ -170,6 +199,9 @@ export function applyReproduction(
   let obstacleFallbackUsedCount = 0;
   let obstaclePlacementFailedCount = 0;
   let obstacleBlockedAttemptCount = 0;
+  let terrainOffspringSampleCount = 0;
+  let terrainOffspringAffinitySum = 0;
+  let terrainOffspringRejectedCount = 0;
   let parentEnergySpent = 0;
   let childEnergyCreated = 0;
   let mutationAttempts = 0;
@@ -202,13 +234,19 @@ export function applyReproduction(
 
     const childPosition = resolveChildPosition(world, parentIndex, rng, {
       obstacleMask: config.obstacleMask,
+      terrain: config.terrain,
       spawnRadius,
       offspringSpawnMaxAttempts,
-      offspringClearanceRadius
+      offspringClearanceRadius,
+      offspringTerrainMaxAttempts,
+      offspringTerrainMinAcceptance
     });
 
     obstacleBlockedAttemptCount += Math.max(0, childPosition.attempts - 1);
     obstacleFallbackUsedCount += childPosition.fallbackUsed ? 1 : 0;
+    terrainOffspringSampleCount += childPosition.terrainSampleCount;
+    terrainOffspringAffinitySum += childPosition.terrainAffinitySum;
+    terrainOffspringRejectedCount += childPosition.terrainRejectedCount;
 
     if (!childPosition.found) {
       blockedByObstacle += 1;
@@ -247,6 +285,9 @@ export function applyReproduction(
     obstacleFallbackUsedCount,
     obstaclePlacementFailedCount,
     obstacleBlockedAttemptCount,
+    terrainOffspringSampleCount,
+    terrainOffspringAffinitySum,
+    terrainOffspringRejectedCount,
     parentEnergySpent,
     childEnergyCreated,
     averageChildMutationAbs: mutationAttempts > 0 ? mutationAbsoluteDeltaSum / mutationAttempts : 0,
@@ -284,9 +325,12 @@ export function createReproductionMutationRules(
 
 type ChildPositionConfig = {
   readonly obstacleMask?: ObstacleMask;
+  readonly terrain?: TerrainLayer;
   readonly spawnRadius: number;
   readonly offspringSpawnMaxAttempts: number;
   readonly offspringClearanceRadius: number;
+  readonly offspringTerrainMaxAttempts: number;
+  readonly offspringTerrainMinAcceptance: number;
 };
 
 type ChildPositionResult = {
@@ -295,6 +339,9 @@ type ChildPositionResult = {
   readonly found: boolean;
   readonly attempts: number;
   readonly fallbackUsed: boolean;
+  readonly terrainSampleCount: number;
+  readonly terrainAffinitySum: number;
+  readonly terrainRejectedCount: number;
 };
 
 type SpawnChildConfig = {
@@ -317,13 +364,83 @@ function resolveChildPosition(
   rng: DeterministicRng,
   config: ChildPositionConfig
 ): ChildPositionResult {
+  if (!config.terrain) {
+    return makePlainChildPosition(world, parentIndex, rng, config);
+  }
+
+  let lastFound: ChildPositionResult | undefined;
+  let totalAttempts = 0;
+  let fallbackUsed = false;
+  let terrainSampleCount = 0;
+  let terrainAffinitySum = 0;
+  let terrainRejectedCount = 0;
+
+  for (let attempt = 0; attempt < config.offspringTerrainMaxAttempts; attempt += 1) {
+    const position = makePlainChildPosition(world, parentIndex, rng, config);
+    totalAttempts += position.attempts;
+    fallbackUsed = fallbackUsed || position.fallbackUsed;
+
+    if (!position.found) {
+      return {
+        ...position,
+        attempts: totalAttempts,
+        fallbackUsed,
+        terrainSampleCount,
+        terrainAffinitySum,
+        terrainRejectedCount
+      };
+    }
+
+    const acceptance = sampleOffspringTerrainAcceptance(
+      config.terrain,
+      position.x,
+      position.y,
+      world.terrainAffinity[parentIndex],
+      config.offspringTerrainMinAcceptance
+    );
+    terrainSampleCount += 1;
+    terrainAffinitySum += acceptance;
+
+    const enrichedPosition = {
+      ...position,
+      attempts: totalAttempts,
+      fallbackUsed,
+      terrainSampleCount,
+      terrainAffinitySum,
+      terrainRejectedCount
+    };
+    lastFound = enrichedPosition;
+
+    if (rng.nextFloat01() <= acceptance) {
+      return enrichedPosition;
+    }
+
+    terrainRejectedCount += 1;
+  }
+
+  if (lastFound) {
+    return {
+      ...lastFound,
+      terrainRejectedCount
+    };
+  }
+
+  return makePlainChildPosition(world, parentIndex, rng, config);
+}
+
+function makePlainChildPosition(
+  world: WorldState,
+  parentIndex: number,
+  rng: DeterministicRng,
+  config: ChildPositionConfig
+): ChildPositionResult {
   if (config.obstacleMask) {
     const searchRadius = Math.max(
       config.spawnRadius,
       config.offspringClearanceRadius + config.obstacleMask.cellSize,
       0.0001
     );
-    return findFreePositionNearOrRandom(
+    const position = findFreePositionNearOrRandom(
       config.obstacleMask,
       rng,
       world.x[parentIndex],
@@ -334,6 +451,7 @@ function resolveChildPosition(
         clearanceRadius: config.offspringClearanceRadius
       }
     );
+    return { ...position, terrainSampleCount: 0, terrainAffinitySum: 0, terrainRejectedCount: 0 };
   }
 
   const angle = rng.range(0, Math.PI * 2);
@@ -346,8 +464,27 @@ function resolveChildPosition(
     y: wrap(world.y[parentIndex] + offsetY, world.worldHeight),
     found: true,
     attempts: 1,
-    fallbackUsed: false
+    fallbackUsed: false,
+    terrainSampleCount: 0,
+    terrainAffinitySum: 0,
+    terrainRejectedCount: 0
   };
+}
+
+function sampleOffspringTerrainAcceptance(
+  terrain: TerrainLayer,
+  x: number,
+  y: number,
+  parentTerrainAffinity: number,
+  minAcceptance: number
+): number {
+  const sample = sampleTerrainAtPosition(terrain, x, y);
+  const movementScore = 1 / Math.max(sample.movementCost, 0.000001);
+  const resourceScore = clamp(sample.resourceAffinity, 0, 1.5) / 1.5;
+  const frictionScore = clamp(sample.friction, 0, 1.5) / 1.5;
+  const habitatScore = movementScore * 0.5 + resourceScore * 0.35 + frictionScore * 0.15;
+  const parentSelectivity = clamp(0.75 + parentTerrainAffinity * 0.125, 0.25, 1.25);
+  return clamp(habitatScore * parentSelectivity, minAcceptance, 1);
 }
 
 function spawnChild(
@@ -444,4 +581,8 @@ function wrap(value: number, size: number): number {
   }
 
   return ((value % size) + size) % size;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
 }
