@@ -1,6 +1,7 @@
 import { createDemoSimulation, type DemoSimulationHandle } from "../sim/demoSimulation";
 import { createPerfOverlay } from "../render/debugOverlay";
 import { mountPixiRenderer } from "../render/pixiRenderer";
+import { createFieldDampingControlPanel } from "./fieldDampingPanel";
 import { DEFAULT_RENDER_DEBUG_CONFIG, toggleRenderDebugLayer, type RenderDebugConfig } from "../render/renderDebugConfig";
 
 export type QubokEvolveAppHandle = {
@@ -50,6 +51,8 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
     worldHeight: 2048
   });
 
+  const fieldDampingPanel = createFieldDampingControlPanel(shell, simulation);
+
   const perfOverlay = createPerfOverlay(overlayHost);
   const pixiRenderer = await mountPixiRenderer({
     host: canvasHost,
@@ -85,6 +88,7 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
       window.removeEventListener("keydown", handleRenderDebugShortcut);
       pixiRenderer.destroy();
       perfOverlay.destroy();
+      fieldDampingPanel.destroy();
       root.replaceChildren();
     }
   };

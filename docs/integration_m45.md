@@ -33,6 +33,8 @@ M45-B wires `applyFieldDamping` into the demo runtime after `applyFieldSourcesAn
 
 M45-C adds runtime-editable damping controls: 6/7 toggle obstacle/terrain field damping; `6/7` toggle obstacle/terrain field damping, `[`/`]` scale obstacle damping per second, and `;`/`'` scale terrain damping per second. The overlay echoes enabled states, per-second strengths, and max sample caps.
 
+M45-D adds a compact field damping control panel with checkboxes, sliders, exact number fields, min/max ranges, float/integer steps, and reset-to-initial behavior.
+
 ## Validation target
 
 - npm run test:repo-status
@@ -40,5 +42,6 @@ M45-C adds runtime-editable damping controls: 6/7 toggle obstacle/terrain field 
 - npm run test:field-damping
 - npm run test:field-damping-integration
 - npm run test:field-damping-controls
+- npm run test:field-damping-panel
 - npm run test:demo-integration
 - npm run build

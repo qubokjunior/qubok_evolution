@@ -133,3 +133,130 @@ body {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
+
+.qubok_evolve-control-panel {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 12;
+  width: 258px;
+  padding: 8px;
+  border: 1px solid rgba(122, 152, 184, 0.2);
+  border-radius: 4px;
+  background: rgba(7, 10, 13, 0.86);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(8px);
+  font-family: "JetBrains Mono", "Cascadia Mono", "Consolas", monospace;
+  font-size: 11px;
+  color: #b9c6d4;
+  pointer-events: auto;
+}
+
+.qubok_evolve-control-title {
+  color: #f0f6ff;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.qubok_evolve-control-hint {
+  margin-top: 2px;
+  color: #76889b;
+  font-size: 9px;
+}
+
+.qubok_evolve-control-section {
+  margin-top: 7px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(122, 152, 184, 0.12);
+}
+
+.qubok_evolve-control-check-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 20px;
+  color: #c8d4e0;
+}
+
+.qubok_evolve-control-check-row input {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  accent-color: #7cc7ff;
+}
+
+.qubok_evolve-control-number-row {
+  margin-top: 7px;
+}
+
+.qubok_evolve-control-number-row:first-child {
+  margin-top: 0;
+}
+
+.qubok_evolve-control-number-top,
+.qubok_evolve-control-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.qubok_evolve-control-number-top label {
+  color: #8ea1b5;
+}
+
+.qubok_evolve-control-value {
+  color: #d7e6f5;
+  font-variant-numeric: tabular-nums;
+}
+
+.qubok_evolve-control-number-controls {
+  display: grid;
+  grid-template-columns: 1fr 72px;
+  gap: 7px;
+  margin-top: 3px;
+}
+
+.qubok_evolve-control-number-controls input[type="range"] {
+  width: 100%;
+  accent-color: #7cc7ff;
+}
+
+.qubok_evolve-control-number-controls input[type="number"] {
+  width: 72px;
+  height: 20px;
+  padding: 1px 4px;
+  border: 1px solid rgba(122, 152, 184, 0.22);
+  border-radius: 3px;
+  background: rgba(12, 17, 22, 0.92);
+  color: #d7e6f5;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.qubok_evolve-control-footer {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(122, 152, 184, 0.12);
+  color: #76889b;
+  font-size: 9px;
+}
+
+.qubok_evolve-control-button {
+  height: 20px;
+  padding: 1px 8px;
+  border: 1px solid rgba(122, 152, 184, 0.22);
+  border-radius: 3px;
+  background: rgba(20, 28, 36, 0.9);
+  color: #c8d4e0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.qubok_evolve-control-button:hover {
+  border-color: rgba(124, 199, 255, 0.48);
+  color: #f0f6ff;
+}
+
