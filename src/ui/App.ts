@@ -3,6 +3,7 @@ import { createPerfOverlay } from "../render/debugOverlay";
 import { mountPixiRenderer } from "../render/pixiRenderer";
 import { createFieldDampingControlPanel } from "./fieldDampingPanel";
 import { createFieldVisualDebugPanel } from "./fieldVisualDebugPanel";
+import { createDebugLayoutPanel } from "./debugLayoutPanel";
 import { DEFAULT_RENDER_DEBUG_CONFIG, toggleRenderDebugLayer, type RenderDebugConfig } from "../render/renderDebugConfig";
 
 export type QubokEvolveAppHandle = {
@@ -63,6 +64,7 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
   });
 
   const fieldVisualDebugPanel = createFieldVisualDebugPanel(shell, pixiRenderer);
+  const debugLayoutPanel = createDebugLayoutPanel(shell);
 
   const handleRenderDebugShortcut = (event: KeyboardEvent): void => {
     if (event.repeat || event.altKey || event.ctrlKey || event.metaKey || isTextInputEvent(event)) {
@@ -93,6 +95,7 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
       perfOverlay.destroy();
       fieldDampingPanel.destroy();
       fieldVisualDebugPanel.destroy();
+      debugLayoutPanel.destroy();
       root.replaceChildren();
     }
   };

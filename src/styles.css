@@ -425,3 +425,19 @@ body {
 .qubok_evolve-perf-overlay[data-resizing="true"] {
   user-select: none;
 }
+
+
+.qubok_evolve-control-panel--layout-state {
+  top: 720px;
+}
+
+.qubok_evolve-control-button--wide {
+  width: 100%;
+}
+
+.qubok_evolve-control-note {
+  margin-top: 5px;
+  color: #76889b;
+  font-size: 9px;
+  line-height: 1.3;
+}
