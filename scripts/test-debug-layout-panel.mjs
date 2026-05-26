@@ -20,7 +20,7 @@ for (const token of ["clearDebugLayoutState", "LAYOUT_STATE_KEYS", "LAYOUT_STATE
   assert(panel.includes(token), "debugLayoutPanel missing token: " + token);
 }
 
-for (const token of [".qubok_evolve-control-panel--layout-state", ".qubok_evolve-control-button--wide", ".qubok_evolve-control-note"]) {
+for (const token of [".qubok_evolve-control-stack", ".qubok_evolve-control-button--wide", ".qubok_evolve-control-note"]) {
   assert(styles.includes(token), "styles missing debug layout panel CSS token: " + token);
 }
 

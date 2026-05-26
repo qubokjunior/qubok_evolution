@@ -43,7 +43,10 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
   const overlayHost = document.createElement("div");
   overlayHost.className = "qubok_evolve-overlay-host";
 
-  shell.append(canvasHost, overlayHost);
+  const controlStack = document.createElement("div");
+  controlStack.className = "qubok_evolve-control-stack";
+
+  shell.append(canvasHost, overlayHost, controlStack);
   root.append(shell);
 
   const simulation = createDemoSimulation({
@@ -53,7 +56,7 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
     worldHeight: 2048
   });
 
-  const fieldDampingPanel = createFieldDampingControlPanel(shell, simulation);
+  const fieldDampingPanel = createFieldDampingControlPanel(controlStack, simulation);
 
   const perfOverlay = createPerfOverlay(overlayHost);
   const pixiRenderer = await mountPixiRenderer({
@@ -63,8 +66,8 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
     snapshotSource: (deltaSeconds) => simulation.step(deltaSeconds)
   });
 
-  const fieldVisualDebugPanel = createFieldVisualDebugPanel(shell, pixiRenderer);
-  const debugLayoutPanel = createDebugLayoutPanel(shell);
+  const fieldVisualDebugPanel = createFieldVisualDebugPanel(controlStack, pixiRenderer);
+  const debugLayoutPanel = createDebugLayoutPanel(controlStack);
 
   const handleRenderDebugShortcut = (event: KeyboardEvent): void => {
     if (event.repeat || event.altKey || event.ctrlKey || event.metaKey || isTextInputEvent(event)) {

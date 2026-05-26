@@ -57,6 +57,24 @@ body {
   z-index: 10;
 }
 
+
+.qubok_evolve-control-stack {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  bottom: 10px;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+  overflow: hidden auto;
+  padding-left: 8px;
+  pointer-events: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(122, 152, 184, 0.28) rgba(7, 10, 13, 0.32);
+}
+
 .qubok_evolve-perf-overlay {
   position: relative;
   pointer-events: auto;
@@ -163,9 +181,8 @@ body {
 }
 
 .qubok_evolve-control-panel {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  position: relative;
+  flex: 0 0 auto;
   z-index: 12;
   width: 258px;
   padding: 8px;
@@ -180,9 +197,6 @@ body {
   pointer-events: auto;
 }
 
-.qubok_evolve-control-panel--visual-debug {
-  top: 420px;
-}
 
 .qubok_evolve-control-title {
   color: #f0f6ff;
@@ -427,9 +441,6 @@ body {
 }
 
 
-.qubok_evolve-control-panel--layout-state {
-  top: 720px;
-}
 
 .qubok_evolve-control-button--wide {
   width: 100%;

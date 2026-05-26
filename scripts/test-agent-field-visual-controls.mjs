@@ -20,7 +20,7 @@ for (const token of ["config.agentFieldInfluenceAlpha", "config.agentFieldInflue
 for (const token of ["createFieldVisualDebugPanel", "fieldVisualDebugPanel.destroy()"]) assert(app.includes(token), "App missing visual debug panel token: " + token);
 for (const token of ["agent field debug", "show influence", "length scale", "max agents", "min magnitude", "updateRenderDebugConfig"]) assert(panel.includes(token), "fieldVisualDebugPanel missing token: " + token);
 for (const token of ["range.type = \"range\"", "number.type = \"number\"", "input.type = \"checkbox\"", "createControlFooter", "reset"]) assert(primitives.includes(token), "shared primitives missing visual input token: " + token);
-assert(styles.includes(".qubok_evolve-control-panel--visual-debug"), "styles missing visual debug panel modifier.");
+assert(styles.includes(".qubok_evolve-control-stack"), "styles missing shared control stack for visual debug panel.");
 assert(docs.includes("M45-F"), "integration_m45 must document M45-F.");
 assert(packageJson.scripts["test:agent-field-visual-controls"] === "node scripts/test-agent-field-visual-controls.mjs", "package.json must expose test:agent-field-visual-controls.");
 assert(packageJson.scripts.test.includes("test:agent-field-visual-controls"), "npm run test must include test:agent-field-visual-controls.");
