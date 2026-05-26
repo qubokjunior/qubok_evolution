@@ -1,6 +1,6 @@
 import { assertFiniteNumber, assertIndexInRange } from "./arrays";
 import { sampleTerrainAtPosition, type TerrainLayer } from "./terrain";
-import { kill\u0041gent, type WorldState } from "./world";
+import { killAgent, type WorldState } from "./world";
 
 export const MOVEMENT_SYSTEM_VERSION = "qubok_evolve.movement.v2" as const;
 
@@ -150,7 +150,7 @@ export function stepMovement(world: WorldState, config: MovementStepConfig): Mov
 
     if (world.energy[index] <= minimumEnergy) {
       world.energy[index] = 0;
-      kill\u0041gent(world, index);
+      killAgent(world, index);
       deadCount += 1;
     }
 
