@@ -1,6 +1,6 @@
 # qubok_evolve roadmap
 
-Current status: m43 / 0.1.0-milestone.43.
+Current status: m44 / 0.1.0-milestone.44.
 
 m34 shipped: terrain Pixi debug render layer.
 
@@ -21,6 +21,8 @@ m41 shipped: render debug controls, keyboard layer visibility toggles, and group
 m42 shipped: field decay/diffusion foundation with deterministic dynamics, benchmark, demo wiring, and overlay metrics.
 
 m43 shipped: field sources/sinks foundation with demo wiring and overlay metrics.
+
+m44 in progress: field source semantics tuning and visualization QA.
 
 ## terrain/material track
 
@@ -50,16 +52,16 @@ Shipped sequence:
 - deterministic field sources/sinks with resource-driven vector emission, agent absorption, demo wiring, metrics, benchmark, and overlay labels.
 
 Current milestone:
-- m43 field sources/sinks foundation.
+- m44 field source semantics tuning and visualization QA.
 
-M43 scope:
-- deterministic point sources into field cells;
-- deterministic sinks/absorption for field cells;
-- focused tests before demo integration;
-- keep source/sink system simulation-only and renderer-agnostic.
+M44 scope:
+- make resource source strength easier to interpret and test;
+- make agent absorption strength easier to interpret and test;
+- add deterministic QA checks for demo field source/sink behavior;
+- keep field source semantics simulation-only and renderer-agnostic;
+- keep visualization QA focused on existing overlay/readout behavior, not a render rewrite.
 
 Follow-up candidates:
-- resource-driven food scent source wiring;
 - obstacle/terrain damping sources or sinks;
 - later field force integration separated from movement if field systems grow;
 - later field transport/advection branch.
