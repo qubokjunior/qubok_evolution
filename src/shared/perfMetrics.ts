@@ -11,7 +11,7 @@ export const PERF_METRIC_NAMES = [
   "sensorMs", "sensorVisibleNeighbors", "sensorSectorWrites", "sensorFoodVisibleCount", "sensorFoodSectorWrites", "sensorObstacleSectorWrites", "sensorObstacleMaskCellChecks", "sensorObstacleMaskHits", "sensorObstacleMaskSectorWrites", "sensorFoodSignalSum", "sensorObstacleSignalSum", "sensorFoodScheduled", "sensorObstacleScheduled", "sensorFoodSkippedByCadence", "sensorObstacleSkippedByCadence",
   "terrainSensorSampleCount", "terrainSensorMovementCostSum", "terrainSensorFrictionSum", "terrainSensorDragSum", "terrainSensorResourceAffinitySum", "terrainSensorScheduled", "terrainSensorSkippedByCadence",
   "avgVisibleNeighborsPerAgent", "predatorPreyMs", "attacksThisStep", "killsThisStep", "predatorDamageDealt", "predatorEnergyGained",
-  "reproductionMs", "birthsThisStep", "reproductionEligibleCount", "blockedBirthsByCapacity", "reusableSlotCount", "spawnReusedSlotCount", "spawnAppendedSlotCount", "mutationChangedCount",
+  "reproductionMs", "birthsThisStep", "reproductionEligibleCount", "blockedBirthsByCapacity", "terrainOffspringSampleCount", "terrainOffspringAffinitySum", "terrainOffspringRejectedCount", "reusableSlotCount", "spawnReusedSlotCount", "spawnAppendedSlotCount", "mutationChangedCount",
   "brainMs", "terrainMs", "fieldMs", "workerTransferMs", "peakMemoryMB", "birthsPerSecond", "generationDuration", "diversityScore"
 ] as const;
 
