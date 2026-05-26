@@ -1,6 +1,6 @@
 # qubok_evolve roadmap
 
-Current status: m41 / 0.1.0-milestone.41.
+Current status: m42 / 0.1.0-milestone.42.
 
 m34 shipped: terrain Pixi debug render layer.
 
@@ -17,6 +17,8 @@ m39 shipped: low-resolution environmental flow field sampled by movement.
 m40 shipped: environmental field render snapshot and Pixi vector debug layer.
 
 m41 shipped: render debug controls, keyboard layer visibility toggles, and grouped overlay metrics.
+
+m42 in progress: field decay/diffusion foundation.
 
 ## terrain/material track
 
@@ -43,11 +45,17 @@ Shipped sequence:
 - Pixi vector debug layer with decimated arrows and field render metrics;
 - field vector visibility and render debug controls.
 
-Next likely milestone:
-- m42 field decay/diffusion foundation or controller/brain first pass.
+Current milestone:
+- m42 field decay/diffusion foundation.
+
+M42 scope:
+- deterministic per-cell decay for field channels;
+- simple neighbor diffusion for field channels;
+- field dynamics metrics;
+- focused tests before demo integration.
 
 Follow-up candidates:
-- simple decay/diffusion rules for field maps;
+- field sources/sinks;
 - field force integration separated from movement if field systems grow;
 - later field transport/advection branch.
 
