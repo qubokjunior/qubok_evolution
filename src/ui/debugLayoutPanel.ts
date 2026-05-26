@@ -1,3 +1,4 @@
+import { clearStoredRenderDebugConfig } from "../render/renderDebugConfigPersistence";
 import { createCollapsibleControlPanel, createControlSection } from "./controlPanelPrimitives";
 
 export type DebugLayoutPanelHandle = {
@@ -27,14 +28,15 @@ export function createDebugLayoutPanel(host: HTMLElement): DebugLayoutPanelHandl
   const resetButton = document.createElement("button");
   resetButton.type = "button";
   resetButton.className = "qubok_evolve-control-button qubok_evolve-control-button--wide";
-  resetButton.textContent = "reset layout + reload";
+  resetButton.textContent = "reset layout + render config";
 
   const status = document.createElement("div");
   status.className = "qubok_evolve-control-note";
-  status.textContent = "clears widths + collapsed states only";
+  status.textContent = "clears layout + render debug values";
 
   resetButton.addEventListener("click", () => {
     const removedCount = clearDebugLayoutState();
+    clearStoredRenderDebugConfig();
     status.textContent = `cleared ${removedCount} stored ui keys · reloading`;
     window.setTimeout(() => window.location.reload(), 80);
   });

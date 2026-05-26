@@ -67,6 +67,8 @@ M45-J1 adds a render layers panel for grid, terrain, field vectors, obstacles, a
 
 M45-J2 adds a field vectors panel for editable vector rendering parameters: alpha, length scale, stride, and minimum magnitude. These controls edit existing render debug config values and sync with the shared render debug change event.
 
+M45-J3 persists render debug configuration in localStorage. Layer visibility and render debug numeric values survive reloads, while the debug UI layout reset panel can clear the stored render config when needed.
+
 M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel change event when damping checkboxes are toggled.
 
 ## Validation target
@@ -91,6 +93,7 @@ M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel ch
 - npm run test:control-stack-polish
 - npm run test:render-layers-panel
 - npm run test:field-vector-debug-panel
+- npm run test:render-debug-config-persistence
 - npm run test:editable-panel-resize
 - npm run test:demo-integration
 - npm run build

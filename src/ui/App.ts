@@ -6,7 +6,8 @@ import { createFieldVisualDebugPanel } from "./fieldVisualDebugPanel";
 import { createDebugLayoutPanel } from "./debugLayoutPanel";
 import { createRenderLayersPanel } from "./renderLayersPanel";
 import { createFieldVectorDebugPanel } from "./fieldVectorDebugPanel";
-import { DEFAULT_RENDER_DEBUG_CONFIG, toggleRenderDebugLayer, type RenderDebugConfig } from "../render/renderDebugConfig";
+import { toggleRenderDebugLayer, type RenderDebugConfig } from "../render/renderDebugConfig";
+import { loadStoredRenderDebugConfig, saveRenderDebugConfig } from "../render/renderDebugConfigPersistence";
 
 export type QubokEvolveAppHandle = {
   destroy: () => void;
@@ -62,11 +63,13 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
   const fieldDampingPanel = createFieldDampingControlPanel(controlStack, simulation);
 
   const perfOverlay = createPerfOverlay(overlayHost);
+  const initialRenderDebugConfig = loadStoredRenderDebugConfig();
   const pixiRenderer = await mountPixiRenderer({
     host: canvasHost,
     perfOverlay,
-    renderDebugConfig: DEFAULT_RENDER_DEBUG_CONFIG,
-    snapshotSource: (deltaSeconds) => simulation.step(deltaSeconds)
+    renderDebugConfig: initialRenderDebugConfig,
+    snapshotSource: (deltaSeconds) => simulation.step(deltaSeconds),
+    onRenderDebugConfigChange: saveRenderDebugConfig
   });
 
   const renderLayersPanel = createRenderLayersPanel(controlStack, pixiRenderer);

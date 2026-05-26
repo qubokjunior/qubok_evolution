@@ -88,7 +88,7 @@ for (const [scriptName, command] of [
   assert(packageJson.scripts.test.includes(scriptName), `npm run test must include ${scriptName}.`);
 }
 
-for (const requiredToken of ["DEFAULT_RENDER_DEBUG_CONFIG", "renderDebugConfig: DEFAULT_RENDER_DEBUG_CONFIG", "mountPixiRenderer", "createPerfOverlay", "createDemoSimulation"]) {
+for (const requiredToken of ["loadStoredRenderDebugConfig", "saveRenderDebugConfig", "initialRenderDebugConfig", "renderDebugConfig: initialRenderDebugConfig", "onRenderDebugConfigChange: saveRenderDebugConfig", "mountPixiRenderer", "createPerfOverlay", "createDemoSimulation"]) {
   assert(app.includes(requiredToken), "App bridge missing token: " + requiredToken);
 }
 for (const requiredToken of ["RENDER_DEBUG_LAYER_KEYS", '"1": "showGrid"', '"2": "showTerrainLayer"', '"3": "showFieldVectorLayer"', '"4": "showObstacleLayer"', '"5": "showAgents"', "handleRenderDebugShortcut", "toggleRenderDebugLayer", "pixiRenderer.getRenderDebugConfig()", "pixiRenderer.updateRenderDebugConfig(nextConfig)", "window.addEventListener(\"keydown\", handleRenderDebugShortcut)", "window.removeEventListener(\"keydown\", handleRenderDebugShortcut)", "isTextInputEvent", "event.repeat", "event.preventDefault()", "event.altKey", "event.ctrlKey", "event.metaKey"]) {

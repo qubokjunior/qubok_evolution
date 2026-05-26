@@ -65,6 +65,7 @@ export type PixiRendererOptions = {
   perfOverlay: PerfOverlaySink;
   snapshotSource: SimulationFrameSource;
   renderDebugConfig?: RenderDebugConfigPatch;
+  onRenderDebugConfigChange?: (config: RenderDebugConfig) => void;
 };
 
 export type PixiRendererHandle = {
@@ -127,6 +128,7 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
   const updateRenderDebugConfig = (patch: RenderDebugConfigPatch): void => {
     renderDebugConfig = makeRenderDebugConfig({ ...renderDebugConfig, ...patch });
     applyRenderDebugVisibility(renderDebugConfig, gridLayer, terrainLayer, fieldLayer, obstacleLayer, agentLayer);
+    options.onRenderDebugConfigChange?.(renderDebugConfig);
   };
 
   const drawStaticLayers = (): void => {
