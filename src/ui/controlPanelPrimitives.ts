@@ -98,10 +98,34 @@ export function createControlSection(...children: readonly HTMLElement[]): HTMLE
 
 export function createControlSubsection(titleText: string, ...children: readonly HTMLElement[]): HTMLElement {
   const section = createControlSection();
-  const title = document.createElement("div");
+  section.dataset.collapsed = "false";
+
+  const title = document.createElement("button");
+  title.type = "button";
   title.className = "qubok_evolve-control-subsection-title";
   title.textContent = titleText;
-  section.append(title, ...children);
+  title.setAttribute("aria-expanded", "true");
+
+  const body = document.createElement("div");
+  body.className = "qubok_evolve-control-subsection-body";
+  body.append(...children);
+
+  const toggleSubsectionCollapsed = (): void => {
+    const collapsed = section.dataset.collapsed !== "true";
+    section.dataset.collapsed = collapsed ? "true" : "false";
+    body.hidden = collapsed;
+    title.setAttribute("aria-expanded", collapsed ? "false" : "true");
+  };
+
+  title.addEventListener("click", toggleSubsectionCollapsed);
+  title.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      toggleSubsectionCollapsed();
+    }
+  });
+
+  section.append(title, body);
   return section;
 }
 

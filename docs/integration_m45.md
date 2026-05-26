@@ -53,6 +53,8 @@ M45-H3 adds horizontal resizing for right-side editable panels. Panels resize fr
 
 M45-H4 adds horizontal resizing for the left read-only telemetry overlay. The overlay resizes from its right edge, clamps to safe min/max widths, and persists width in localStorage.
 
+M45-H5 makes named right-side editable subsections collapsible. Panel modules such as toggles, strength, sampling caps, visual shape, and sampling can now be expanded/collapsed independently inside each editable panel.
+
 M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel change event when damping checkboxes are toggled.
 
 ## Validation target
@@ -70,6 +72,7 @@ M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel ch
 - npm run test:editable-panel-collapse
 - npm run test:control-panel-primitives
 - npm run test:editable-panel-modules
+- npm run test:editable-subsection-collapse
 - npm run test:editable-panel-resize
 - npm run test:demo-integration
 - npm run build
