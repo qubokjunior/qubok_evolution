@@ -18,7 +18,7 @@ m40 shipped: environmental field render snapshot and Pixi vector debug layer.
 
 m41 shipped: render debug controls, keyboard layer visibility toggles, and grouped overlay metrics.
 
-m42 in progress: field decay/diffusion foundation.
+m42 shipped: field decay/diffusion foundation with deterministic dynamics, benchmark, demo wiring, and overlay metrics.
 
 ## terrain/material track
 
@@ -43,25 +43,20 @@ Shipped sequence:
 - field movement metrics and overlay labels;
 - field render snapshot;
 - Pixi vector debug layer with decimated arrows and field render metrics;
-- field vector visibility and render debug controls.
+- field vector visibility and render debug controls;
+- deterministic field decay/diffusion step with scratch buffers, metrics, benchmark, demo wiring, and overlay labels.
 
-Current milestone:
-- m42 field decay/diffusion foundation.
-
-M42 scope:
-- deterministic per-cell decay for field channels;
-- simple neighbor diffusion for field channels;
-- field dynamics metrics;
-- focused tests before demo integration.
-
-Follow-up candidates:
-- field sources/sinks;
-- field force integration separated from movement if field systems grow;
+Next candidates:
+- m43 field sources/sinks;
+- later field force integration separated from movement if field systems grow;
 - later field transport/advection branch.
 
 ## controller/brain track
 
 Goal: introduce decision logic after sensing and morphology foundations are stable.
+
+Candidate:
+- controller/brain first pass after field dynamics/source semantics are stable.
 
 ## render/performance track
 
