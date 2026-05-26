@@ -1,6 +1,6 @@
 # qubok_evolve milestones
 
-Compact milestone index through m45. Older early milestones are summarized at the system level; recent lifecycle, terrain, field, and render-debug milestones are listed with stricter implementation detail.
+Compact milestone index through m46. Older early milestones are summarized at the system level; recent lifecycle, terrain, field, and render-debug milestones are listed with stricter implementation detail.
 
 | Milestone | Focus | Status |
 |---|---|---|
@@ -49,10 +49,12 @@ Compact milestone index through m45. Older early milestones are summarized at th
 | m43 | Field sources/sinks foundation for deterministic emission and absorption into environmental fields, demo wiring, overlay metrics, tests, and benchmark. | complete |
 | m44 | Field source semantics tuning and visualization QA with runtime visual and overlay/readout guards. | complete |
 | m45 | Obstacle/terrain damping sources, editable debug parameters, panel persistence, render layer controls, and debug config preset import/export UX. | complete |
+| m46 | Deterministic environmental field transport/advection planning and implementation track. | planned |
 
 ## Current next-step candidates
 
-- m46 candidate: field transport/advection research spike or field-force separation if the next track remains fluid-like fields.
-- Alternative: signed-distance-field correction if the next track returns to terrain/material response.
-- Alternative: controller/brain first pass if the next milestone should start behavior decision logic.
-- Later: terrain editor tools, morphology compiler/editor, workerization, and WebGPU experiments.
+- m46-A1: core advection API + deterministic unit tests, no demo wiring.
+- m46-A2: benchmark + metrics struct.
+- m46-A3: demo wiring behind conservative config.
+- m46-A4: overlay metrics/readouts.
+- Later: field-force separation, signed-distance-field correction, controller/brain layer, terrain editor tools, morphology compiler/editor, workerization, and WebGPU experiments.
