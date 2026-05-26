@@ -1,7 +1,7 @@
 import { assertFiniteNumber, assertNonNegativeInteger } from "./arrays";
 import { forEachNeighborInRadius, type RadiusNeighborQueryStats } from "./neighborQuery";
 import type { SpatialHashGrid } from "./spatialHash";
-import type { WorldState } from "./world";
+import { killAgent, type WorldState } from "./world";
 
 export const PREDATOR_PREY_SYSTEM_VERSION = "qubok_evolve.predator_prey.v1" as const;
 
@@ -280,7 +280,7 @@ function applyAttack(
   if (world.health[preyIndex] <= 0 && world.alive[preyIndex] === 1) {
     killed = true;
     preyEnergyHarvested = Math.max(0, world.energy[preyIndex]) * config.preyEnergyHarvestRatio;
-    world.alive[preyIndex] = 0;
+    killAgent(world, preyIndex);
     world.health[preyIndex] = 0;
     world.energy[preyIndex] = 0;
     world.kills[predatorIndex] = Math.min(UINT16_MAX, world.kills[predatorIndex] + 1);

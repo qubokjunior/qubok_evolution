@@ -1,5 +1,5 @@
 import { assertFiniteNumber } from "./arrays";
-import type { WorldState } from "./world";
+import { killAgent, type WorldState } from "./world";
 
 export const ENERGY_SYSTEM_VERSION = "qubok_evolve.energy.v1" as const;
 
@@ -97,7 +97,7 @@ export function applyEnergySurvival(world: WorldState, config: EnergySurvivalCon
     if (killOnZeroHealth && world.health[index] <= 0) {
       world.health[index] = 0;
       world.energy[index] = 0;
-      world.alive[index] = 0;
+      killAgent(world, index);
       deathsThisStep += 1;
       continue;
     }
