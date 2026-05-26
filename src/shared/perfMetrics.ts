@@ -3,6 +3,7 @@ export const PERF_METRICS_VERSION = "qubok_evolve.perf_metrics.v1" as const;
 export const PERF_METRIC_NAMES = [
   "fps", "frameMs", "renderMsPerFrame", "simMsPerTick", "entityCount", "aliveCount", "averageEnergy01", "tick",
   "movementIntegratedCount", "movementAliveCount", "movementDistanceSum", "terrainMovementSampleCount", "terrainMovementCostSum", "terrainFrictionSum", "terrainDragSum", "fieldMovementSampleCount", "fieldFlowXSum", "fieldFlowYSum", "fieldFlowMagnitudeSum",
+  "fieldDynamicsMs", "fieldDynamicsActiveCellCount", "fieldDynamicsUpdatedCellCount", "fieldDynamicsTransferCount", "fieldDynamicsMagnitudeLoss", "fieldDynamicsMagnitudeAfter",
   "obstacleResponseMs", "obstacleResponseForces", "obstacleResponseHits", "obstacleResponseCellChecks", "obstacleResponseSkippedCells", "obstacleResponseLimitHits", "obstacleResponseBoundaryHits",
   "obstacleLifecycleEvents", "obstacleLifecyclePressure", "obstacleSpawnBlockedAttempts", "obstacleSpawnFallbacks", "obstacleSpawnFailures", "obstacleReproductionBlocked", "obstacleReproductionFailures", "obstacleResourceRespawns",
   "obstacleRenderMs", "obstacleRenderCellCount", "terrainRenderMs", "terrainRenderCellCount", "terrainRenderTruncated", "fieldRenderMs", "fieldRenderVectorCount", "fieldRenderTruncated", "gridBuildMs", "neighborQueryMs", "neighborCandidates", "avgNeighborsPerAgent",
