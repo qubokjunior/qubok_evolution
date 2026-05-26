@@ -2,7 +2,7 @@
 
 High-performance realtime 2D artificial-life ecosystem simulator.
 
-Current status: m38 / 0.1.0-milestone.38.
+Current status: m39 / 0.1.0-milestone.39.
 
 ## What exists now
 
@@ -14,7 +14,7 @@ Implemented runtime foundations:
 - movement, spatial hash, neighbor query, resources, energy survival, reproduction, mutation, predator/prey interaction, and sector sensors;
 - obstacle mask used by sensing, soft movement response, spawn validation, lifecycle telemetry, and debug rendering;
 - free-list dead-slot reuse so death creates structural room for later births;
-- live performance/debug overlay with obstacle, terrain, sensor, reproduction, and world-slot telemetry;
+- live performance/debug overlay with obstacle, terrain, field, sensor, reproduction, and world-slot telemetry;
 - static tests guarding architecture boundaries, repo status, roadmap status, and lifecycle death routing;
 - terrain/material data layer with deterministic cell/material sampling;
 - terrain render snapshot foundation for terrain debug visualization;
@@ -22,7 +22,8 @@ Implemented runtime foundations:
 - terrain movement query integration using material friction, drag, and movement cost;
 - terrain resource-affinity spawning and respawning;
 - terrain-aware sensor sampling on controlled cadence;
-- terrain-aware offspring placement for reproduction.
+- terrain-aware offspring placement for reproduction;
+- low-resolution environmental flow field with movement integration and debug overlay metrics.
 
 ## Commands
 
@@ -38,6 +39,8 @@ Targeted checks:
 ```powershell
 npm run test:repo-status
 npm run test:roadmap-status
+npm run test:field
+npm run test:movement
 npm run test:terrain
 npm run test:terrain-render-snapshot
 npm run test:terrain-debug-render-layer
@@ -59,13 +62,14 @@ http://127.0.0.1:5173/
 
 ## Milestones and docs
 
-- `docs/milestones.md` — compact milestone index through m38.
-- `docs/roadmap.md` — development tracks after m38.
+- `docs/milestones.md` — compact milestone index through m39.
+- `docs/roadmap.md` — development tracks after m39.
 - `docs/architecture_tracks.md` — boundary contracts for future work.
 - `docs/world_state.md` — typed-array world state and lifecycle slot contract.
 - `docs/integration_m36.md` — terrain resource-affinity milestone.
 - `docs/integration_m37.md` — terrain-aware sensor sampling milestone.
 - `docs/integration_m38.md` — terrain-aware reproduction placement milestone.
+- `docs/integration_m39.md` — environmental flow field milestone.
 
 ## Boundary rule
 
