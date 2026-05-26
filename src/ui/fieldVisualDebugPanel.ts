@@ -1,6 +1,6 @@
 import type { PixiRendererHandle } from "../render/pixiRenderer";
 import type { RenderDebugConfig, RenderDebugConfigPatch } from "../render/renderDebugConfig";
-import { createBooleanControl, createCollapsibleControlPanel, createControlFooter, createControlSection, createNumericControl, type NumericControlSpec } from "./controlPanelPrimitives";
+import { createBooleanControl, createCollapsibleControlPanel, createControlFooter, createControlSubsection, createNumericControl, type NumericControlSpec } from "./controlPanelPrimitives";
 
 export type FieldVisualDebugPanelHandle = {
   readonly destroy: () => void;
@@ -53,9 +53,13 @@ export function createFieldVisualDebugPanel(host: HTMLElement, renderer: PixiRen
     }
   });
 
+  const visualShapeControls = numericControls.slice(0, 2);
+  const samplingControls = numericControls.slice(2);
+
   panel.body.append(
-    createControlSection(enabledToggle.row),
-    createControlSection(...numericControls.map((control) => control.row)),
+    createControlSubsection("visibility", enabledToggle.row),
+    createControlSubsection("visual shape", ...visualShapeControls.map((control) => control.row)),
+    createControlSubsection("sampling", ...samplingControls.map((control) => control.row)),
     footer
   );
 

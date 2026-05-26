@@ -1,5 +1,5 @@
 import type { DemoSimulationFieldDampingConfig, DemoSimulationFieldDampingConfigPatch, DemoSimulationHandle } from "../sim/demoSimulation";
-import { createBooleanControl, createCollapsibleControlPanel, createControlFooter, createControlSection, createNumericControl, type NumericControlSpec } from "./controlPanelPrimitives";
+import { createBooleanControl, createCollapsibleControlPanel, createControlFooter, createControlSubsection, createNumericControl, type NumericControlSpec } from "./controlPanelPrimitives";
 
 export type FieldDampingControlPanelHandle = {
   readonly destroy: () => void;
@@ -53,9 +53,13 @@ export function createFieldDampingControlPanel(host: HTMLElement, simulation: De
     }
   });
 
+  const strengthControls = numericControls.slice(0, 2);
+  const samplingCapControls = numericControls.slice(2);
+
   panel.body.append(
-    createControlSection(obstacleToggle.row, terrainToggle.row),
-    createControlSection(...numericControls.map((control) => control.row)),
+    createControlSubsection("toggles", obstacleToggle.row, terrainToggle.row),
+    createControlSubsection("strength", ...strengthControls.map((control) => control.row)),
+    createControlSubsection("sampling caps", ...samplingCapControls.map((control) => control.row)),
     footer
   );
 

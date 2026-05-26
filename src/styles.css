@@ -323,3 +323,18 @@ body {
 .qubok_evolve-control-body[hidden] {
   display: none;
 }
+
+
+.qubok_evolve-control-subsection-title {
+  margin: 0 0 5px;
+  color: #8ea1b5;
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.qubok_evolve-control-subsection-title + .qubok_evolve-control-number-row,
+.qubok_evolve-control-subsection-title + .qubok_evolve-control-check-row {
+  margin-top: 0;
+}

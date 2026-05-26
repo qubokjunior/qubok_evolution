@@ -47,6 +47,8 @@ M45-G2 adds collapsible editable control panels. Right-side panels keep their ti
 
 M45-H1 extracts shared editable panel primitives for collapsible panels, boolean controls, numeric range/number pairs, sections, footers, and reset behavior. Field damping and agent field debug panels now use the same primitive layer without changing visual behavior.
 
+M45-H2 splits right-side editable panels into named subsections. Field damping is grouped into toggles, strength, and sampling caps; agent field debug is grouped into visibility, visual shape, and sampling.
+
 M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel change event when damping checkboxes are toggled.
 
 ## Validation target
@@ -62,5 +64,6 @@ M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel ch
 - npm run test:overlay-collapse
 - npm run test:editable-panel-collapse
 - npm run test:control-panel-primitives
+- npm run test:editable-panel-modules
 - npm run test:demo-integration
 - npm run build

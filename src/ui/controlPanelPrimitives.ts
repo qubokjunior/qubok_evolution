@@ -80,6 +80,15 @@ export function createControlSection(...children: readonly HTMLElement[]): HTMLE
   return section;
 }
 
+export function createControlSubsection(titleText: string, ...children: readonly HTMLElement[]): HTMLElement {
+  const section = createControlSection();
+  const title = document.createElement("div");
+  title.className = "qubok_evolve-control-subsection-title";
+  title.textContent = titleText;
+  section.append(title, ...children);
+  return section;
+}
+
 export function createControlFooter(options: {
   readonly resetLabel?: string;
   readonly infoText: string;
