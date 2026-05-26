@@ -22,13 +22,19 @@ const perfMetrics = readText("src/shared/perfMetrics.ts");
 const energy = readText("src/sim/energy.ts");
 const predatorPrey = readText("src/sim/predatorPrey.ts");
 const lifecyclePressureTest = readText("scripts/test-lifecycle-pressure.mjs");
+const deathPathAuditTest = readText("scripts/test-death-path-audit.mjs");
 
-assert(packageJson.version === "0.1.0-milestone.28", "package.json version must be 0.1.0-milestone.28.");
-assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.28"'), "appVersion must expose milestone.28.");
-assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m28"'), "appVersion must expose m28 overlay label.");
+assert(packageJson.version === "0.1.0-milestone.29", "package.json version must be 0.1.0-milestone.29.");
+assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.29"'), "appVersion must expose milestone.29.");
+assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m29"'), "appVersion must expose m29 overlay label.");
 assert(energy.includes("killAgent(world, index)"), "energy deaths must use killAgent so dead slots enter the free-list.");
 assert(predatorPrey.includes("killAgent(world, preyIndex)"), "predator/prey kills must use killAgent so dead slots enter the free-list.");
-assert(lifecyclePressureTest.includes("death -> reusable slot -> birth"), "lifecycle pressure test must document the m28 loop.");
+assert(lifecyclePressureTest.includes("death -> reusable slot -> birth"), "lifecycle pressure test must document the m29 loop.");
+assert(deathPathAuditTest.includes("direct alive-zero writes"), "death path audit must scan direct alive-zero writes.");
+assert(deathPathAuditTest.includes("energy.ts must route death through killAgent"), "death path audit must lock energy death routing.");
+assert(deathPathAuditTest.includes("predatorPrey.ts must route kills through killAgent"), "death path audit must lock predator/prey kill routing.");
+assert(packageJson.scripts["test:death-path-audit"] === "node scripts/test-death-path-audit.mjs", "package.json must expose test:death-path-audit.");
+assert(packageJson.scripts.test.includes("test:death-path-audit"), "npm run test must include death path audit.");
 
 for (const forbiddenImport of ["../render/", "./render/", "../ui/", "./ui/", "pixi.js", "react"]) {
   assert(!demoSimulation.includes(forbiddenImport), `demoSimulation must not import forbidden boundary token: ${forbiddenImport}`);

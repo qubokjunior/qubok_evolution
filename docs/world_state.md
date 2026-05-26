@@ -67,3 +67,14 @@ This matters because m26 introduced dead-slot reuse through `reusableSlots`, and
 `death -> reusableSlotCount increments -> reproduction/spawn reuses the slot -> spawnReusedSlotCount increments`.
 
 The new lifecycle-pressure test configures a full-capacity demo world, forces one energy death, keeps one parent reproduction-eligible, and verifies that the same tick kills an agent, creates a reusable slot, births a child, and reuses the dead slot without appending beyond capacity.
+
+## m29 death-path audit
+
+Milestone 29 adds a static lifecycle guard: runtime systems outside `src/sim/world.ts` may not write `alive[index] = 0` directly.
+
+All death paths must route through `killAgent(world, index)`, because `killAgent()` is now responsible for both:
+
+1. flipping the alive bit;
+2. adding the dead slot to `reusableSlots` exactly once.
+
+This protects the m26 free-list contract from future systems that might otherwise bypass reusable slot creation.
