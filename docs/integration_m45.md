@@ -35,6 +35,8 @@ M45-C adds runtime-editable damping controls: 6/7 toggle obstacle/terrain field 
 
 M45-D adds a compact field damping control panel with checkboxes, sliders, exact number fields, min/max ranges, float/integer steps, and reset-to-initial behavior.
 
+M45-E2 adds a visual agent-field debug layer: when field vectors and agents are visible, sampled agents display a small halo plus directional field-influence arrow based on the nearest rendered field vector.
+
 M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel change event when damping checkboxes are toggled.
 
 ## Validation target
@@ -45,5 +47,6 @@ M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel ch
 - npm run test:field-damping-integration
 - npm run test:field-damping-controls
 - npm run test:field-damping-panel
+- npm run test:agent-field-visual-debug
 - npm run test:demo-integration
 - npm run build

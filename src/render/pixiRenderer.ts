@@ -113,9 +113,10 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
   const obstacleLayer = new Graphics();
   const terrainLayer = new Graphics();
   const fieldLayer = new Graphics();
+  const agentFieldInfluenceLayer = new Graphics();
   const agentLayer = new Container();
 
-  world.addChild(backgroundLayer, gridLayer, terrainLayer, fieldLayer, obstacleLayer, agentLayer);
+  world.addChild(backgroundLayer, gridLayer, terrainLayer, fieldLayer, obstacleLayer, agentFieldInfluenceLayer, agentLayer);
   app.stage.addChild(world);
   applyRenderDebugVisibility(renderDebugConfig, gridLayer, terrainLayer, fieldLayer, obstacleLayer, agentLayer);
 
@@ -286,6 +287,12 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
       obstacleLayer.clear();
     }
     const obstacleRenderMs = endObstacleRenderScope();
+
+    if (renderDebugConfig.showFieldVectorLayer && renderDebugConfig.showAgents) {
+      renderAgentFieldInfluenceLayer(agentFieldInfluenceLayer, frame.snapshot, frame.fieldRenderSnapshot, options.host.clientWidth, options.host.clientHeight);
+    } else {
+      agentFieldInfluenceLayer.clear();
+    }
 
     if (renderDebugConfig.showAgents) {
       renderSnapshot(agentLayer, glyphs, frame.snapshot, options.host.clientWidth, options.host.clientHeight);
@@ -483,6 +490,61 @@ function renderFieldVectorLayer(layer: Graphics, snapshot: FieldRenderSnapshot, 
 
   layer.stroke({ width: 1, color: 0x7cc7ff, alpha: config.fieldVectorAlpha });
 }
+
+function renderAgentFieldInfluenceLayer(layer: Graphics, snapshot: RenderSnapshot, fieldSnapshot: FieldRenderSnapshot, viewportWidth: number, viewportHeight: number): void {
+  layer.clear();
+  if (snapshot.count <= 0 || fieldSnapshot.sampleVectorCount <= 0) return;
+
+  const scaleX = viewportWidth / snapshot.worldWidth;
+  const scaleY = viewportHeight / snapshot.worldHeight;
+  const scale = Math.min(scaleX, scaleY);
+  const offsetX = (viewportWidth - snapshot.worldWidth * scale) * 0.5;
+  const offsetY = (viewportHeight - snapshot.worldHeight * scale) * 0.5;
+  const maxDebugAgents = Math.min(snapshot.count, 512);
+  const stride = Math.max(1, Math.ceil(snapshot.count / Math.max(1, maxDebugAgents)));
+
+  for (let index = 0; index < snapshot.count; index += stride) {
+    if (snapshot.alive[index] !== 1) continue;
+    const nearest = findNearestFieldVector(snapshot.x[index], snapshot.y[index], fieldSnapshot);
+    if (nearest < 0) continue;
+
+    const magnitude = fieldSnapshot.magnitude[nearest];
+    if (magnitude <= 0.02) continue;
+
+    const dirX = fieldSnapshot.flowX[nearest] / magnitude;
+    const dirY = fieldSnapshot.flowY[nearest] / magnitude;
+    const x = offsetX + snapshot.x[index] * scale;
+    const y = offsetY + snapshot.y[index] * scale;
+    const length = Math.max(4, Math.min(26, magnitude * 4.5));
+    const endX = x + dirX * length;
+    const endY = y + dirY * length;
+    const radius = Math.max(2, Math.min(8, snapshot.radius[index] * scale * 2.2));
+    const alpha = Math.max(0.12, Math.min(0.72, 0.16 + magnitude * 0.035));
+    const color = magnitude >= 6 ? 0xffcf6b : magnitude >= 2 ? 0x7cc7ff : 0x86e889;
+
+    layer.circle(x, y, radius).stroke({ width: 1, color, alpha: alpha * 0.55 });
+    layer.moveTo(x, y);
+    layer.lineTo(endX, endY);
+    layer.stroke({ width: 1, color, alpha });
+    layer.circle(endX, endY, 1.5).fill({ color, alpha });
+  }
+}
+
+function findNearestFieldVector(x: number, y: number, fieldSnapshot: FieldRenderSnapshot): number {
+  let bestIndex = -1;
+  let bestDistanceSq = Number.POSITIVE_INFINITY;
+  for (let index = 0; index < fieldSnapshot.sampleVectorCount; index += 1) {
+    const dx = fieldSnapshot.centerX[index] - x;
+    const dy = fieldSnapshot.centerY[index] - y;
+    const distanceSq = dx * dx + dy * dy;
+    if (distanceSq < bestDistanceSq) {
+      bestDistanceSq = distanceSq;
+      bestIndex = index;
+    }
+  }
+  return bestIndex;
+}
+
 
 function renderTerrainLayer(layer: Graphics, snapshot: TerrainRenderSnapshot, viewportWidth: number, viewportHeight: number): void {
   layer.clear();
