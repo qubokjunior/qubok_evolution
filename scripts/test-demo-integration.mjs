@@ -55,7 +55,7 @@ for (const marker of ["| m36 |", "| m37 |", "| m38 |", "| m39 |", "| m40 |", "| 
 }
 assert(roadmap.includes("m40 shipped: environmental field render snapshot and Pixi vector debug layer"), "roadmap must include m40 shipped note.");
 assert(roadmap.includes("m41 shipped: render debug controls"), "roadmap must include m41 shipped note.");
-assert(roadmap.includes("m43 in progress: field sources/sinks foundation"), "roadmap must include m42 current milestone.");
+assert(roadmap.includes("m43 shipped: field sources/sinks foundation"), "roadmap must include m43 shipped milestone.");
 assert(architectureTracks.includes("renderer must not own authoritative simulation state"), "architecture tracks must preserve sim/render boundary.");
 assert(integrationM40.includes("environmental field render snapshot"), "integration_m40 must describe field render snapshot.");
 assert(integrationM41.includes("render debug controls"), "integration_m41 must describe render debug controls.");

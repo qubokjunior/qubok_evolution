@@ -33,7 +33,7 @@ assert(readme.includes("docs/roadmap.md"), "README.md must link docs/roadmap.md.
 assert(roadmap.includes("m39 shipped: low-resolution environmental flow field sampled by movement"), "roadmap must include m39 field milestone.");
 assert(roadmap.includes("m40 shipped: environmental field render snapshot and Pixi vector debug layer"), "roadmap must include m40 field render milestone.");
 assert(roadmap.includes("m41 shipped: render debug controls"), "roadmap must include m41 shipped milestone.");
-assert(roadmap.includes("m43 in progress: field sources/sinks foundation"), "roadmap must include m42 current milestone.");
+assert(roadmap.includes("m43 shipped: field sources/sinks foundation"), "roadmap must include m43 shipped milestone.");
 assert(architectureTracks.includes("renderer must not own authoritative simulation state"), "architecture tracks must preserve sim/render boundary.");
 assert(field.includes("FIELD_LAYER_VERSION"), "field must expose FIELD_LAYER_VERSION.");
 assert(field.includes("sampleFieldAtPosition"), "field must expose sampleFieldAtPosition.");
@@ -61,7 +61,7 @@ assert(integrationM41.includes("overlay grouping"), "integration_m41 must descri
 assert(integrationM42.includes("decay") && integrationM42.includes("diffusion"), "integration_m42 must describe field decay/diffusion.");
 assert(packageJson.scripts.test.includes("test:roadmap-status"), "npm run test must include test:roadmap-status.");
 
-assert(roadmap.includes("m43 in progress: field sources/sinks foundation"), "roadmap must include m43 current milestone.");
+assert(roadmap.includes("m43 shipped: field sources/sinks foundation"), "roadmap must include m43 shipped milestone.");
 assert(integrationM43.includes("field sources") && integrationM43.includes("sinks"), "integration_m43 must describe field sources/sinks.");
 for (const requiredToken of ["FIELD_SOURCES_VERSION", "applyFieldSourcesAndSinks", "FieldSourceStepMetrics", "measureTotalFieldMagnitude"]) assert(fieldSources.includes(requiredToken), "fieldSources missing token: " + requiredToken);
 for (const requiredToken of ["fieldSourceStats", "fieldSourcesMs", "applyFieldSourcesAndSinks"]) assert(demoSimulation.includes(requiredToken), "demoSimulation missing field source token: " + requiredToken);

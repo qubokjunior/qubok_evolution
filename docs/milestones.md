@@ -46,7 +46,7 @@ Compact milestone index through m43. Older early milestones are summarized at th
 | m40 | Environmental field render snapshot and Pixi vector debug layer. | complete |
 | m41 | Render debug controls, field/terrain/obstacle visibility toggles, keyboard layer toggles, and grouped overlay metrics. | complete |
 | m42 | Field decay/diffusion foundation with deterministic field dynamics, metrics, benchmark, demo wiring, and overlay labels. | complete |
-| m43 | Field sources/sinks foundation for deterministic emission and absorption into environmental fields. | in progress |
+| m43 | Field sources/sinks foundation for deterministic emission and absorption into environmental fields, demo wiring, overlay metrics, tests, and benchmark. | complete |
 
 ## Current next-step candidates
 

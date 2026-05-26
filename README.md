@@ -26,7 +26,7 @@ Implemented runtime foundations:
 - environmental field render snapshot and Pixi vector debug layer;
 - render debug controls, keyboard layer toggles, and grouped overlay metrics;
 - field decay/diffusion foundation with deterministic dynamics, scratch buffers, metrics, benchmark, demo wiring, and overlay labels;
-- m43 milestone setup for field sources/sinks.
+- field sources/sinks foundation with deterministic resource-driven vector emission, agent absorption, demo wiring, metrics, overlay labels, tests, and benchmark.
 
 ## Commands
 
@@ -81,7 +81,7 @@ http://127.0.0.1:5173/
 - `docs/integration_m40.md` — environmental field render snapshot and Pixi vector debug layer.
 - `docs/integration_m41.md` — render debug controls and overlay grouping milestone.
 - `docs/integration_m42.md` — field decay/diffusion foundation milestone.
-- `docs/integration_m43.md` — field sources/sinks milestone setup.
+- `docs/integration_m43.md` — field sources/sinks foundation milestone.
 
 ## Boundary rule
 

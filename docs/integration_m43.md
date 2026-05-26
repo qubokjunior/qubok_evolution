@@ -1,19 +1,24 @@
 # Integration m43 — field sources and sinks foundation
 
-Milestone m43 starts from m42 / 0.1.0-milestone.42 and adds deterministic source/sink operations for environmental field layers.
+Milestone m43 ships on 0.1.0-milestone.43 and adds deterministic source/sink operations for environmental field layers.
 
 ## Goal
 
-M43 gives the existing field decay/diffusion system something explicit to process. Sources emit vector flow into field cells; sinks absorb existing field magnitude. The system remains simulation-only and renderer-agnostic.
+M43 gives the existing field decay/diffusion system explicit producers and absorbers. Sources emit vector flow into field cells; sinks absorb existing field magnitude. The system remains simulation-only and renderer-agnostic.
 
-## Planned scope
+## Shipped scope
 
-- add a focused field source/sink module;
-- support deterministic point source emission by world position;
-- support deterministic point sink absorption by world position;
-- expose source/sink step metrics;
-- add focused tests before wiring sources into demo resources/terrain/obstacles;
-- keep renderer and controller/brain systems untouched.
+- added `src/sim/fieldSources.ts`;
+- added deterministic `FieldPointSource` emission by world position;
+- added deterministic `FieldPointSink` absorption by world position;
+- exposed `FieldSourceStepMetrics`;
+- added focused source/sink tests and benchmark;
+- wired resources as small deterministic field vector sources in `demoSimulation.ts`;
+- wired living agents as clamped field sinks in `demoSimulation.ts`;
+- added reusable source/sink buffers cleared with `length = 0`;
+- added configurable limits: `fieldSourceMaxResources` and `fieldSinkMaxAgents`;
+- recorded field source/sink metrics in `pixiRenderer.ts`;
+- exposed overlay labels for source/sink count, touched cells, emitted/absorbed magnitude, and post-step magnitude.
 
 ## Out of scope
 
@@ -26,10 +31,17 @@ M43 gives the existing field decay/diffusion system something explicit to proces
 - WebGPU;
 - render rewrite.
 
-## Validation target
+## Validation
 
 - npm run test:field-sources
+- npm run test:field-sources-integration
+- npm run test:debug-overlay-groups
+- npm run test:demo-integration
 - npm run test:repo-status
 - npm run test:roadmap-status
-- npm run test:demo-integration
 - npm run build
+
+## Commits
+
+- `81b5351` — Wire field sources into demo simulation
+- `8a45a39` — Update m43 status tests

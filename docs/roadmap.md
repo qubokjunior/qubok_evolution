@@ -20,7 +20,7 @@ m41 shipped: render debug controls, keyboard layer visibility toggles, and group
 
 m42 shipped: field decay/diffusion foundation with deterministic dynamics, benchmark, demo wiring, and overlay metrics.
 
-m43 in progress: field sources/sinks foundation.
+m43 shipped: field sources/sinks foundation with demo wiring and overlay metrics.
 
 ## terrain/material track
 
@@ -46,7 +46,8 @@ Shipped sequence:
 - field render snapshot;
 - Pixi vector debug layer with decimated arrows and field render metrics;
 - field vector visibility and render debug controls;
-- deterministic field decay/diffusion step with scratch buffers, metrics, benchmark, demo wiring, and overlay labels.
+- deterministic field decay/diffusion step with scratch buffers, metrics, benchmark, demo wiring, and overlay labels;
+- deterministic field sources/sinks with resource-driven vector emission, agent absorption, demo wiring, metrics, benchmark, and overlay labels.
 
 Current milestone:
 - m43 field sources/sinks foundation.
