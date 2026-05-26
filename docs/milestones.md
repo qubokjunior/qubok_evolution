@@ -1,6 +1,6 @@
 # qubok_evolve milestones
 
-Compact milestone index through m42. Older early milestones are summarized at the system level; recent lifecycle, terrain, field, and render-debug milestones are listed with stricter implementation detail.
+Compact milestone index through m43. Older early milestones are summarized at the system level; recent lifecycle, terrain, field, and render-debug milestones are listed with stricter implementation detail.
 
 | Milestone | Focus | Status |
 |---|---|---|
@@ -46,8 +46,9 @@ Compact milestone index through m42. Older early milestones are summarized at th
 | m40 | Environmental field render snapshot and Pixi vector debug layer. | complete |
 | m41 | Render debug controls, field/terrain/obstacle visibility toggles, keyboard layer toggles, and grouped overlay metrics. | complete |
 | m42 | Field decay/diffusion foundation with deterministic field dynamics, metrics, benchmark, demo wiring, and overlay labels. | complete |
+| m43 | Field sources/sinks foundation for deterministic emission and absorption into environmental fields. | in progress |
 
 ## Current next-step candidates
 
-- m43 candidate: field sources/sinks or controller/brain first pass.
+- m43: field sources/sinks foundation. [in progress]
 - Later: field transport/advection, signed-distance-field correction, controller/brain layer, morphology compiler/editor, workerization, and WebGPU experiments.
