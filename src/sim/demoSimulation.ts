@@ -1,4 +1,4 @@
-import { applyEnergySurvival, type EnergySurvivalStats } from "./energy";
+﻿import { applyEnergySurvival, type EnergySurvivalStats } from "./energy";
 import { createRng, type DeterministicRng, type RngSeed } from "./rng";
 import { addForce, stepMovement, type MovementStepMetrics } from "./movement";
 import {
@@ -210,7 +210,16 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const spawnConfig = { maxAttempts: spawnMaxAttempts, clearanceRadius: spawnClearanceRadius };
   const initialAgentSpawnStats = spawnRandomAgentsAvoidingObstacles(world, initialAgentCount, rng, obstacleMask, spawnConfig);
   tuneDemoAgents(world, rng);
-  const initialResourceSpawnStats = spawnRandomResourcesAvoidingObstacles(resources, resourceTargetCount, rng, obstacleMask, spawnConfig);
+  const initialResourceSpawnStats =
+    resourceTargetCount > 0
+      ? spawnRandomResourcesAvoidingObstacles(resources, resourceTargetCount, rng, obstacleMask, spawnConfig)
+      : {
+          requestedCount: 0,
+          spawnedCount: 0,
+          blockedAttemptCount: 0,
+          fallbackUsedCount: 0,
+          failedCount: 0
+        };
   buildSpatialHashGrid(spatialGrid, world);
   rebuildResourceGrid(resources);
 
@@ -475,3 +484,4 @@ function seedDemoTerrain(terrain: TerrainLayer): void {
   setTerrainRectMaterial(terrain, terrain.worldWidth * 0.35, terrain.worldHeight * 0.18, terrain.worldWidth * 0.66, terrain.worldHeight * 0.46, 2);
   setTerrainRectMaterial(terrain, terrain.worldWidth * 0.58, terrain.worldHeight * 0.58, terrain.worldWidth, terrain.worldHeight, 3);
 }
+
