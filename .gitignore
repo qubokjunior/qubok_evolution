@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.tmp*/
+.tmp_render_snapshot_test/
+
+docs/_patch_backups/
+docs/_chat_context_bundle/
+docs/_project_state/
+
+*.bak
+*.before_*
+.DS_Store
+Thumbs.db
