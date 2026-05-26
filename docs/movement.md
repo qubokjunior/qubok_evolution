@@ -51,3 +51,14 @@ stepMovement()
 ```
 
 The movement integrator remains unchanged. This keeps obstacle response isolated and testable.
+## m21 obstacle response optimization
+
+The obstacle response force pass now supports bounded sampling. The movement integrator remains unchanged; all optimization happens before `stepMovement()` while accumulating force.
+
+```text
+obstacle mask
+  ↓ bounded local cell sampling
+world.fx / world.fy
+  ↓
+stepMovement()
+```

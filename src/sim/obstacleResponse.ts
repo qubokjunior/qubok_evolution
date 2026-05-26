@@ -9,7 +9,7 @@ import {
 } from "./obstacleMask";
 import type { WorldState } from "./world";
 
-export const OBSTACLE_RESPONSE_VERSION = "qubok_evolve.obstacle_response.v1" as const;
+export const OBSTACLE_RESPONSE_VERSION = "qubok_evolve.obstacle_response.v2" as const;
 
 export type ObstacleSoftResponseConfig = {
   /** Distance around each agent sampled for obstacle cells. */
@@ -24,6 +24,18 @@ export type ObstacleSoftResponseConfig = {
   /** Whether world boundaries act as soft obstacles. Default true. */
   readonly includeWorldBounds?: boolean;
 
+  /** When true, samples only world bounds and skips obstacle mask cells. Default false. */
+  readonly boundsOnly?: boolean;
+
+  /** Samples every Nth obstacle cell inside the local query rectangle. Default 1. */
+  readonly cellStride?: number;
+
+  /** Stable phase offset for stride sampling. Default 0. */
+  readonly cellStridePhase?: number;
+
+  /** Caps obstacle mask cell checks per agent. Default is effectively unlimited. */
+  readonly maxObstacleCellChecksPerAgent?: number;
+
   /** Avoids unstable normalization near exact obstacle centers. */
   readonly minimumDistance?: number;
 };
@@ -33,6 +45,8 @@ export type ObstacleSoftResponseStats = {
   readonly checkedCount: number;
   readonly skippedDeadCount: number;
   readonly obstacleCellChecks: number;
+  readonly obstacleCellsSkippedByStride: number;
+  readonly obstacleCellCheckLimitHits: number;
   readonly obstacleHits: number;
   readonly boundaryHits: number;
   readonly forceAppliedCount: number;
@@ -45,6 +59,10 @@ type ResolvedObstacleSoftResponseConfig = {
   readonly forceScale: number;
   readonly maxForcePerAgent: number;
   readonly includeWorldBounds: boolean;
+  readonly boundsOnly: boolean;
+  readonly cellStride: number;
+  readonly cellStridePhase: number;
+  readonly maxObstacleCellChecksPerAgent: number;
   readonly minimumDistance: number;
 };
 
@@ -52,11 +70,17 @@ type ForceAccumulator = {
   x: number;
   y: number;
   obstacleCellChecks: number;
+  obstacleCellsSkippedByStride: number;
+  obstacleCellCheckLimitHits: number;
   obstacleHits: number;
   boundaryHits: number;
 };
 
 const DEFAULT_MINIMUM_DISTANCE = 0.0001;
+const DEFAULT_CELL_STRIDE = 1;
+const DEFAULT_CELL_STRIDE_PHASE = 0;
+const DEFAULT_MAX_OBSTACLE_CELL_CHECKS_PER_AGENT = 1_000_000_000;
+const EFFECTIVELY_UNLIMITED_FORCE = 1_000_000_000;
 
 export function applyObstacleSoftResponse(
   world: WorldState,
@@ -69,6 +93,8 @@ export function applyObstacleSoftResponse(
   let checkedCount = 0;
   let skippedDeadCount = 0;
   let obstacleCellChecks = 0;
+  let obstacleCellsSkippedByStride = 0;
+  let obstacleCellCheckLimitHits = 0;
   let obstacleHits = 0;
   let boundaryHits = 0;
   let forceAppliedCount = 0;
@@ -87,17 +113,23 @@ export function applyObstacleSoftResponse(
       x: 0,
       y: 0,
       obstacleCellChecks: 0,
+      obstacleCellsSkippedByStride: 0,
+      obstacleCellCheckLimitHits: 0,
       obstacleHits: 0,
       boundaryHits: 0
     };
 
-    accumulateObstacleMaskForce(world, mask, agentIndex, resolved, accumulator);
+    if (!resolved.boundsOnly) {
+      accumulateObstacleMaskForce(world, mask, agentIndex, resolved, accumulator);
+    }
 
     if (resolved.includeWorldBounds) {
       accumulateBoundaryForce(world, agentIndex, resolved, accumulator);
     }
 
     obstacleCellChecks += accumulator.obstacleCellChecks;
+    obstacleCellsSkippedByStride += accumulator.obstacleCellsSkippedByStride;
+    obstacleCellCheckLimitHits += accumulator.obstacleCellCheckLimitHits;
     obstacleHits += accumulator.obstacleHits;
     boundaryHits += accumulator.boundaryHits;
 
@@ -122,6 +154,8 @@ export function applyObstacleSoftResponse(
     checkedCount,
     skippedDeadCount,
     obstacleCellChecks,
+    obstacleCellsSkippedByStride,
+    obstacleCellCheckLimitHits,
     obstacleHits,
     boundaryHits,
     forceAppliedCount,
@@ -143,11 +177,33 @@ function accumulateObstacleMaskForce(
   const maxCellX = Math.min(mask.columns - 1, Math.floor((world.x[agentIndex] + radius) / mask.cellSize));
   const minCellY = Math.max(0, Math.floor((world.y[agentIndex] - radius) / mask.cellSize));
   const maxCellY = Math.min(mask.rows - 1, Math.floor((world.y[agentIndex] + radius) / mask.cellSize));
+  const candidateColumnCount = maxCellX >= minCellX ? maxCellX - minCellX + 1 : 0;
+  const candidateRowCount = maxCellY >= minCellY ? maxCellY - minCellY + 1 : 0;
+  const candidateCellCount = candidateColumnCount * candidateRowCount;
 
-  for (let cellY = minCellY; cellY <= maxCellY; cellY += 1) {
+  if (candidateCellCount <= 0) {
+    return;
+  }
+
+  let sampledCellCount = 0;
+  let limitReached = false;
+
+  for (let cellY = minCellY; cellY <= maxCellY && !limitReached; cellY += config.cellStride) {
     const centerY = getObstacleCellCenterY(mask, cellY);
 
-    for (let cellX = minCellX; cellX <= maxCellX; cellX += 1) {
+    for (let cellX = minCellX; cellX <= maxCellX; cellX += config.cellStride) {
+      if (sampledCellCount < config.cellStridePhase) {
+        sampledCellCount += 1;
+        continue;
+      }
+
+      if (accumulator.obstacleCellChecks >= config.maxObstacleCellChecksPerAgent) {
+        accumulator.obstacleCellCheckLimitHits += 1;
+        limitReached = true;
+        break;
+      }
+
+      sampledCellCount += 1;
       accumulator.obstacleCellChecks += 1;
 
       const cellId = getObstacleCellIdForCoordinates(mask, cellX, cellY);
@@ -173,6 +229,8 @@ function accumulateObstacleMaskForce(
       accumulator.obstacleHits += 1;
     }
   }
+
+  accumulator.obstacleCellsSkippedByStride += Math.max(0, candidateCellCount - sampledCellCount);
 }
 
 function accumulateBoundaryForce(
@@ -204,8 +262,12 @@ function accumulateBoundaryForce(
 function resolveConfig(config: ObstacleSoftResponseConfig): ResolvedObstacleSoftResponseConfig {
   const responseRadius = config.responseRadius;
   const forceScale = config.forceScale;
-  const maxForcePerAgent = config.maxForcePerAgent ?? Number.POSITIVE_INFINITY;
+  const maxForcePerAgent = config.maxForcePerAgent ?? EFFECTIVELY_UNLIMITED_FORCE;
   const includeWorldBounds = config.includeWorldBounds ?? true;
+  const boundsOnly = config.boundsOnly ?? false;
+  const cellStride = config.cellStride ?? DEFAULT_CELL_STRIDE;
+  const cellStridePhase = config.cellStridePhase ?? DEFAULT_CELL_STRIDE_PHASE;
+  const maxObstacleCellChecksPerAgent = config.maxObstacleCellChecksPerAgent ?? DEFAULT_MAX_OBSTACLE_CELL_CHECKS_PER_AGENT;
   const minimumDistance = config.minimumDistance ?? DEFAULT_MINIMUM_DISTANCE;
 
   assertFiniteNumber(responseRadius, "obstacle responseRadius");
@@ -225,6 +287,20 @@ function resolveConfig(config: ObstacleSoftResponseConfig): ResolvedObstacleSoft
     throw new Error(`obstacle maxForcePerAgent must be positive. Received: ${maxForcePerAgent}`);
   }
 
+  if (!Number.isInteger(cellStride) || cellStride <= 0) {
+    throw new Error(`obstacle cellStride must be a positive integer. Received: ${cellStride}`);
+  }
+
+  if (!Number.isInteger(cellStridePhase) || cellStridePhase < 0) {
+    throw new Error(`obstacle cellStridePhase must be a non-negative integer. Received: ${cellStridePhase}`);
+  }
+
+  if (!Number.isInteger(maxObstacleCellChecksPerAgent) || maxObstacleCellChecksPerAgent <= 0) {
+    throw new Error(
+      `obstacle maxObstacleCellChecksPerAgent must be a positive integer. Received: ${maxObstacleCellChecksPerAgent}`
+    );
+  }
+
   if (minimumDistance <= 0) {
     throw new Error(`obstacle minimumDistance must be positive. Received: ${minimumDistance}`);
   }
@@ -234,6 +310,10 @@ function resolveConfig(config: ObstacleSoftResponseConfig): ResolvedObstacleSoft
     forceScale,
     maxForcePerAgent,
     includeWorldBounds,
+    boundsOnly,
+    cellStride,
+    cellStridePhase,
+    maxObstacleCellChecksPerAgent,
     minimumDistance
   };
 }

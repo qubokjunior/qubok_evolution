@@ -19,11 +19,11 @@ const debugOverlay = readText("src/render/debugOverlay.ts");
 const pixiRenderer = readText("src/render/pixiRenderer.ts");
 const obstacleResponse = readText("src/sim/obstacleResponse.ts");
 
-assert(packageJson.version === "0.1.0-milestone.20", "package.json version must be 0.1.0-milestone.20.");
-assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.20"'), "appVersion must expose milestone.20.");
-assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m20"'), "appVersion must expose m20 overlay label.");
+assert(packageJson.version === "0.1.0-milestone.21", "package.json version must be 0.1.0-milestone.21.");
+assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.21"'), "appVersion must expose milestone.21.");
+assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m21"'), "appVersion must expose m21 overlay label.");
 
-assert(!debugOverlay.includes('badge.textContent = "m19"'), "debug overlay must not hardcode m19.");
+assert(!debugOverlay.includes('badge.textContent = "m20"'), "debug overlay must not hardcode m20.");
 assert(debugOverlay.includes("../shared/appVersion"), "debug overlay must read milestone label from shared/appVersion.");
 
 for (const forbiddenImport of ["../render/", "./render/", "../ui/", "./ui/", "pixi.js", "react"]) {
@@ -33,30 +33,28 @@ for (const forbiddenImport of ["../render/", "./render/", "../ui/", "./ui/", "pi
 for (const requiredDemoToken of [
   "applyObstacleSoftResponse",
   "obstacleResponseStats",
-  "obstacleResponseMs",
-  "obstacleResponseRadius",
-  "obstacleResponseForceScale",
-  "obstacleResponseMaxForce"
+  "obstacleResponseCellStride",
+  "obstacleResponseMaxCellChecksPerAgent",
+  "obstacleResponseBoundsOnly"
 ]) {
-  assert(demoSimulation.includes(requiredDemoToken), `demoSimulation is missing obstacle response token: ${requiredDemoToken}`);
+  assert(demoSimulation.includes(requiredDemoToken), `demoSimulation is missing obstacle response optimization token: ${requiredDemoToken}`);
 }
 
 for (const requiredResponseToken of [
   "OBSTACLE_RESPONSE_VERSION",
-  "applyObstacleSoftResponse",
-  "responseRadius",
-  "forceScale",
-  "maxForcePerAgent",
-  "forceAppliedCount"
+  "cellStride",
+  "maxObstacleCellChecksPerAgent",
+  "boundsOnly",
+  "obstacleCellsSkippedByStride",
+  "obstacleCellCheckLimitHits"
 ]) {
-  assert(obstacleResponse.includes(requiredResponseToken), `obstacle response module is missing token: ${requiredResponseToken}`);
+  assert(obstacleResponse.includes(requiredResponseToken), `obstacle response module is missing optimization token: ${requiredResponseToken}`);
 }
 
 for (const requiredOverlayToken of [
-  "obstacleResponseMs",
-  "obstacleResponseForces",
-  "obstacleResponseHits",
-  "obstacleResponseBoundaryHits"
+  "obstacleResponseCellChecks",
+  "obstacleResponseSkippedCells",
+  "obstacleResponseLimitHits"
 ]) {
   assert(pixiRenderer.includes(requiredOverlayToken), `pixiRenderer is missing overlay metric token: ${requiredOverlayToken}`);
   assert(debugOverlay.includes(requiredOverlayToken), `debugOverlay is missing overlay row token: ${requiredOverlayToken}`);

@@ -26,36 +26,74 @@ const { applyObstacleSoftResponse } = await import(pathToFileURL(join(temporaryD
 const entityCount = 5000;
 const world = createWorldState({ capacity: entityCount, worldWidth: 1024, worldHeight: 1024, sectorCount: 8 });
 const mask = createObstacleMask({ worldWidth: 1024, worldHeight: 1024, cellSize: 48 });
-const rng = createRng("qubok_evolve:bench:obstacle_response:m20");
+const rng = createRng("qubok_evolve:bench:obstacle_response:m21");
 spawnRandomAgents(world, entityCount, rng);
 seedDemoObstacleMask(mask);
 
-const start = performance.now();
-const stats = applyObstacleSoftResponse(world, mask, {
+const full = runCase("full", {
   responseRadius: 42,
   forceScale: 140,
   maxForcePerAgent: 220,
   includeWorldBounds: true
 });
-const obstacleResponseMs = performance.now() - start;
 
-clearForces(world);
+const stride2 = runCase("stride2", {
+  responseRadius: 42,
+  forceScale: 140,
+  maxForcePerAgent: 220,
+  includeWorldBounds: true,
+  cellStride: 2
+});
+
+const capped = runCase("capped32", {
+  responseRadius: 42,
+  forceScale: 140,
+  maxForcePerAgent: 220,
+  includeWorldBounds: true,
+  maxObstacleCellChecksPerAgent: 32
+});
+
+const boundsOnly = runCase("boundsOnly", {
+  responseRadius: 42,
+  forceScale: 140,
+  maxForcePerAgent: 220,
+  includeWorldBounds: true,
+  boundsOnly: true
+});
+
 await rm(temporaryDirectory, { force: true, recursive: true });
 
 console.log(JSON.stringify({
-  bench: "obstacle-response:m20",
+  bench: "obstacle-response:m21",
   entityCount,
   obstacleCellCount: mask.cellCount,
   occupiedCellCount: countOccupiedObstacleCells(mask),
-  obstacleResponseMs: round3(obstacleResponseMs),
-  checkedCount: stats.checkedCount,
-  obstacleCellChecks: stats.obstacleCellChecks,
-  obstacleHits: stats.obstacleHits,
-  boundaryHits: stats.boundaryHits,
-  forceAppliedCount: stats.forceAppliedCount,
-  totalForceMagnitude: round3(stats.totalForceMagnitude),
-  maxForceMagnitude: round3(stats.maxForceMagnitude)
+  full,
+  stride2,
+  capped,
+  boundsOnly
 }, null, 2));
+
+function runCase(name, config) {
+  clearForces(world);
+  const start = performance.now();
+  const stats = applyObstacleSoftResponse(world, mask, config);
+  const obstacleResponseMs = performance.now() - start;
+
+  return {
+    name,
+    obstacleResponseMs: round3(obstacleResponseMs),
+    checkedCount: stats.checkedCount,
+    obstacleCellChecks: stats.obstacleCellChecks,
+    obstacleCellsSkippedByStride: stats.obstacleCellsSkippedByStride,
+    obstacleCellCheckLimitHits: stats.obstacleCellCheckLimitHits,
+    obstacleHits: stats.obstacleHits,
+    boundaryHits: stats.boundaryHits,
+    forceAppliedCount: stats.forceAppliedCount,
+    totalForceMagnitude: round3(stats.totalForceMagnitude),
+    maxForceMagnitude: round3(stats.maxForceMagnitude)
+  };
+}
 
 async function transpileSimModule(sourceName, outputName) {
   const sourcePath = join(projectRoot, "src", "sim", sourceName);
