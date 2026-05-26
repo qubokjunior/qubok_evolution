@@ -25,3 +25,31 @@ No physical raycast per entity as the default perception model.
 - `separationVector`
 
 Fixed-width input is mandatory so brain cost does not explode with local density.
+
+## m17 sector aggregation hardening
+
+Milestone 17 keeps the fixed-width sector contract stable while making the existing sector buffers more meaningful for future brains.
+
+### Populated sector channels
+
+| channel | m17 source | meaning |
+|---|---|---|
+| `sectorAlly` | visible same-species agents | weighted ally/social density by angular sector |
+| `sectorThreat` | visible non-same-species agents | weighted local threat pressure by angular sector |
+| `sectorFood` | visible resources from `ResourceLayer` | weighted food/resource signal by angular sector |
+| `sectorObstacle` | world-border proximity only | provisional obstacle channel until real terrain/obstacle masks exist |
+
+### Weighting
+
+All channels use proximity falloff based on `(1 - distance / radius)^2`, then multiply by a cheap local weight:
+
+- ally: neighbor energy ratio,
+- threat: neighbor mouth power, speed and armor proxy,
+- food: resource energy and radius,
+- obstacle: boundary proximity.
+
+This deliberately does not change `sectorCount`. Brain inputs can keep the same fixed-width layout and later reinterpret the channel values as the controller matures.
+
+### Current limitation
+
+`sectorObstacle` is not terrain-aware yet. It only senses world bounds as a cheap placeholder/proxy. The later terrain milestone should replace or extend this with obstacle mask / signed distance field sampling.

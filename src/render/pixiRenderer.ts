@@ -119,6 +119,11 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("avgNeighborsPerAgent", frame.neighborQueryStats.avgNeighborsPerAgent);
     metrics.record("sensorVisibleNeighbors", frame.sensorStats.visibleNeighborCount);
     metrics.record("sensorSectorWrites", frame.sensorStats.sectorWrites);
+    metrics.record("sensorFoodVisibleCount", frame.sensorStats.foodVisibleCount);
+    metrics.record("sensorFoodSectorWrites", frame.sensorStats.foodSectorWrites);
+    metrics.record("sensorObstacleSectorWrites", frame.sensorStats.obstacleSectorWrites);
+    metrics.record("sensorFoodSignalSum", frame.sensorStats.foodSignalSum);
+    metrics.record("sensorObstacleSignalSum", frame.sensorStats.obstacleSignalSum);
     metrics.record("avgVisibleNeighborsPerAgent", frame.sensorStats.averageVisibleNeighborsPerCheckedAgent);
     metrics.record("attacksThisStep", frame.predatorPreyStats.attacksThisStep);
     metrics.record("killsThisStep", frame.predatorPreyStats.killsThisStep);
@@ -171,6 +176,11 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         sensorVisibleNeighbors: snapshot.values.sensorVisibleNeighbors,
         sensorSectorWrites: snapshot.values.sensorSectorWrites,
         avgVisibleNeighborsPerAgent: snapshot.values.avgVisibleNeighborsPerAgent,
+        sensorFoodVisibleCount: snapshot.values.sensorFoodVisibleCount,
+        sensorFoodSectorWrites: snapshot.values.sensorFoodSectorWrites,
+        sensorObstacleSectorWrites: snapshot.values.sensorObstacleSectorWrites,
+        sensorFoodSignalSum: snapshot.values.sensorFoodSignalSum,
+        sensorObstacleSignalSum: snapshot.values.sensorObstacleSignalSum,
         attacksThisStep: snapshot.values.attacksThisStep,
         killsThisStep: snapshot.values.killsThisStep,
         predatorDamageDealt: snapshot.values.predatorDamageDealt,
