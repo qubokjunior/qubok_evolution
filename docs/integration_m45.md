@@ -71,6 +71,8 @@ M45-J3 persists render debug configuration in localStorage. Layer visibility and
 
 M45-J4 persists editable field damping debug configuration in localStorage. Damping toggles, strengths, and sample caps survive reloads, and the debug UI layout reset panel clears the stored damping config.
 
+M45-K1 adds debug/config preset export. The debug UI layout panel can copy a JSON preset containing stored layout state, render debug config, and field damping config to the clipboard.
+
 M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel change event when damping checkboxes are toggled.
 
 ## Validation target
@@ -97,6 +99,7 @@ M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel ch
 - npm run test:field-vector-debug-panel
 - npm run test:render-debug-config-persistence
 - npm run test:field-damping-config-persistence
+- npm run test:debug-config-preset-export
 - npm run test:editable-panel-resize
 - npm run test:demo-integration
 - npm run build

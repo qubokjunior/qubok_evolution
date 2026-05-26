@@ -1,5 +1,6 @@
 import { clearStoredRenderDebugConfig } from "../render/renderDebugConfigPersistence";
 import { clearStoredFieldDampingConfig } from "../sim/fieldDampingConfigPersistence";
+import { serializeDebugConfigPreset } from "./debugConfigPreset";
 import { createCollapsibleControlPanel, createControlSection } from "./controlPanelPrimitives";
 
 export type DebugLayoutPanelHandle = {
@@ -26,6 +27,11 @@ export function createDebugLayoutPanel(host: HTMLElement): DebugLayoutPanelHandl
     defaultCollapsed: true
   });
 
+  const copyPresetButton = document.createElement("button");
+  copyPresetButton.type = "button";
+  copyPresetButton.className = "qubok_evolve-control-button qubok_evolve-control-button--wide";
+  copyPresetButton.textContent = "copy debug preset";
+
   const resetButton = document.createElement("button");
   resetButton.type = "button";
   resetButton.className = "qubok_evolve-control-button qubok_evolve-control-button--wide";
@@ -33,7 +39,18 @@ export function createDebugLayoutPanel(host: HTMLElement): DebugLayoutPanelHandl
 
   const status = document.createElement("div");
   status.className = "qubok_evolve-control-note";
-  status.textContent = "clears layout + debug config values";
+  status.textContent = "copy/export or clear stored debug values";
+
+  copyPresetButton.addEventListener("click", async () => {
+    const presetText = serializeDebugConfigPreset();
+    try {
+      await navigator.clipboard.writeText(presetText);
+      status.textContent = `copied debug preset · ${presetText.length} chars`;
+    } catch {
+      status.textContent = "clipboard unavailable · open devtools to inspect preset";
+      console.info("qubok_evolve debug preset", presetText);
+    }
+  });
 
   resetButton.addEventListener("click", () => {
     const removedCount = clearDebugLayoutState();
@@ -43,7 +60,7 @@ export function createDebugLayoutPanel(host: HTMLElement): DebugLayoutPanelHandl
     window.setTimeout(() => window.location.reload(), 80);
   });
 
-  panel.body.append(createControlSection(resetButton, status));
+  panel.body.append(createControlSection(copyPresetButton, resetButton, status));
 
   return {
     destroy: panel.destroy
