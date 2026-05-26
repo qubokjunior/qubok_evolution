@@ -1,4 +1,4 @@
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+﻿import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -12,7 +12,7 @@ const temporaryDirectory = join(projectRoot, ".tmp_obstacle_response_test");
 await rm(temporaryDirectory, { force: true, recursive: true });
 await mkdir(temporaryDirectory, { recursive: true });
 
-for (const moduleName of ["arrays.ts", "world.ts", "terrain.ts", "movement.ts", "obstacleMask.ts", "obstacleResponse.ts"]) {
+for (const moduleName of ["arrays.ts", "world.ts", "terrain.ts", "field.ts", "movement.ts", "obstacleMask.ts", "obstacleResponse.ts"]) {
   await transpileSimModule(moduleName, moduleName.replace(".ts", ".mjs"));
 }
 
@@ -158,6 +158,7 @@ async function transpileSimModule(sourceName, outputName) {
     .replaceAll('from "./arrays"', 'from "./arrays.mjs"')
     .replaceAll("from './arrays'", "from './arrays.mjs'")
     .replaceAll('from "./terrain"', 'from "./terrain.mjs"')
+    .replaceAll('from "./field"', 'from "./field.mjs"')
     .replaceAll("from './terrain'", "from './terrain.mjs'")
     .replaceAll('from "./world"', 'from "./world.mjs"')
     .replaceAll("from './world'", "from './world.mjs'")
@@ -213,3 +214,4 @@ function assertThrows(fn, label) {
     throw new Error(`${label}: expected function to throw`);
   }
 }
+
