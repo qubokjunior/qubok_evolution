@@ -56,7 +56,7 @@ const constantVelocity = createEnvironmentalFieldLayer({ worldWidth: 30, worldHe
 setFieldCell(transported, 0, 0, 8, 0);
 const transportMetrics = advectEnvironmentalField(transported, 1, { strength: 1, boundaryMode: "clamp", minActiveMagnitude: 0.000001 }, createFieldAdvectionScratch(transported), constantVelocity);
 assertEqual(transportMetrics.sampleCount, 3, "transport sample count");
-assertEqual(transportMetrics.advectedCellCount, 2, "transport changed source and target cells");
+assertEqual(transportMetrics.advectedCellCount, 1, "transport changed target cell only because clamp keeps source stable");
 assertAlmostEqual(transportMetrics.maxBacktraceDistanceCells, 1, 0.00001, "transport backtrace distance");
 assertAlmostEqual(sampleFieldAtPosition(transported, 5, 5).flowX, 8, 0.00001, "clamp keeps left edge source");
 assertAlmostEqual(sampleFieldAtPosition(transported, 15, 5).flowX, 8, 0.00001, "constant flow transports source right");
