@@ -102,4 +102,4 @@ Add a focused benchmark before UI integration:
 - M46-A2: benchmark + metrics struct;
 - M46-A3: demo wiring behind conservative config: sources/sinks -> damping -> advection -> dynamics;
 - M46-A4: overlay metrics/readouts;
-- M46-A5: optional editable debug controls only after core behavior is stable.
+- M46-A5: editable advection controls for enabled, strength, substeps, and minimum active magnitude.

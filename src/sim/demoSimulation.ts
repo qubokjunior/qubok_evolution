@@ -117,6 +117,15 @@ export type DemoSimulationFieldDampingConfig = {
 
 export type DemoSimulationFieldDampingConfigPatch = Partial<DemoSimulationFieldDampingConfig>;
 
+export type DemoSimulationFieldAdvectionConfig = {
+  readonly enableFieldAdvection: boolean;
+  readonly fieldAdvectionStrength: number;
+  readonly fieldAdvectionSubsteps: number;
+  readonly fieldAdvectionMinActiveMagnitude: number;
+};
+
+export type DemoSimulationFieldAdvectionConfigPatch = Partial<DemoSimulationFieldAdvectionConfig>;
+
 export type DemoSimulationStepResult = {
   readonly snapshot: RenderSnapshot;
   readonly obstacleMaskSnapshot: ObstacleMaskRenderSnapshot;
@@ -171,6 +180,8 @@ export type DemoSimulationHandle = {
   readonly getSnapshot: () => RenderSnapshot;
   readonly getFieldDampingConfig: () => DemoSimulationFieldDampingConfig;
   readonly updateFieldDampingConfig: (patch: DemoSimulationFieldDampingConfigPatch) => DemoSimulationFieldDampingConfig;
+  readonly getFieldAdvectionConfig: () => DemoSimulationFieldAdvectionConfig;
+  readonly updateFieldAdvectionConfig: (patch: DemoSimulationFieldAdvectionConfigPatch) => DemoSimulationFieldAdvectionConfig;
 };
 
 const DEFAULT_CAPACITY = 1536;
@@ -247,10 +258,10 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   let terrainFieldDampingScalePerSecond = clampFinite(config.terrainFieldDampingScalePerSecond ?? DEFAULT_TERRAIN_FIELD_DAMPING_SCALE_PER_SECOND, 0, 16);
   let fieldDampingMaxObstacleCells = clampInteger(config.fieldDampingMaxObstacleCells ?? DEFAULT_FIELD_DAMPING_MAX_OBSTACLE_CELLS, 0, 1_000_000);
   let fieldDampingMaxTerrainCells = clampInteger(config.fieldDampingMaxTerrainCells ?? DEFAULT_FIELD_DAMPING_MAX_TERRAIN_CELLS, 0, 1_000_000);
-  const enableFieldAdvection = config.enableFieldAdvection ?? DEFAULT_ENABLE_FIELD_ADVECTION;
-  const fieldAdvectionStrength = clampFinite(config.fieldAdvectionStrength ?? DEFAULT_FIELD_ADVECTION_STRENGTH, 0, 16);
-  const fieldAdvectionSubsteps = clampInteger(config.fieldAdvectionSubsteps ?? DEFAULT_FIELD_ADVECTION_SUBSTEPS, 1, 16);
-  const fieldAdvectionMinActiveMagnitude = clampFinite(config.fieldAdvectionMinActiveMagnitude ?? DEFAULT_FIELD_ADVECTION_MIN_ACTIVE_MAGNITUDE, 0, Number.MAX_SAFE_INTEGER);
+  let enableFieldAdvection = config.enableFieldAdvection ?? DEFAULT_ENABLE_FIELD_ADVECTION;
+  let fieldAdvectionStrength = clampFinite(config.fieldAdvectionStrength ?? DEFAULT_FIELD_ADVECTION_STRENGTH, 0, 16);
+  let fieldAdvectionSubsteps = clampInteger(config.fieldAdvectionSubsteps ?? DEFAULT_FIELD_ADVECTION_SUBSTEPS, 1, 16);
+  let fieldAdvectionMinActiveMagnitude = clampFinite(config.fieldAdvectionMinActiveMagnitude ?? DEFAULT_FIELD_ADVECTION_MIN_ACTIVE_MAGNITUDE, 0, Number.MAX_SAFE_INTEGER);
   const obstacleResponseRadius = config.obstacleResponseRadius ?? DEFAULT_OBSTACLE_RESPONSE_RADIUS;
   const obstacleResponseForceScale = config.obstacleResponseForceScale ?? DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE;
   const obstacleResponseMaxForce = config.obstacleResponseMaxForce ?? DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE;
@@ -310,6 +321,21 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     if (patch.fieldDampingMaxObstacleCells !== undefined) fieldDampingMaxObstacleCells = clampInteger(patch.fieldDampingMaxObstacleCells, 0, 1_000_000);
     if (patch.fieldDampingMaxTerrainCells !== undefined) fieldDampingMaxTerrainCells = clampInteger(patch.fieldDampingMaxTerrainCells, 0, 1_000_000);
     return getFieldDampingConfig();
+  };
+
+  const getFieldAdvectionConfig = (): DemoSimulationFieldAdvectionConfig => Object.freeze({
+    enableFieldAdvection,
+    fieldAdvectionStrength,
+    fieldAdvectionSubsteps,
+    fieldAdvectionMinActiveMagnitude
+  });
+
+  const updateFieldAdvectionConfig = (patch: DemoSimulationFieldAdvectionConfigPatch): DemoSimulationFieldAdvectionConfig => {
+    if (typeof patch.enableFieldAdvection === "boolean") enableFieldAdvection = patch.enableFieldAdvection;
+    if (patch.fieldAdvectionStrength !== undefined) fieldAdvectionStrength = clampFinite(patch.fieldAdvectionStrength, 0, 16);
+    if (patch.fieldAdvectionSubsteps !== undefined) fieldAdvectionSubsteps = clampInteger(patch.fieldAdvectionSubsteps, 1, 16);
+    if (patch.fieldAdvectionMinActiveMagnitude !== undefined) fieldAdvectionMinActiveMagnitude = clampFinite(patch.fieldAdvectionMinActiveMagnitude, 0, Number.MAX_SAFE_INTEGER);
+    return getFieldAdvectionConfig();
   };
 
   const step = (deltaSeconds: number): DemoSimulationStepResult => {
@@ -404,7 +430,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     return { snapshot, obstacleMaskSnapshot, terrainRenderSnapshot, fieldRenderSnapshot, fieldDynamicsStats, fieldSourceStats, fieldDampingStats, fieldAdvectionStats, fieldDampingConfig: getFieldDampingConfig(), snapshotStats, movementMetrics, obstacleResponseStats, obstacleLifecycleTelemetry, energyStats, spatialBuildStats, neighborQueryStats, sensorStats, predatorPreyStats, reproductionStats, resourceBuildStats, resourcePickupStats, resourceRespawnStats, resourceAliveCount: resources.aliveCount, resourceTargetCount, resourceRespawnedCount, gridBuildMs, neighborQueryMs, sensorMs, obstacleResponseMs, predatorPreyMs, resourceMs, energyMs, reproductionMs, fieldDynamicsMs, fieldSourcesMs, fieldDampingMs, fieldAdvectionMs, simMsPerTick };
   };
 
-  return { world, spatialGrid, resources, obstacleMask, terrain, field, initialAgentSpawnStats, initialResourceSpawnStats, step, getSnapshot: () => makeRenderSnapshot(world), getFieldDampingConfig, updateFieldDampingConfig };
+  return { world, spatialGrid, resources, obstacleMask, terrain, field, initialAgentSpawnStats, initialResourceSpawnStats, step, getSnapshot: () => makeRenderSnapshot(world), getFieldDampingConfig, updateFieldDampingConfig, getFieldAdvectionConfig, updateFieldAdvectionConfig };
 }
 
 

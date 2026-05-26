@@ -2,6 +2,7 @@ import { createDemoSimulation, type DemoSimulationFieldDampingConfig, type DemoS
 import { createPerfOverlay } from "../render/debugOverlay";
 import { mountPixiRenderer } from "../render/pixiRenderer";
 import { createFieldDampingControlPanel } from "./fieldDampingPanel";
+import { createFieldAdvectionControlPanel } from "./fieldAdvectionPanel";
 import { createFieldVisualDebugPanel } from "./fieldVisualDebugPanel";
 import { createDebugLayoutPanel } from "./debugLayoutPanel";
 import { createRenderLayersPanel } from "./renderLayersPanel";
@@ -65,6 +66,7 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
   });
 
   const fieldDampingPanel = createFieldDampingControlPanel(controlStack, simulation, { onConfigChange: saveFieldDampingConfig });
+  const fieldAdvectionPanel = createFieldAdvectionControlPanel(controlStack, simulation);
 
   const perfOverlay = createPerfOverlay(overlayHost);
   const initialRenderDebugConfig = loadStoredRenderDebugConfig();
@@ -110,6 +112,7 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
       pixiRenderer.destroy();
       perfOverlay.destroy();
       fieldDampingPanel.destroy();
+      fieldAdvectionPanel.destroy();
       renderLayersPanel.destroy();
       fieldVectorDebugPanel.destroy();
       fieldVisualDebugPanel.destroy();
