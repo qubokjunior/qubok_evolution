@@ -1,5 +1,6 @@
 import { Application, Container, Graphics } from "pixi.js";
 import type { EnergySurvivalStats } from "../sim/energy";
+import type { FieldRenderSnapshot } from "../sim/fieldRenderSnapshot";
 import type { ObstacleLifecycleTelemetry } from "../sim/lifecycleTelemetry";
 import type { MovementStepMetrics } from "../sim/movement";
 import type { ObstacleSoftResponseStats } from "../sim/obstacleResponse";
@@ -20,6 +21,7 @@ export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly snapshot: RenderSnapshot;
   readonly obstacleMaskSnapshot: ObstacleMaskRenderSnapshot;
   readonly terrainRenderSnapshot: TerrainRenderSnapshot;
+  readonly fieldRenderSnapshot: FieldRenderSnapshot;
   readonly snapshotStats: RenderSnapshotStats;
   readonly movementMetrics: MovementStepMetrics;
   readonly obstacleResponseStats: ObstacleSoftResponseStats;
@@ -53,18 +55,15 @@ export type PixiRendererOptions = {
   snapshotSource: SimulationFrameSource;
 };
 
-export type PixiRendererHandle = {
-  destroy: () => void;
-};
+export type PixiRendererHandle = { destroy: () => void };
 
-type AgentGlyph = {
-  readonly graphic: Graphics;
-  colorRGBA: number;
-};
+type AgentGlyph = { readonly graphic: Graphics; colorRGBA: number };
 
 const GRID_STEP_PX = 64;
 const MAX_DEVICE_PIXEL_RATIO = 2;
 const MAX_RENDER_DELTA_SECONDS = 1 / 20;
+const FIELD_VECTOR_MAX_SCREEN_LENGTH = 22;
+const FIELD_VECTOR_MIN_SCREEN_LENGTH = 4;
 
 export async function mountPixiRenderer(options: PixiRendererOptions): Promise<PixiRendererHandle> {
   const app = new Application();
@@ -86,9 +85,10 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
   const gridLayer = new Graphics();
   const obstacleLayer = new Graphics();
   const terrainLayer = new Graphics();
+  const fieldLayer = new Graphics();
   const agentLayer = new Container();
 
-  world.addChild(backgroundLayer, gridLayer, terrainLayer, obstacleLayer, agentLayer);
+  world.addChild(backgroundLayer, gridLayer, terrainLayer, fieldLayer, obstacleLayer, agentLayer);
   app.stage.addChild(world);
 
   const glyphs: AgentGlyph[] = [];
@@ -101,7 +101,6 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
   };
 
   drawStaticLayers();
-
   const resizeObserver = new ResizeObserver(drawStaticLayers);
   resizeObserver.observe(options.host);
 
@@ -132,6 +131,8 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("obstacleRenderCellCount", frame.obstacleMaskSnapshot.occupiedCellCount);
     metrics.record("terrainRenderCellCount", frame.terrainRenderSnapshot.sampleCellCount);
     metrics.record("terrainRenderTruncated", frame.terrainRenderSnapshot.truncated ? 1 : 0);
+    metrics.record("fieldRenderVectorCount", frame.fieldRenderSnapshot.sampleVectorCount);
+    metrics.record("fieldRenderTruncated", frame.fieldRenderSnapshot.truncated ? 1 : 0);
     metrics.record("predatorPreyMs", frame.predatorPreyMs);
     metrics.record("resourceMs", frame.resourceMs);
     metrics.record("energyMs", frame.energyMs);
@@ -203,6 +204,10 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     renderTerrainLayer(terrainLayer, frame.terrainRenderSnapshot, options.host.clientWidth, options.host.clientHeight);
     const terrainRenderMs = endTerrainRenderScope();
 
+    const endFieldRenderScope = metrics.beginScope("fieldRenderMs");
+    renderFieldVectorLayer(fieldLayer, frame.fieldRenderSnapshot, options.host.clientWidth, options.host.clientHeight);
+    const fieldRenderMs = endFieldRenderScope();
+
     const endObstacleRenderScope = metrics.beginScope("obstacleRenderMs");
     renderObstacleMask(obstacleLayer, frame.obstacleMaskSnapshot, options.host.clientWidth, options.host.clientHeight);
     const obstacleRenderMs = endObstacleRenderScope();
@@ -214,10 +219,8 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("fps", app.ticker.FPS);
 
     frameIndex += 1;
-
     if (frameIndex % 10 === 0) {
       const snapshot = metrics.makeSnapshot();
-
       options.perfOverlay.update({
         fps: snapshot.values.fps,
         frameMs: snapshot.values.frameMs,
@@ -246,6 +249,9 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         terrainRenderMs: snapshot.values.terrainRenderMs || terrainRenderMs,
         terrainRenderCellCount: snapshot.values.terrainRenderCellCount,
         terrainRenderTruncated: snapshot.values.terrainRenderTruncated,
+        fieldRenderMs: snapshot.values.fieldRenderMs || fieldRenderMs,
+        fieldRenderVectorCount: snapshot.values.fieldRenderVectorCount,
+        fieldRenderTruncated: snapshot.values.fieldRenderTruncated,
         predatorPreyMs: snapshot.values.predatorPreyMs,
         resourceMs: snapshot.values.resourceMs,
         energyMs: snapshot.values.energyMs,
@@ -322,37 +328,54 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
   return {
     destroy: () => {
       resizeObserver.disconnect();
-      app.destroy(
-        { removeView: true },
-        {
-          children: true,
-          texture: false,
-          textureSource: false
-        }
-      );
+      app.destroy({ removeView: true }, { children: true, texture: false, textureSource: false });
     }
   };
 }
 
-function renderTerrainLayer(
-  layer: Graphics,
-  snapshot: TerrainRenderSnapshot,
-  viewportWidth: number,
-  viewportHeight: number
-): void {
+function renderFieldVectorLayer(layer: Graphics, snapshot: FieldRenderSnapshot, viewportWidth: number, viewportHeight: number): void {
   layer.clear();
-
-  if (snapshot.sampleCellCount <= 0) {
-    return;
-  }
+  if (snapshot.sampleVectorCount <= 0) return;
 
   const scaleX = viewportWidth / snapshot.worldWidth;
   const scaleY = viewportHeight / snapshot.worldHeight;
   const scale = Math.min(scaleX, scaleY);
   const offsetX = (viewportWidth - snapshot.worldWidth * scale) * 0.5;
   const offsetY = (viewportHeight - snapshot.worldHeight * scale) * 0.5;
-  const cellSizePx = Math.max(1, snapshot.cellSize * scale);
 
+  for (let index = 0; index < snapshot.sampleVectorCount; index += 1) {
+    const magnitude = snapshot.magnitude[index];
+    if (magnitude <= 0) continue;
+    const x = offsetX + snapshot.centerX[index] * scale;
+    const y = offsetY + snapshot.centerY[index] * scale;
+    const dirX = snapshot.flowX[index] / magnitude;
+    const dirY = snapshot.flowY[index] / magnitude;
+    const length = Math.max(FIELD_VECTOR_MIN_SCREEN_LENGTH, Math.min(FIELD_VECTOR_MAX_SCREEN_LENGTH, magnitude * 3.2));
+    const endX = x + dirX * length;
+    const endY = y + dirY * length;
+    const headLength = Math.min(5, length * 0.35);
+    const normalX = -dirY;
+    const normalY = dirX;
+    layer.moveTo(x, y);
+    layer.lineTo(endX, endY);
+    layer.moveTo(endX, endY);
+    layer.lineTo(endX - dirX * headLength + normalX * headLength * 0.45, endY - dirY * headLength + normalY * headLength * 0.45);
+    layer.moveTo(endX, endY);
+    layer.lineTo(endX - dirX * headLength - normalX * headLength * 0.45, endY - dirY * headLength - normalY * headLength * 0.45);
+  }
+
+  layer.stroke({ width: 1, color: 0x7cc7ff, alpha: 0.34 });
+}
+
+function renderTerrainLayer(layer: Graphics, snapshot: TerrainRenderSnapshot, viewportWidth: number, viewportHeight: number): void {
+  layer.clear();
+  if (snapshot.sampleCellCount <= 0) return;
+  const scaleX = viewportWidth / snapshot.worldWidth;
+  const scaleY = viewportHeight / snapshot.worldHeight;
+  const scale = Math.min(scaleX, scaleY);
+  const offsetX = (viewportWidth - snapshot.worldWidth * scale) * 0.5;
+  const offsetY = (viewportHeight - snapshot.worldHeight * scale) * 0.5;
+  const cellSizePx = Math.max(1, snapshot.cellSize * scale);
   for (let index = 0; index < snapshot.sampleCellCount; index += 1) {
     const cellId = snapshot.cellIds[index];
     const cellX = cellId % snapshot.columns;
@@ -367,81 +390,49 @@ function renderTerrainLayer(
 
 function getTerrainMaterialColor(materialId: number): { readonly color: number; readonly alpha: number } {
   switch (materialId % 4) {
-    case 1:
-      return { color: 0x5c4a2f, alpha: 0.22 };
-    case 2:
-      return { color: 0x244d63, alpha: 0.26 };
-    case 3:
-      return { color: 0x535a61, alpha: 0.2 };
-    default:
-      return { color: 0x243a2d, alpha: 0.18 };
+    case 1: return { color: 0x5c4a2f, alpha: 0.22 };
+    case 2: return { color: 0x244d63, alpha: 0.26 };
+    case 3: return { color: 0x535a61, alpha: 0.2 };
+    default: return { color: 0x243a2d, alpha: 0.18 };
   }
 }
 
-function renderObstacleMask(
-  layer: Graphics,
-  snapshot: ObstacleMaskRenderSnapshot,
-  viewportWidth: number,
-  viewportHeight: number
-): void {
+function renderObstacleMask(layer: Graphics, snapshot: ObstacleMaskRenderSnapshot, viewportWidth: number, viewportHeight: number): void {
   layer.clear();
-
-  if (snapshot.occupiedCellCount <= 0) {
-    return;
-  }
-
+  if (snapshot.occupiedCellCount <= 0) return;
   const scaleX = viewportWidth / snapshot.worldWidth;
   const scaleY = viewportHeight / snapshot.worldHeight;
   const scale = Math.min(scaleX, scaleY);
   const offsetX = (viewportWidth - snapshot.worldWidth * scale) * 0.5;
   const offsetY = (viewportHeight - snapshot.worldHeight * scale) * 0.5;
   const cellSizePx = Math.max(1, snapshot.cellSize * scale);
-
   for (let index = 0; index < snapshot.occupiedCellCount; index += 1) {
     const cellId = snapshot.occupiedCellIds[index];
     const cellX = cellId % snapshot.columns;
     const cellY = Math.floor(cellId / snapshot.columns);
     const x = offsetX + cellX * snapshot.cellSize * scale;
     const y = offsetY + cellY * snapshot.cellSize * scale;
-
     layer.rect(x, y, cellSizePx, cellSizePx).fill({ color: 0x314255, alpha: 0.34 });
-    layer.rect(x + 0.5, y + 0.5, Math.max(0, cellSizePx - 1), Math.max(0, cellSizePx - 1)).stroke({
-      width: 1,
-      color: 0x8fb8d8,
-      alpha: 0.16
-    });
+    layer.rect(x + 0.5, y + 0.5, Math.max(0, cellSizePx - 1), Math.max(0, cellSizePx - 1)).stroke({ width: 1, color: 0x8fb8d8, alpha: 0.16 });
   }
 }
 
-function renderSnapshot(
-  parent: Container,
-  glyphs: AgentGlyph[],
-  snapshot: RenderSnapshot,
-  viewportWidth: number,
-  viewportHeight: number
-): void {
+function renderSnapshot(parent: Container, glyphs: AgentGlyph[], snapshot: RenderSnapshot, viewportWidth: number, viewportHeight: number): void {
   ensureGlyphCount(parent, glyphs, snapshot);
-
   const scaleX = viewportWidth / snapshot.worldWidth;
   const scaleY = viewportHeight / snapshot.worldHeight;
   const scale = Math.min(scaleX, scaleY);
   const offsetX = (viewportWidth - snapshot.worldWidth * scale) * 0.5;
   const offsetY = (viewportHeight - snapshot.worldHeight * scale) * 0.5;
-
   for (let index = 0; index < glyphs.length; index += 1) {
     const glyph = glyphs[index].graphic;
     const visible = index < snapshot.count && snapshot.alive[index] === 1;
     glyph.visible = visible;
-
-    if (!visible) {
-      continue;
-    }
-
+    if (!visible) continue;
     glyph.x = offsetX + snapshot.x[index] * scale;
     glyph.y = offsetY + snapshot.y[index] * scale;
     glyph.rotation = Math.atan2(snapshot.headingY[index], snapshot.headingX[index]);
     glyph.scale.set(Math.max(1.0, snapshot.radius[index] * scale * 1.15));
-
     const maxEnergy = Math.max(snapshot.maxEnergy[index], 0.000001);
     const energy01 = Math.max(0.18, Math.min(1, snapshot.energy[index] / maxEnergy));
     glyph.alpha = 0.32 + energy01 * 0.68;
@@ -456,10 +447,8 @@ function ensureGlyphCount(parent: Container, glyphs: AgentGlyph[], snapshot: Ren
     glyphs.push(glyph);
     parent.addChild(glyph.graphic);
   }
-
   for (let index = 0; index < snapshot.count; index += 1) {
     const colorRGBA = snapshot.colorRGBA[index];
-
     if (glyphs[index].colorRGBA !== colorRGBA) {
       redrawAgentGlyph(glyphs[index].graphic, colorRGBA);
       glyphs[index].colorRGBA = colorRGBA;
@@ -476,7 +465,6 @@ function createAgentGlyph(colorRGBA: number): AgentGlyph {
 function redrawAgentGlyph(graphic: Graphics, colorRGBA: number): void {
   const color = (colorRGBA >>> 8) & 0xffffff;
   const alpha = Math.max(0.2, Math.min(1, (colorRGBA & 0xff) / 255));
-
   graphic.clear();
   graphic.circle(0, 0, 1).fill({ color, alpha });
   graphic.moveTo(0.35, 0);
@@ -492,20 +480,7 @@ function drawBackground(layer: Graphics, width: number, height: number): void {
 
 function drawGrid(layer: Graphics, width: number, height: number): void {
   layer.clear();
-
-  for (let x = 0; x <= width; x += GRID_STEP_PX) {
-    layer.moveTo(x + 0.5, 0);
-    layer.lineTo(x + 0.5, height);
-  }
-
-  for (let y = 0; y <= height; y += GRID_STEP_PX) {
-    layer.moveTo(0, y + 0.5);
-    layer.lineTo(width, y + 0.5);
-  }
-
-  layer.stroke({
-    width: 1,
-    color: 0x26313a,
-    alpha: 0.38
-  });
+  for (let x = 0; x <= width; x += GRID_STEP_PX) { layer.moveTo(x + 0.5, 0); layer.lineTo(x + 0.5, height); }
+  for (let y = 0; y <= height; y += GRID_STEP_PX) { layer.moveTo(0, y + 0.5); layer.lineTo(width, y + 0.5); }
+  layer.stroke({ width: 1, color: 0x26313a, alpha: 0.38 });
 }
