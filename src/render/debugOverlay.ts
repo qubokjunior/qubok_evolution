@@ -13,7 +13,7 @@ export type PerfOverlaySink = {
 
 const DISPLAY_ORDER = [
   "fps", "frameMs", "renderMsPerFrame", "simMsPerTick", "gridBuildMs", "neighborQueryMs", "sensorMs",
-  "fieldMovementSampleCount", "fieldFlowXSum", "fieldFlowYSum", "fieldFlowMagnitudeSum",
+  "fieldMovementSampleCount", "fieldFlowXSum", "fieldFlowYSum", "fieldFlowMagnitudeSum", "fieldRenderMs", "fieldRenderVectorCount", "fieldRenderTruncated",
   "terrainSensorSampleCount", "terrainSensorMovementCostSum", "terrainSensorFrictionSum", "terrainSensorDragSum", "terrainSensorResourceAffinitySum", "terrainSensorScheduled", "terrainSensorSkippedByCadence",
   "terrainMovementSampleCount", "terrainMovementCostSum", "terrainFrictionSum", "terrainDragSum",
   "terrainResourceSampleCount", "terrainResourceAffinitySum", "terrainResourceRejectedCount",
@@ -40,6 +40,9 @@ const LABELS: Record<string, string> = {
   fieldFlowXSum: "field flow x",
   fieldFlowYSum: "field flow y",
   fieldFlowMagnitudeSum: "field flow mag",
+  fieldRenderMs: "field render",
+  fieldRenderVectorCount: "field vectors",
+  fieldRenderTruncated: "field trunc",
   terrainSensorSampleCount: "terrain sensor samples",
   terrainSensorMovementCostSum: "terrain sensor cost",
   terrainSensorFrictionSum: "terrain sensor friction",
