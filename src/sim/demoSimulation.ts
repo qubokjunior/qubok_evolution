@@ -1,6 +1,10 @@
 import { applyEnergySurvival, type EnergySurvivalStats } from "./energy";
 import { createRng, type DeterministicRng, type RngSeed } from "./rng";
 import { addForce, stepMovement, type MovementStepMetrics } from "./movement";
+import {
+  makeObstacleLifecycleTelemetry,
+  type ObstacleLifecycleTelemetry
+} from "./lifecycleTelemetry";
 import { applyObstacleSoftResponse, type ObstacleSoftResponseStats } from "./obstacleResponse";
 import { sampleLocalNeighborStats, type LocalNeighborSummary } from "./neighborQuery";
 import {
@@ -35,7 +39,7 @@ import {
 import { buildSpatialHashGrid, createSpatialHashGrid, type SpatialHashBuildStats, type SpatialHashGrid } from "./spatialHash";
 import { createWorldState, type WorldState } from "./world";
 
-export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v14" as const;
+export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v15" as const;
 
 export type DemoSimulationConfig = {
   readonly seed?: RngSeed;
@@ -70,6 +74,7 @@ export type DemoSimulationStepResult = {
   readonly snapshotStats: RenderSnapshotStats;
   readonly movementMetrics: MovementStepMetrics;
   readonly obstacleResponseStats: ObstacleSoftResponseStats;
+  readonly obstacleLifecycleTelemetry: ObstacleLifecycleTelemetry;
   readonly energyStats: EnergySurvivalStats;
   readonly spatialBuildStats: SpatialHashBuildStats;
   readonly neighborQueryStats: LocalNeighborSummary;
@@ -182,7 +187,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     cellSize: config.obstacleCellSize ?? DEFAULT_OBSTACLE_CELL_SIZE
   });
 
-  const rng = createRng(config.seed ?? "qubok_evolve:demo:m22");
+  const rng = createRng(config.seed ?? "qubok_evolve:demo:m24");
   seedDemoObstacleMask(obstacleMask);
   const spawnConfig = { maxAttempts: spawnMaxAttempts, clearanceRadius: spawnClearanceRadius };
   const initialAgentSpawnStats = spawnRandomAgentsAvoidingObstacles(world, initialAgentCount, rng, obstacleMask, spawnConfig);
@@ -308,6 +313,13 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     });
     const reproductionMs = performance.now() - reproductionStart;
 
+    const obstacleLifecycleTelemetry = makeObstacleLifecycleTelemetry({
+      sensorStats,
+      obstacleResponseStats,
+      resourceRespawnStats,
+      reproductionStats
+    });
+
     const snapshot = makeRenderSnapshot(world);
     const snapshotStats = analyzeRenderSnapshot(snapshot);
     const simMsPerTick = performance.now() - start;
@@ -317,6 +329,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
       snapshotStats,
       movementMetrics,
       obstacleResponseStats,
+      obstacleLifecycleTelemetry,
       energyStats,
       spatialBuildStats,
       neighborQueryStats,

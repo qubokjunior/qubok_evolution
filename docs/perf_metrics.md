@@ -43,3 +43,17 @@ The browser overlay now shows:
 - integrated movement count
 
 This prepares the project for the next milestone: uniform grid / spatial hash, where `gridBuildMs`, `neighborCandidates` and `avgNeighborsPerAgent` become real measurements.
+## m24 obstacle lifecycle metrics
+
+m24 adds consolidated obstacle-aware lifecycle metrics:
+
+| Metric | Meaning |
+|---|---|
+| `obstacleLifecycleEvents` | combined obstacle-aware event count |
+| `obstacleLifecyclePressure` | weighted pressure score from sensors/response/spawn failures |
+| `obstacleSpawnBlockedAttempts` | blocked resource/offspring placement attempts |
+| `obstacleSpawnFallbacks` | fallback placements used |
+| `obstacleSpawnFailures` | failed obstacle-aware placements |
+| `obstacleReproductionBlocked` | reproduction attempts blocked by obstacles |
+| `obstacleReproductionFailures` | failed offspring placements |
+| `obstacleResourceRespawns` | obstacle-aware resource respawns |
