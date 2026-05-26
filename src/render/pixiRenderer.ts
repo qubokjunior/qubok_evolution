@@ -107,6 +107,9 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("obstacleResponseMs", frame.obstacleResponseMs);
     metrics.record("obstacleResponseForces", frame.obstacleResponseStats.forceAppliedCount);
     metrics.record("obstacleResponseHits", frame.obstacleResponseStats.obstacleHits);
+    metrics.record("obstacleResponseCellChecks", frame.obstacleResponseStats.obstacleCellChecks);
+    metrics.record("obstacleResponseSkippedCells", frame.obstacleResponseStats.obstacleCellsSkippedByStride);
+    metrics.record("obstacleResponseLimitHits", frame.obstacleResponseStats.obstacleCellCheckLimitHits);
     metrics.record("obstacleResponseBoundaryHits", frame.obstacleResponseStats.boundaryHits);
     metrics.record("predatorPreyMs", frame.predatorPreyMs);
     metrics.record("resourceMs", frame.resourceMs);
@@ -173,6 +176,9 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         obstacleResponseMs: snapshot.values.obstacleResponseMs,
         obstacleResponseForces: snapshot.values.obstacleResponseForces,
         obstacleResponseHits: snapshot.values.obstacleResponseHits,
+        obstacleResponseCellChecks: snapshot.values.obstacleResponseCellChecks,
+        obstacleResponseSkippedCells: snapshot.values.obstacleResponseSkippedCells,
+        obstacleResponseLimitHits: snapshot.values.obstacleResponseLimitHits,
         obstacleResponseBoundaryHits: snapshot.values.obstacleResponseBoundaryHits,
         predatorPreyMs: snapshot.values.predatorPreyMs,
         resourceMs: snapshot.values.resourceMs,

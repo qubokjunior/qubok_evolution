@@ -46,3 +46,15 @@ m20 adds `applyObstacleSoftResponse()` as the first movement-facing use of `Obst
 | movement | writes to `world.fx/world.fy`, then existing movement integration handles velocity/position |
 
 This is intentionally soft response, not a hard collision solver.
+## m21 obstacle response sampling controls
+
+m21 adds cheap controls for obstacle response cost:
+
+| Control | Purpose |
+|---|---|
+| `boundsOnly` | skip obstacle mask cells and respond only to world borders |
+| `cellStride` | sample every Nth obstacle cell in local range |
+| `cellStridePhase` | stable offset for stride sampling |
+| `maxObstacleCellChecksPerAgent` | hard cap for per-agent obstacle checks |
+
+These controls trade precision for a bounded hot path while keeping `world.fx/world.fy` output stable.

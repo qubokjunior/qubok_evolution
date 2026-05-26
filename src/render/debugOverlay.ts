@@ -21,6 +21,9 @@ export type PerfOverlaySnapshot = {
   readonly obstacleResponseMs: number;
   readonly obstacleResponseForces: number;
   readonly obstacleResponseHits: number;
+  readonly obstacleResponseCellChecks: number;
+  readonly obstacleResponseSkippedCells: number;
+  readonly obstacleResponseLimitHits: number;
   readonly obstacleResponseBoundaryHits: number;
   readonly deathsThisStep: number;
   readonly starvingCount: number;
@@ -109,6 +112,9 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     obstacleResponseMs: createValueRow(root, "obs response"),
     obstacleResponseForces: createValueRow(root, "obs forces"),
     obstacleResponseHits: createValueRow(root, "obs hits"),
+    obstacleResponseCellChecks: createValueRow(root, "obs checks"),
+    obstacleResponseSkippedCells: createValueRow(root, "obs skip cells"),
+    obstacleResponseLimitHits: createValueRow(root, "obs limits"),
     obstacleResponseBoundaryHits: createValueRow(root, "obs boundary"),
     deathsThisStep: createValueRow(root, "deaths/tick"),
     starvingCount: createValueRow(root, "starving"),
@@ -169,6 +175,9 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     rows.obstacleResponseMs.textContent = formatMs(snapshot.obstacleResponseMs);
     rows.obstacleResponseForces.textContent = formatInt(snapshot.obstacleResponseForces);
     rows.obstacleResponseHits.textContent = formatInt(snapshot.obstacleResponseHits);
+    rows.obstacleResponseCellChecks.textContent = formatInt(snapshot.obstacleResponseCellChecks);
+    rows.obstacleResponseSkippedCells.textContent = formatInt(snapshot.obstacleResponseSkippedCells);
+    rows.obstacleResponseLimitHits.textContent = formatInt(snapshot.obstacleResponseLimitHits);
     rows.obstacleResponseBoundaryHits.textContent = formatInt(snapshot.obstacleResponseBoundaryHits);
     rows.deathsThisStep.textContent = formatInt(snapshot.deathsThisStep);
     rows.starvingCount.textContent = formatInt(snapshot.starvingCount);

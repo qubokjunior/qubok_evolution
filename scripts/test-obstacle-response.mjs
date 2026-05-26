@@ -21,7 +21,7 @@ const { createObstacleMask, setObstacleCell } = await import(pathToFileURL(join(
 const { clearForces } = await import(pathToFileURL(join(temporaryDirectory, "movement.mjs")).href);
 const { OBSTACLE_RESPONSE_VERSION, applyObstacleSoftResponse } = await import(pathToFileURL(join(temporaryDirectory, "obstacleResponse.mjs")).href);
 
-assertEqual(OBSTACLE_RESPONSE_VERSION, "qubok_evolve.obstacle_response.v1", "obstacle response version");
+assertEqual(OBSTACLE_RESPONSE_VERSION, "qubok_evolve.obstacle_response.v2", "obstacle response version");
 
 const world = createWorldState({ capacity: 4, worldWidth: 100, worldHeight: 100, sectorCount: 8 });
 const mask = createObstacleMask({ worldWidth: 100, worldHeight: 100, cellSize: 10 });
@@ -76,6 +76,8 @@ const stats = applyObstacleSoftResponse(world, mask, {
 
 assertEqual(stats.checkedCount, 3, "checked count");
 assertGreater(stats.obstacleCellChecks, 0, "cell checks");
+assertEqual(stats.obstacleCellsSkippedByStride, 0, "no skipped cells at stride 1");
+assertEqual(stats.obstacleCellCheckLimitHits, 0, "no limit hits by default");
 assertGreater(stats.obstacleHits, 0, "obstacle hits");
 assertGreater(stats.boundaryHits, 0, "boundary hits");
 assertGreater(stats.forceAppliedCount, 0, "force applied count");
@@ -94,8 +96,44 @@ const cappedStats = applyObstacleSoftResponse(world, mask, {
 });
 assertLessOrEqual(cappedStats.maxForceMagnitude, 5.000001, "max force cap");
 
+clearForces(world);
+const boundsOnlyStats = applyObstacleSoftResponse(world, mask, {
+  responseRadius: 24,
+  forceScale: 20,
+  includeWorldBounds: true,
+  boundsOnly: true
+});
+assertEqual(boundsOnlyStats.obstacleCellChecks, 0, "bounds-only skips mask checks");
+assertEqual(boundsOnlyStats.obstacleHits, 0, "bounds-only skips mask hits");
+assertGreater(boundsOnlyStats.boundaryHits, 0, "bounds-only keeps boundary hits");
+
+clearForces(world);
+const limitedStats = applyObstacleSoftResponse(world, mask, {
+  responseRadius: 48,
+  forceScale: 20,
+  includeWorldBounds: false,
+  maxObstacleCellChecksPerAgent: 1
+});
+assertGreater(limitedStats.obstacleCellCheckLimitHits, 0, "cell-check limit hit");
+assertLessOrEqual(limitedStats.obstacleCellChecks, limitedStats.checkedCount, "max one obstacle cell check per agent");
+
+clearForces(world);
+const strideStats = applyObstacleSoftResponse(world, mask, {
+  responseRadius: 48,
+  forceScale: 20,
+  includeWorldBounds: false,
+  cellStride: 2
+});
+assertGreater(strideStats.obstacleCellsSkippedByStride, 0, "stride skips cells");
+assertGreater(strideStats.obstacleCellChecks, 0, "stride still checks some cells");
+
 assertThrows(() => applyObstacleSoftResponse(world, mask, { responseRadius: 0, forceScale: 1 }), "invalid response radius");
 assertThrows(() => applyObstacleSoftResponse(world, mask, { responseRadius: 10, forceScale: -1 }), "invalid force scale");
+assertThrows(() => applyObstacleSoftResponse(world, mask, { responseRadius: 10, forceScale: 1, cellStride: 0 }), "invalid cellStride");
+assertThrows(
+  () => applyObstacleSoftResponse(world, mask, { responseRadius: 10, forceScale: 1, maxObstacleCellChecksPerAgent: 0 }),
+  "invalid max checks"
+);
 assertThrows(
   () => applyObstacleSoftResponse(world, createObstacleMask({ worldWidth: 50, worldHeight: 50, cellSize: 10 }), { responseRadius: 10, forceScale: 1 }),
   "incompatible mask"

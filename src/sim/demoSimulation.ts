@@ -31,7 +31,7 @@ import { applyAgentSensors, type SensorPassStats } from "./sensors";
 import { buildSpatialHashGrid, createSpatialHashGrid, type SpatialHashBuildStats, type SpatialHashGrid } from "./spatialHash";
 import { createWorldState, spawnRandomAgents, type WorldState } from "./world";
 
-export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v11" as const;
+export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v12" as const;
 
 export type DemoSimulationConfig = {
   readonly seed?: RngSeed;
@@ -49,6 +49,9 @@ export type DemoSimulationConfig = {
   readonly obstacleResponseRadius?: number;
   readonly obstacleResponseForceScale?: number;
   readonly obstacleResponseMaxForce?: number;
+  readonly obstacleResponseCellStride?: number;
+  readonly obstacleResponseMaxCellChecksPerAgent?: number;
+  readonly obstacleResponseBoundsOnly?: boolean;
   readonly sensorRadiusScale?: number;
   readonly sensorFoodTickInterval?: number;
   readonly sensorObstacleTickInterval?: number;
@@ -105,6 +108,8 @@ const DEFAULT_OBSTACLE_CELL_SIZE = 64;
 const DEFAULT_OBSTACLE_RESPONSE_RADIUS = 42;
 const DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE = 140;
 const DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE = 220;
+const DEFAULT_OBSTACLE_RESPONSE_CELL_STRIDE = 1;
+const DEFAULT_OBSTACLE_RESPONSE_MAX_CELL_CHECKS_PER_AGENT = 64;
 const DEFAULT_SENSOR_RADIUS_SCALE = 1;
 const DEFAULT_SENSOR_FOOD_TICK_INTERVAL = 4;
 const DEFAULT_SENSOR_OBSTACLE_TICK_INTERVAL = 8;
@@ -127,6 +132,10 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const obstacleResponseRadius = config.obstacleResponseRadius ?? DEFAULT_OBSTACLE_RESPONSE_RADIUS;
   const obstacleResponseForceScale = config.obstacleResponseForceScale ?? DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE;
   const obstacleResponseMaxForce = config.obstacleResponseMaxForce ?? DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE;
+  const obstacleResponseCellStride = config.obstacleResponseCellStride ?? DEFAULT_OBSTACLE_RESPONSE_CELL_STRIDE;
+  const obstacleResponseMaxCellChecksPerAgent =
+    config.obstacleResponseMaxCellChecksPerAgent ?? DEFAULT_OBSTACLE_RESPONSE_MAX_CELL_CHECKS_PER_AGENT;
+  const obstacleResponseBoundsOnly = config.obstacleResponseBoundsOnly ?? false;
   const sensorRadiusScale = config.sensorRadiusScale ?? DEFAULT_SENSOR_RADIUS_SCALE;
   const sensorFoodTickInterval = config.sensorFoodTickInterval ?? DEFAULT_SENSOR_FOOD_TICK_INTERVAL;
   const sensorObstacleTickInterval = config.sensorObstacleTickInterval ?? DEFAULT_SENSOR_OBSTACLE_TICK_INTERVAL;
@@ -160,7 +169,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     cellSize: config.obstacleCellSize ?? DEFAULT_OBSTACLE_CELL_SIZE
   });
 
-  const rng = createRng(config.seed ?? "qubok_evolve:demo:m20");
+  const rng = createRng(config.seed ?? "qubok_evolve:demo:m21");
   spawnDemoAgents(world, initialAgentCount, rng);
   spawnRandomResources(resources, resourceTargetCount, rng);
   seedDemoObstacleMask(obstacleMask);
@@ -178,7 +187,10 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
       responseRadius: obstacleResponseRadius,
       forceScale: obstacleResponseForceScale,
       maxForcePerAgent: obstacleResponseMaxForce,
-      includeWorldBounds: true
+      includeWorldBounds: true,
+      boundsOnly: obstacleResponseBoundsOnly,
+      cellStride: obstacleResponseCellStride,
+      maxObstacleCellChecksPerAgent: obstacleResponseMaxCellChecksPerAgent
     });
     const obstacleResponseMs = performance.now() - obstacleResponseStart;
 
