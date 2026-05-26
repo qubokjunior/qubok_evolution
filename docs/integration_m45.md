@@ -41,6 +41,8 @@ M45-F adds a separate agent field debug control panel for visibility, alpha, arr
 
 M45-G1 separates read-only telemetry from editable controls more clearly by making overlay metric groups collapsible. `runtime` and `field` open by default; heavier read-only groups start collapsed and can be expanded in-place.
 
+M45-G1a restores pointer interaction on the read-only telemetry overlay itself while keeping the overlay host transparent to canvas input outside the overlay.
+
 M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel change event when damping checkboxes are toggled.
 
 ## Validation target

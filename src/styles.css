@@ -58,6 +58,7 @@ body {
 }
 
 .qubok_evolve-perf-overlay {
+  pointer-events: auto;
   min-width: 196px;
   max-height: calc(100vh - 20px);
   overflow: hidden auto;

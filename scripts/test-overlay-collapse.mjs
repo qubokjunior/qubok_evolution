@@ -15,7 +15,7 @@ for (const token of ["DEFAULT_OPEN_GROUPS", "\"runtime\"", "\"field\"", "qubok_e
   assert(debugOverlay.includes(token), "debugOverlay missing collapsible overlay token: " + token);
 }
 
-for (const token of [".qubok_evolve-perf-group-title::before", "content: \"▾\"", "content: \"▸\"", ".qubok_evolve-perf-group-body[hidden]"]) {
+for (const token of [".qubok_evolve-perf-group-title::before", "content: \"▾\"", "content: \"▸\"", ".qubok_evolve-perf-group-body[hidden]", "pointer-events: auto"]) {
   assert(styles.includes(token), "styles missing collapsible overlay CSS: " + token);
 }
 
