@@ -1,4 +1,5 @@
 import { applyEnergySurvival, type EnergySurvivalStats } from "./energy";
+import { createEnvironmentalFieldLayer, setFieldCell, type EnvironmentalFieldLayer } from "./field";
 import { createRng, type DeterministicRng, type RngSeed } from "./rng";
 import { addForce, stepMovement, type MovementStepMetrics } from "./movement";
 import {
@@ -45,7 +46,7 @@ import { createWorldState, type WorldState } from "./world";
 import { createTerrainLayer, setTerrainRectMaterial, type TerrainLayer } from "./terrain";
 import { makeTerrainRenderSnapshot, type TerrainRenderSnapshot } from "./terrainRenderSnapshot";
 
-export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v20" as const;
+export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v21" as const;
 
 export type DemoSimulationConfig = {
   readonly seed?: RngSeed;
@@ -66,6 +67,8 @@ export type DemoSimulationConfig = {
   readonly obstacleResponseCellStride?: number;
   readonly obstacleResponseMaxCellChecksPerAgent?: number;
   readonly obstacleResponseBoundsOnly?: boolean;
+  readonly fieldCellSize?: number;
+  readonly fieldForceScale?: number;
   readonly spawnMaxAttempts?: number;
   readonly spawnClearanceRadius?: number;
   readonly sensorRadiusScale?: number;
@@ -115,6 +118,7 @@ export type DemoSimulationHandle = {
   readonly resources: ResourceLayer;
   readonly obstacleMask: ObstacleMask;
   readonly terrain: TerrainLayer;
+  readonly field: EnvironmentalFieldLayer;
   readonly initialAgentSpawnStats: SpawnValidationStats;
   readonly initialResourceSpawnStats: SpawnValidationStats;
   readonly step: (deltaSeconds: number) => DemoSimulationStepResult;
@@ -132,6 +136,8 @@ const DEFAULT_TARGET_RESOURCE_COUNT = 2400;
 const DEFAULT_RESOURCE_PICKUP_RADIUS = 8;
 const DEFAULT_OBSTACLE_CELL_SIZE = 64;
 const DEFAULT_TERRAIN_CELL_SIZE = 64;
+const DEFAULT_FIELD_CELL_SIZE = 128;
+const DEFAULT_FIELD_FORCE_SCALE = 2.5;
 const DEFAULT_OBSTACLE_RESPONSE_RADIUS = 42;
 const DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE = 140;
 const DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE = 220;
@@ -158,6 +164,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const resourceCapacity = config.resourceCapacity ?? DEFAULT_RESOURCE_CAPACITY;
   const resourceTargetCount = Math.min(config.targetResourceCount ?? DEFAULT_TARGET_RESOURCE_COUNT, resourceCapacity);
   const resourcePickupRadius = config.resourcePickupRadius ?? DEFAULT_RESOURCE_PICKUP_RADIUS;
+  const fieldForceScale = config.fieldForceScale ?? DEFAULT_FIELD_FORCE_SCALE;
   const obstacleResponseRadius = config.obstacleResponseRadius ?? DEFAULT_OBSTACLE_RESPONSE_RADIUS;
   const obstacleResponseForceScale = config.obstacleResponseForceScale ?? DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE;
   const obstacleResponseMaxForce = config.obstacleResponseMaxForce ?? DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE;
@@ -180,10 +187,12 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const resources = createResourceLayer({ capacity: resourceCapacity, worldWidth, worldHeight, cellSize: config.resourceCellSize ?? config.spatialCellSize ?? DEFAULT_SPATIAL_CELL_SIZE });
   const obstacleMask = createObstacleMask({ worldWidth, worldHeight, cellSize: config.obstacleCellSize ?? DEFAULT_OBSTACLE_CELL_SIZE });
   const terrain = createTerrainLayer({ worldWidth, worldHeight, cellSize: DEFAULT_TERRAIN_CELL_SIZE });
+  const field = createEnvironmentalFieldLayer({ worldWidth, worldHeight, cellSize: config.fieldCellSize ?? DEFAULT_FIELD_CELL_SIZE });
 
-  const rng = createRng(config.seed ?? "qubok_evolve:demo:m38");
+  const rng = createRng(config.seed ?? "qubok_evolve:demo:m39");
   seedDemoObstacleMask(obstacleMask);
   seedDemoTerrain(terrain);
+  seedDemoField(field);
   const obstacleMaskSnapshot = makeObstacleMaskRenderSnapshot(obstacleMask);
   const spawnConfig = { maxAttempts: spawnMaxAttempts, clearanceRadius: spawnClearanceRadius };
   const initialAgentSpawnStats = spawnRandomAgentsAvoidingObstacles(world, initialAgentCount, rng, obstacleMask, spawnConfig);
@@ -203,7 +212,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     const obstacleResponseStats = applyObstacleSoftResponse(world, obstacleMask, { responseRadius: obstacleResponseRadius, forceScale: obstacleResponseForceScale, maxForcePerAgent: obstacleResponseMaxForce, includeWorldBounds: true, boundsOnly: obstacleResponseBoundsOnly, cellStride: obstacleResponseCellStride, maxObstacleCellChecksPerAgent: obstacleResponseMaxCellChecksPerAgent });
     const obstacleResponseMs = performance.now() - obstacleResponseStart;
 
-    const movementMetrics = stepMovement(world, { deltaSeconds: safeDeltaSeconds, boundsMode: "wrap", clearForces: true, minimumEnergy: -1_000_000, terrain });
+    const movementMetrics = stepMovement(world, { deltaSeconds: safeDeltaSeconds, boundsMode: "wrap", clearForces: true, minimumEnergy: -1_000_000, terrain, field, fieldForceScale });
 
     const gridStart = performance.now();
     const spatialBuildStats = buildSpatialHashGrid(spatialGrid, world);
@@ -267,7 +276,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     return { snapshot, obstacleMaskSnapshot, terrainRenderSnapshot, snapshotStats, movementMetrics, obstacleResponseStats, obstacleLifecycleTelemetry, energyStats, spatialBuildStats, neighborQueryStats, sensorStats, predatorPreyStats, reproductionStats, resourceBuildStats, resourcePickupStats, resourceRespawnStats, resourceAliveCount: resources.aliveCount, resourceTargetCount, resourceRespawnedCount, gridBuildMs, neighborQueryMs, sensorMs, obstacleResponseMs, predatorPreyMs, resourceMs, energyMs, reproductionMs, simMsPerTick };
   };
 
-  return { world, spatialGrid, resources, obstacleMask, terrain, initialAgentSpawnStats, initialResourceSpawnStats, step, getSnapshot: () => makeRenderSnapshot(world) };
+  return { world, spatialGrid, resources, obstacleMask, terrain, field, initialAgentSpawnStats, initialResourceSpawnStats, step, getSnapshot: () => makeRenderSnapshot(world) };
 }
 
 function tuneDemoAgents(world: WorldState, rng: DeterministicRng): void {
@@ -334,4 +343,20 @@ function seedDemoTerrain(terrain: TerrainLayer): void {
   setTerrainRectMaterial(terrain, 0, 0, terrain.worldWidth * 0.32, terrain.worldHeight, 1);
   setTerrainRectMaterial(terrain, terrain.worldWidth * 0.35, terrain.worldHeight * 0.18, terrain.worldWidth * 0.66, terrain.worldHeight * 0.46, 2);
   setTerrainRectMaterial(terrain, terrain.worldWidth * 0.58, terrain.worldHeight * 0.58, terrain.worldWidth, terrain.worldHeight, 3);
+}
+
+function seedDemoField(field: EnvironmentalFieldLayer): void {
+  const centerX = (field.columns - 1) * 0.5;
+  const centerY = (field.rows - 1) * 0.5;
+  for (let cellY = 0; cellY < field.rows; cellY += 1) {
+    for (let cellX = 0; cellX < field.columns; cellX += 1) {
+      const dx = cellX - centerX;
+      const dy = cellY - centerY;
+      const distance = Math.max(Math.hypot(dx, dy), 1);
+      const swirlX = -dy / distance;
+      const swirlY = dx / distance;
+      const wave = Math.sin(cellX * 0.73) * 0.5 + Math.cos(cellY * 0.61) * 0.5;
+      setFieldCell(field, cellX, cellY, swirlX * 4 + wave * 1.5, swirlY * 4 - wave * 1.5);
+    }
+  }
 }
