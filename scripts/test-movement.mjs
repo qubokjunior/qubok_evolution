@@ -14,14 +14,16 @@ await mkdir(temporaryDirectory, { recursive: true });
 await transpileSimModule("arrays.ts", "arrays.mjs");
 await transpileSimModule("rng.ts", "rng.mjs");
 await transpileSimModule("terrain.ts", "terrain.mjs");
+await transpileSimModule("field.ts", "field.mjs");
 await transpileSimModule("world.ts", "world.mjs");
 await transpileSimModule("movement.ts", "movement.mjs");
 
 const { createRng } = await import(pathToFileURL(join(temporaryDirectory, "rng.mjs")).href);
+const { createEnvironmentalFieldLayer, setFieldCell } = await import(pathToFileURL(join(temporaryDirectory, "field.mjs")).href);
 const { createWorldState, makeWorldSnapshot, spawnAgent, spawnRandomAgents } = await import(pathToFileURL(join(temporaryDirectory, "world.mjs")).href);
 const { MOVEMENT_SYSTEM_VERSION, addForce, clearForces, setVelocityFromHeading, stepMovement } = await import(pathToFileURL(join(temporaryDirectory, "movement.mjs")).href);
 
-assertEqual(MOVEMENT_SYSTEM_VERSION, "qubok_evolve.movement.v2", "movement version");
+assertEqual(MOVEMENT_SYSTEM_VERSION, "qubok_evolve.movement.v3", "movement version");
 
 const world = createWorldState({ capacity: 4, worldWidth: 100, worldHeight: 100, sectorCount: 8 });
 const first = spawnAgent(world, { x: 10, y: 20, vx: 3, vy: 4, mass: 1, drag: 0, maxSpeed: 10, metabolism: 0, energy: 100 });
@@ -34,7 +36,22 @@ assertAlmostEqual(world.y[0], 20.8, 0.00001, "y after velocity integration");
 assertAlmostEqual(world.headingX[0], 0.6, 0.00001, "heading x from velocity");
 assertAlmostEqual(world.headingY[0], 0.8, 0.00001, "heading y from velocity");
 assertEqual(metrics.movedCount, 1, "moved count");
+assertEqual(metrics.fieldMovementSampleCount, 0, "no field samples without field");
 assertAlmostEqual(world.distanceExplored[0], 1, 0.00001, "distance explored");
+
+const fieldWorld = createWorldState({ capacity: 1, worldWidth: 100, worldHeight: 100 });
+const field = createEnvironmentalFieldLayer({ worldWidth: 100, worldHeight: 100, cellSize: 10 });
+setFieldCell(field, 1, 2, 10, -5);
+spawnAgent(fieldWorld, { x: 15, y: 25, vx: 0, vy: 0, mass: 1, drag: 0, maxSpeed: 100, metabolism: 0, energy: 100 });
+const fieldMetrics = stepMovement(fieldWorld, { deltaSeconds: 0.1, boundsMode: "none", field, fieldForceScale: 2 });
+assertEqual(fieldMetrics.fieldMovementSampleCount, 1, "field sample count");
+assertAlmostEqual(fieldMetrics.fieldFlowXSum, 10, 0.00001, "field flow x sum");
+assertAlmostEqual(fieldMetrics.fieldFlowYSum, -5, 0.00001, "field flow y sum");
+assertAlmostEqual(fieldMetrics.fieldFlowMagnitudeSum, Math.hypot(10, -5), 0.00001, "field flow magnitude sum");
+assertAlmostEqual(fieldWorld.vx[0], 2, 0.00001, "field flow affects vx");
+assertAlmostEqual(fieldWorld.vy[0], -1, 0.00001, "field flow affects vy");
+assertAlmostEqual(fieldWorld.x[0], 15.2, 0.00001, "field flow affects x");
+assertAlmostEqual(fieldWorld.y[0], 24.9, 0.00001, "field flow affects y");
 
 const forceWorld = createWorldState({ capacity: 2, worldWidth: 100, worldHeight: 100 });
 spawnAgent(forceWorld, { x: 0, y: 0, vx: 0, vy: 0, mass: 2, drag: 0, maxSpeed: 100, metabolism: 0, energy: 100 });
@@ -98,6 +115,7 @@ assertEqual(JSON.stringify(makeWorldSnapshot(deterministicA, 16)), JSON.stringif
 
 assertThrows(() => stepMovement(deterministicA, { deltaSeconds: 0 }), "zero delta rejected");
 assertThrows(() => stepMovement(deterministicA, { deltaSeconds: 1 }), "huge delta rejected");
+assertThrows(() => stepMovement(deterministicA, { deltaSeconds: 0.1, fieldForceScale: Number.NaN }), "bad field force scale rejected");
 
 await rm(temporaryDirectory, { force: true, recursive: true });
 console.log("movement tests passed");
@@ -114,6 +132,8 @@ async function transpileSimModule(sourceName, outputName) {
     .replaceAll("from './rng'", "from './rng.mjs'")
     .replaceAll('from "./terrain"', 'from "./terrain.mjs"')
     .replaceAll("from './terrain'", "from './terrain.mjs'")
+    .replaceAll('from "./field"', 'from "./field.mjs"')
+    .replaceAll("from './field'", "from './field.mjs'")
     .replaceAll('from "./world"', 'from "./world.mjs"')
     .replaceAll("from './world'", "from './world.mjs'");
   await writeFile(outputPath, outputText, "utf8");
