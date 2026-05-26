@@ -1,5 +1,6 @@
 import { applyEnergySurvival, type EnergySurvivalStats } from "./energy";
 import { createEnvironmentalFieldLayer, setFieldCell, type EnvironmentalFieldLayer } from "./field";
+import { applyFieldSourcesAndSinks, type FieldPointSink, type FieldPointSource, type FieldSourceStepMetrics } from "./fieldSources";
 import { createFieldDynamicsScratch, stepEnvironmentalFieldDynamics, type FieldDynamicsStepMetrics } from "./fieldDynamics";
 import { makeFieldRenderSnapshot, type FieldRenderSnapshot } from "./fieldRenderSnapshot";
 import { createRng, type DeterministicRng, type RngSeed } from "./rng";
@@ -77,6 +78,10 @@ export type DemoSimulationConfig = {
   readonly fieldDecayPerSecond?: number;
   readonly fieldDiffusionRatePerSecond?: number;
   readonly fieldDynamicsMinActiveMagnitude?: number;
+  readonly fieldResourceSourceStrengthPerSecond?: number;
+  readonly fieldAgentSinkAbsorptionPerSecond?: number;
+  readonly fieldSourceMaxResources?: number;
+  readonly fieldSinkMaxAgents?: number;
   readonly spawnMaxAttempts?: number;
   readonly spawnClearanceRadius?: number;
   readonly sensorRadiusScale?: number;
@@ -95,6 +100,7 @@ export type DemoSimulationStepResult = {
   readonly terrainRenderSnapshot: TerrainRenderSnapshot;
   readonly fieldRenderSnapshot: FieldRenderSnapshot;
   readonly fieldDynamicsStats: FieldDynamicsStepMetrics;
+  readonly fieldSourceStats: FieldSourceStepMetrics;
   readonly snapshotStats: RenderSnapshotStats;
   readonly movementMetrics: MovementStepMetrics;
   readonly obstacleResponseStats: ObstacleSoftResponseStats;
@@ -120,6 +126,7 @@ export type DemoSimulationStepResult = {
   readonly energyMs: number;
   readonly reproductionMs: number;
   readonly fieldDynamicsMs: number;
+  readonly fieldSourcesMs: number;
   readonly simMsPerTick: number;
 };
 
@@ -155,6 +162,10 @@ const DEFAULT_FIELD_RENDER_MIN_MAGNITUDE = 0.05;
 const DEFAULT_FIELD_DECAY_PER_SECOND = 0.025;
 const DEFAULT_FIELD_DIFFUSION_RATE_PER_SECOND = 0.08;
 const DEFAULT_FIELD_DYNAMICS_MIN_ACTIVE_MAGNITUDE = 0.0001;
+const DEFAULT_FIELD_RESOURCE_SOURCE_STRENGTH_PER_SECOND = 0.35;
+const DEFAULT_FIELD_AGENT_SINK_ABSORPTION_PER_SECOND = 0.08;
+const DEFAULT_FIELD_SOURCE_MAX_RESOURCES = 512;
+const DEFAULT_FIELD_SINK_MAX_AGENTS = 512;
 const DEFAULT_OBSTACLE_RESPONSE_RADIUS = 42;
 const DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE = 140;
 const DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE = 220;
@@ -188,6 +199,10 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const fieldDecayPerSecond = config.fieldDecayPerSecond ?? DEFAULT_FIELD_DECAY_PER_SECOND;
   const fieldDiffusionRatePerSecond = config.fieldDiffusionRatePerSecond ?? DEFAULT_FIELD_DIFFUSION_RATE_PER_SECOND;
   const fieldDynamicsMinActiveMagnitude = config.fieldDynamicsMinActiveMagnitude ?? DEFAULT_FIELD_DYNAMICS_MIN_ACTIVE_MAGNITUDE;
+  const fieldResourceSourceStrengthPerSecond = config.fieldResourceSourceStrengthPerSecond ?? DEFAULT_FIELD_RESOURCE_SOURCE_STRENGTH_PER_SECOND;
+  const fieldAgentSinkAbsorptionPerSecond = config.fieldAgentSinkAbsorptionPerSecond ?? DEFAULT_FIELD_AGENT_SINK_ABSORPTION_PER_SECOND;
+  const fieldSourceMaxResources = Math.max(0, Math.floor(config.fieldSourceMaxResources ?? DEFAULT_FIELD_SOURCE_MAX_RESOURCES));
+  const fieldSinkMaxAgents = Math.max(0, Math.floor(config.fieldSinkMaxAgents ?? DEFAULT_FIELD_SINK_MAX_AGENTS));
   const obstacleResponseRadius = config.obstacleResponseRadius ?? DEFAULT_OBSTACLE_RESPONSE_RADIUS;
   const obstacleResponseForceScale = config.obstacleResponseForceScale ?? DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE;
   const obstacleResponseMaxForce = config.obstacleResponseMaxForce ?? DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE;
@@ -212,6 +227,8 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const terrain = createTerrainLayer({ worldWidth, worldHeight, cellSize: DEFAULT_TERRAIN_CELL_SIZE });
   const field = createEnvironmentalFieldLayer({ worldWidth, worldHeight, cellSize: config.fieldCellSize ?? DEFAULT_FIELD_CELL_SIZE });
   const fieldDynamicsScratch = createFieldDynamicsScratch(field);
+  const fieldSourceBuffer: FieldPointSource[] = [];
+  const fieldSinkBuffer: FieldPointSink[] = [];
 
   const rng = createRng(config.seed ?? "qubok_evolve:demo:m40");
   seedDemoObstacleMask(obstacleMask);
@@ -235,6 +252,12 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     const obstacleResponseStart = performance.now();
     const obstacleResponseStats = applyObstacleSoftResponse(world, obstacleMask, { responseRadius: obstacleResponseRadius, forceScale: obstacleResponseForceScale, maxForcePerAgent: obstacleResponseMaxForce, includeWorldBounds: true, boundsOnly: obstacleResponseBoundsOnly, cellStride: obstacleResponseCellStride, maxObstacleCellChecksPerAgent: obstacleResponseMaxCellChecksPerAgent });
     const obstacleResponseMs = performance.now() - obstacleResponseStart;
+
+    const fieldSourcesStart = performance.now();
+    fillResourceFieldSources(resources, fieldSourceBuffer, fieldSourceMaxResources, fieldResourceSourceStrengthPerSecond * safeDeltaSeconds);
+    fillAgentFieldSinks(world, fieldSinkBuffer, fieldSinkMaxAgents, fieldAgentSinkAbsorptionPerSecond * safeDeltaSeconds);
+    const fieldSourceStats = applyFieldSourcesAndSinks(field, fieldSourceBuffer, fieldSinkBuffer);
+    const fieldSourcesMs = performance.now() - fieldSourcesStart;
 
     const fieldDynamicsStart = performance.now();
     const fieldDynamicsStats = stepEnvironmentalFieldDynamics(field, safeDeltaSeconds, { decayPerSecond: fieldDecayPerSecond, diffusionRatePerSecond: fieldDiffusionRatePerSecond, minActiveMagnitude: fieldDynamicsMinActiveMagnitude }, fieldDynamicsScratch);
@@ -302,10 +325,41 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     const snapshotStats = analyzeRenderSnapshot(snapshot);
     const simMsPerTick = performance.now() - start;
 
-    return { snapshot, obstacleMaskSnapshot, terrainRenderSnapshot, fieldRenderSnapshot, fieldDynamicsStats, snapshotStats, movementMetrics, obstacleResponseStats, obstacleLifecycleTelemetry, energyStats, spatialBuildStats, neighborQueryStats, sensorStats, predatorPreyStats, reproductionStats, resourceBuildStats, resourcePickupStats, resourceRespawnStats, resourceAliveCount: resources.aliveCount, resourceTargetCount, resourceRespawnedCount, gridBuildMs, neighborQueryMs, sensorMs, obstacleResponseMs, predatorPreyMs, resourceMs, energyMs, reproductionMs, fieldDynamicsMs, simMsPerTick };
+    return { snapshot, obstacleMaskSnapshot, terrainRenderSnapshot, fieldRenderSnapshot, fieldDynamicsStats, fieldSourceStats, snapshotStats, movementMetrics, obstacleResponseStats, obstacleLifecycleTelemetry, energyStats, spatialBuildStats, neighborQueryStats, sensorStats, predatorPreyStats, reproductionStats, resourceBuildStats, resourcePickupStats, resourceRespawnStats, resourceAliveCount: resources.aliveCount, resourceTargetCount, resourceRespawnedCount, gridBuildMs, neighborQueryMs, sensorMs, obstacleResponseMs, predatorPreyMs, resourceMs, energyMs, reproductionMs, fieldDynamicsMs, fieldSourcesMs, simMsPerTick };
   };
 
   return { world, spatialGrid, resources, obstacleMask, terrain, field, initialAgentSpawnStats, initialResourceSpawnStats, step, getSnapshot: () => makeRenderSnapshot(world) };
+}
+
+function fillResourceFieldSources(resources: ResourceLayer, target: FieldPointSource[], maxResources: number, strength: number): void {
+  target.length = 0;
+  if (maxResources <= 0 || strength <= 0) return;
+  const centerX = resources.worldWidth * 0.5;
+  const centerY = resources.worldHeight * 0.5;
+  for (let index = 0; index < resources.count && target.length < maxResources; index += 1) {
+    if (resources.alive[index] !== 1) continue;
+    const x = resources.x[index];
+    const y = resources.y[index];
+    const dx = x - centerX;
+    const dy = y - centerY;
+    const distance = Math.max(Math.hypot(dx, dy), 1);
+    const wave = 0.75 + ((index * 17) % 11) * 0.05;
+    target.push({ x, y, flowX: -dy / distance, flowY: dx / distance, strength: strength * wave });
+  }
+}
+
+function fillAgentFieldSinks(world: WorldState, target: FieldPointSink[], maxAgents: number, absorption: number): void {
+  target.length = 0;
+  const absorption01 = clamp01(absorption);
+  if (maxAgents <= 0 || absorption01 <= 0) return;
+  for (let index = 0; index < world.count && target.length < maxAgents; index += 1) {
+    if (world.alive[index] !== 1) continue;
+    target.push({ x: world.x[index], y: world.y[index], absorption01 });
+  }
+}
+
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value));
 }
 
 function tuneDemoAgents(world: WorldState, rng: DeterministicRng): void {

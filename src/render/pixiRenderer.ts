@@ -1,6 +1,7 @@
 import { Application, Container, Graphics } from "pixi.js";
 import type { EnergySurvivalStats } from "../sim/energy";
 import type { FieldRenderSnapshot } from "../sim/fieldRenderSnapshot";
+import type { FieldSourceStepMetrics } from "../sim/fieldSources";
 import type { FieldDynamicsStepMetrics } from "../sim/fieldDynamics";
 import type { ObstacleLifecycleTelemetry } from "../sim/lifecycleTelemetry";
 import type { MovementStepMetrics } from "../sim/movement";
@@ -25,6 +26,7 @@ export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly terrainRenderSnapshot: TerrainRenderSnapshot;
   readonly fieldRenderSnapshot: FieldRenderSnapshot;
   readonly fieldDynamicsStats: FieldDynamicsStepMetrics;
+  readonly fieldSourceStats: FieldSourceStepMetrics;
   readonly snapshotStats: RenderSnapshotStats;
   readonly movementMetrics: MovementStepMetrics;
   readonly obstacleResponseStats: ObstacleSoftResponseStats;
@@ -50,6 +52,7 @@ export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly energyMs: number;
   readonly reproductionMs: number;
   readonly fieldDynamicsMs: number;
+  readonly fieldSourcesMs: number;
   readonly simMsPerTick: number;
 };
 
@@ -176,6 +179,14 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("fieldDynamicsTransferCount", frame.fieldDynamicsStats.diffusionTransferCount);
     metrics.record("fieldDynamicsMagnitudeLoss", frame.fieldDynamicsStats.decayMagnitudeLoss);
     metrics.record("fieldDynamicsMagnitudeAfter", frame.fieldDynamicsStats.totalMagnitudeAfter);
+    metrics.record("fieldSourcesMs", frame.fieldSourcesMs);
+    metrics.record("fieldSourceCount", frame.fieldSourceStats.sourceCount);
+    metrics.record("fieldSinkCount", frame.fieldSourceStats.sinkCount);
+    metrics.record("fieldSourceEmittedCellCount", frame.fieldSourceStats.emittedCellCount);
+    metrics.record("fieldSinkAbsorbedCellCount", frame.fieldSourceStats.absorbedCellCount);
+    metrics.record("fieldSourceMagnitudeEmitted", frame.fieldSourceStats.totalMagnitudeEmitted);
+    metrics.record("fieldSinkMagnitudeAbsorbed", frame.fieldSourceStats.totalMagnitudeAbsorbed);
+    metrics.record("fieldSourceMagnitudeAfter", frame.fieldSourceStats.totalMagnitudeAfter);
     metrics.record("deathsThisStep", frame.energyStats.deathsThisStep);
     metrics.record("starvingCount", frame.energyStats.starvingCount);
     metrics.record("starvationDamage", frame.energyStats.starvationDamage);
@@ -313,6 +324,14 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         fieldDynamicsTransferCount: snapshot.values.fieldDynamicsTransferCount,
         fieldDynamicsMagnitudeLoss: snapshot.values.fieldDynamicsMagnitudeLoss,
         fieldDynamicsMagnitudeAfter: snapshot.values.fieldDynamicsMagnitudeAfter,
+        fieldSourcesMs: snapshot.values.fieldSourcesMs,
+        fieldSourceCount: snapshot.values.fieldSourceCount,
+        fieldSinkCount: snapshot.values.fieldSinkCount,
+        fieldSourceEmittedCellCount: snapshot.values.fieldSourceEmittedCellCount,
+        fieldSinkAbsorbedCellCount: snapshot.values.fieldSinkAbsorbedCellCount,
+        fieldSourceMagnitudeEmitted: snapshot.values.fieldSourceMagnitudeEmitted,
+        fieldSinkMagnitudeAbsorbed: snapshot.values.fieldSinkMagnitudeAbsorbed,
+        fieldSourceMagnitudeAfter: snapshot.values.fieldSourceMagnitudeAfter,
         deathsThisStep: snapshot.values.deathsThisStep,
         starvingCount: snapshot.values.starvingCount,
         starvationDamage: snapshot.values.starvationDamage,
