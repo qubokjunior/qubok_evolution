@@ -35,7 +35,11 @@ const DISPLAY_ORDER = [
   "attacksThisStep", "killsThisStep", "predatorDamageDealt", "predatorEnergyGained", "resourceAliveCount", "resourceTargetCount", "foodPickupCount", "foodEnergyTransferred", "birthsThisStep", "reproductionEligibleCount", "blockedBirthsByCapacity", "reusableSlotCount", "spawnReusedSlotCount", "spawnAppendedSlotCount", "mutationChangedCount"
 ] as const;
 
+const DEFAULT_OPEN_GROUPS: ReadonlySet<OverlayGroupId> = new Set(["runtime", "field"]);
+
 const GROUP_LABELS: Record<OverlayGroupId, string> = Object.freeze({
+
+
   runtime: "runtime",
   field: "field",
   terrain: "terrain",
@@ -331,13 +335,28 @@ function getOrCreateGroup(root: HTMLElement, groups: Map<OverlayGroupId, HTMLEle
   const group = document.createElement("section");
   group.className = "qubok_evolve-perf-group";
   group.dataset.group = groupId;
-  const heading = document.createElement("div");
+
+  const body = document.createElement("div");
+  body.className = "qubok_evolve-perf-group-body";
+
+  const heading = document.createElement("button");
+  heading.type = "button";
   heading.className = "qubok_evolve-perf-group-title";
   heading.textContent = GROUP_LABELS[groupId];
-  group.append(heading);
+  heading.addEventListener("click", () => {
+    const collapsed = group.dataset.collapsed !== "true";
+    group.dataset.collapsed = collapsed ? "true" : "false";
+    body.hidden = collapsed;
+  });
+
+  const collapsedByDefault = !DEFAULT_OPEN_GROUPS.has(groupId);
+  group.dataset.collapsed = collapsedByDefault ? "true" : "false";
+  body.hidden = collapsedByDefault;
+
+  group.append(heading, body);
   root.append(group);
-  groups.set(groupId, group);
-  return group;
+  groups.set(groupId, body);
+  return body;
 }
 
 function createValueRow(root: HTMLElement, label: string): HTMLElement {

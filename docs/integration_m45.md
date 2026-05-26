@@ -39,6 +39,8 @@ M45-E2 adds a visual agent-field debug layer: when field vectors and agents are 
 
 M45-F adds a separate agent field debug control panel for visibility, alpha, arrow length scale, max sampled agents, and minimum field magnitude threshold.
 
+M45-G1 separates read-only telemetry from editable controls more clearly by making overlay metric groups collapsible. `runtime` and `field` open by default; heavier read-only groups start collapsed and can be expanded in-place.
+
 M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel change event when damping checkboxes are toggled.
 
 ## Validation target
@@ -51,5 +53,6 @@ M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel ch
 - npm run test:field-damping-panel
 - npm run test:agent-field-visual-debug
 - npm run test:agent-field-visual-controls
+- npm run test:overlay-collapse
 - npm run test:demo-integration
 - npm run build

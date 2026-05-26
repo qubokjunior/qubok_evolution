@@ -108,12 +108,38 @@ body {
 }
 
 .qubok_evolve-perf-group-title {
+  display: flex;
+  width: 100%;
   margin: 0 0 2px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: #8ea1b5;
+  font-family: inherit;
   font-size: 9px;
   font-weight: 650;
   letter-spacing: 0.08em;
+  text-align: left;
   text-transform: uppercase;
+  cursor: pointer;
+}
+
+.qubok_evolve-perf-group-title::before {
+  content: "▾";
+  width: 10px;
+  color: #5f7184;
+}
+
+.qubok_evolve-perf-group[data-collapsed="true"] .qubok_evolve-perf-group-title::before {
+  content: "▸";
+}
+
+.qubok_evolve-perf-group-title:hover {
+  color: #d7e6f5;
+}
+
+.qubok_evolve-perf-group-body[hidden] {
+  display: none;
 }
 
 .qubok_evolve-perf-row {
