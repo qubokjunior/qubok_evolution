@@ -13,6 +13,7 @@ await rm(temporaryDirectory, { force: true, recursive: true });
 await mkdir(temporaryDirectory, { recursive: true });
 await transpileSimModule("arrays.ts", "arrays.mjs");
 await transpileSimModule("terrain.ts", "terrain.mjs");
+await transpileSimModule("field.ts", "field.mjs");
 await transpileSimModule("world.ts", "world.mjs");
 await transpileSimModule("movement.ts", "movement.mjs");
 
@@ -91,6 +92,7 @@ async function transpileSimModule(sourceName, outputName) {
   let outputText = transpiled.outputText;
   outputText = outputText.replaceAll('from "./arrays"', 'from "./arrays.mjs"');
   outputText = outputText.replaceAll('from "./terrain"', 'from "./terrain.mjs"');
+  outputText = outputText.replaceAll('from "./field"', 'from "./field.mjs"');
   outputText = outputText.replaceAll('from "./world"', 'from "./world.mjs"');
   await writeFile(outputPath, outputText, "utf8");
 }
