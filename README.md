@@ -2,7 +2,7 @@
 
 High-performance realtime 2D artificial-life ecosystem simulator.
 
-Current status: m31 / 0.1.0-milestone.31.
+Current status: m32 / 0.1.0-milestone.32.
 
 ## What exists now
 
@@ -15,7 +15,8 @@ Implemented runtime foundations:
 - obstacle mask used by sensing, soft movement response, spawn validation, lifecycle telemetry, and debug rendering;
 - free-list dead-slot reuse so death creates structural room for later births;
 - live performance/debug overlay with obstacle and world-slot telemetry;
-- static tests guarding architecture boundaries, repo status, roadmap status, and lifecycle death routing.
+- static tests guarding architecture boundaries, repo status, roadmap status, and lifecycle death routing;
+- terrain/material data layer with deterministic cell/material sampling.
 
 ## Commands
 
