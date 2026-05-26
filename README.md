@@ -2,7 +2,7 @@
 
 High-performance realtime 2D artificial-life ecosystem simulator.
 
-Current status: m40 / 0.1.0-milestone.40.
+Current status: m41 / 0.1.0-milestone.41.
 
 ## What exists now
 
@@ -23,7 +23,8 @@ Implemented runtime foundations:
 - terrain-aware sensor sampling on controlled cadence;
 - terrain-aware offspring placement for reproduction;
 - low-resolution environmental flow field with movement integration and debug overlay metrics;
-- environmental field render snapshot and Pixi vector debug layer.
+- environmental field render snapshot and Pixi vector debug layer;
+- m41 milestone setup for render debug controls and overlay grouping.
 
 ## Commands
 
@@ -63,8 +64,8 @@ http://127.0.0.1:5173/
 
 ## Milestones and docs
 
-- `docs/milestones.md` — compact milestone index through m40.
-- `docs/roadmap.md` — development tracks after m40.
+- `docs/milestones.md` — compact milestone index through m41.
+- `docs/roadmap.md` — development tracks after m41.
 - `docs/architecture_tracks.md` — boundary contracts for future work.
 - `docs/world_state.md` — typed-array world state and lifecycle slot contract.
 - `docs/integration_m36.md` — terrain resource-affinity milestone.
@@ -72,6 +73,7 @@ http://127.0.0.1:5173/
 - `docs/integration_m38.md` — terrain-aware reproduction placement milestone.
 - `docs/integration_m39.md` — environmental flow field milestone.
 - `docs/integration_m40.md` — environmental field render snapshot and Pixi vector debug layer.
+- `docs/integration_m41.md` — render debug controls and overlay grouping milestone setup.
 
 ## Boundary rule
 
