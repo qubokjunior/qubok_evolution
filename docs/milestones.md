@@ -1,6 +1,6 @@
 # qubok_evolve milestones
 
-Compact milestone index through m41. Older early milestones are summarized at the system level; recent lifecycle, terrain, and field milestones are listed with stricter implementation detail.
+Compact milestone index through m42. Older early milestones are summarized at the system level; recent lifecycle, terrain, field, and render-debug milestones are listed with stricter implementation detail.
 
 | Milestone | Focus | Status |
 |---|---|---|
@@ -45,8 +45,9 @@ Compact milestone index through m41. Older early milestones are summarized at th
 | m39 | Low-resolution environmental flow field sampled by movement. | complete |
 | m40 | Environmental field render snapshot and Pixi vector debug layer. | complete |
 | m41 | Render debug controls, field/terrain/obstacle visibility toggles, keyboard layer toggles, and grouped overlay metrics. | complete |
+| m42 | Field decay/diffusion foundation with deterministic field dynamics and metrics. | in progress |
 
 ## Current next-step candidates
 
-- m42 candidate: field decay/diffusion foundation or controller/brain first pass after m41 is stable.
-- Later: field transport/decay, signed-distance-field correction, controller/brain layer, morphology compiler/editor, workerization, and WebGPU experiments.
+- m42: field decay/diffusion foundation. [in progress]
+- Later: field transport/advection, signed-distance-field correction, controller/brain layer, morphology compiler/editor, workerization, and WebGPU experiments.
