@@ -44,10 +44,9 @@ Compact milestone index through m41. Older early milestones are summarized at th
 | m38 | Terrain-aware reproduction placement using offspring habitat acceptance. | complete |
 | m39 | Low-resolution environmental flow field sampled by movement. | complete |
 | m40 | Environmental field render snapshot and Pixi vector debug layer. | complete |
-| m41 | Render debug controls, field/terrain/obstacle visibility toggles, and overlay grouping. | in progress |
+| m41 | Render debug controls, field/terrain/obstacle visibility toggles, keyboard layer toggles, and grouped overlay metrics. | complete |
 
 ## Current next-step candidates
 
-- m41: render debug controls / overlay grouping / visibility toggle. [in progress]
 - m42 candidate: field decay/diffusion foundation or controller/brain first pass after m41 is stable.
 - Later: field transport/decay, signed-distance-field correction, controller/brain layer, morphology compiler/editor, workerization, and WebGPU experiments.
