@@ -9,6 +9,9 @@ export type RenderSnapshot = {
   readonly count: number;
   readonly tick: number;
   readonly timeSeconds: number;
+  readonly reusableSlotCount: number;
+  readonly spawnReusedSlotCount: number;
+  readonly spawnAppendedSlotCount: number;
   readonly x: Float32Array;
   readonly y: Float32Array;
   readonly headingX: Float32Array;
@@ -37,6 +40,9 @@ export function makeRenderSnapshot(world: WorldState): RenderSnapshot {
     count,
     tick: world.tick,
     timeSeconds: world.timeSeconds,
+    reusableSlotCount: world.reusableSlotCount,
+    spawnReusedSlotCount: world.spawnReusedSlotCount,
+    spawnAppendedSlotCount: world.spawnAppendedSlotCount,
     x: world.x.subarray(0, count),
     y: world.y.subarray(0, count),
     headingX: world.headingX.subarray(0, count),

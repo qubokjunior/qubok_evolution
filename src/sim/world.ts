@@ -72,6 +72,12 @@ export type WorldState = {
   tick: number;
   timeSeconds: number;
 
+  reusableSlotCount: number;
+  spawnReusedSlotCount: number;
+  spawnAppendedSlotCount: number;
+  readonly reusableSlots: Uint32Array;
+  readonly reusableSlotFlags: Uint8Array;
+
   readonly x: Float32Array;
   readonly y: Float32Array;
   readonly vx: Float32Array;
@@ -142,6 +148,9 @@ export type WorldSnapshot = {
   readonly count: number;
   readonly tick: number;
   readonly timeSeconds: number;
+  readonly reusableSlotCount: number;
+  readonly spawnReusedSlotCount: number;
+  readonly spawnAppendedSlotCount: number;
   readonly sampleCount: number;
   readonly x: readonly number[];
   readonly y: readonly number[];
@@ -177,6 +186,12 @@ export function createWorldState(config: WorldConfig): WorldState {
     count: 0,
     tick: 0,
     timeSeconds: 0,
+
+    reusableSlotCount: 0,
+    spawnReusedSlotCount: 0,
+    spawnAppendedSlotCount: 0,
+    reusableSlots: createUint32Array(capacity, "reusableSlots"),
+    reusableSlotFlags: createUint8Array(capacity, "reusableSlotFlags"),
 
     x: createFloat32Array(capacity, "x"),
     y: createFloat32Array(capacity, "y"),
@@ -245,6 +260,8 @@ export function createWorldState(config: WorldConfig): WorldState {
 
 export function getWorldRuntimeArrays(world: WorldState): RuntimeArraySet {
   return [
+    world.reusableSlots,
+    world.reusableSlotFlags,
     world.x,
     world.y,
     world.vx,
@@ -311,16 +328,38 @@ export function resetWorldState(world: WorldState): void {
   world.count = 0;
   world.tick = 0;
   world.timeSeconds = 0;
+  world.reusableSlotCount = 0;
+  world.spawnReusedSlotCount = 0;
+  world.spawnAppendedSlotCount = 0;
   clearArrays(getWorldRuntimeArrays(world));
 }
 
-export function spawnAgent(world: WorldState, input: SpawnAgentInput = {}): number {
-  if (world.count >= world.capacity) {
-    throw new Error(`World capacity exceeded: ${world.count} >= ${world.capacity}`);
-  }
+export function canSpawnAgent(world: WorldState): boolean {
+  return world.reusableSlotCount > 0 || world.count < world.capacity;
+}
 
-  const index = world.count;
-  world.count += 1;
+export function getReusableSlotCount(world: WorldState): number {
+  return world.reusableSlotCount;
+}
+
+export function spawnAgent(world: WorldState, input: SpawnAgentInput = {}): number {
+  let index: number;
+
+  if (world.reusableSlotCount > 0) {
+    world.reusableSlotCount -= 1;
+    index = world.reusableSlots[world.reusableSlotCount];
+    world.reusableSlots[world.reusableSlotCount] = 0;
+    world.reusableSlotFlags[index] = 0;
+    world.spawnReusedSlotCount += 1;
+  } else {
+    if (world.count >= world.capacity) {
+      throw new Error(`World capacity exceeded: ${world.count} >= ${world.capacity}`);
+    }
+
+    index = world.count;
+    world.count += 1;
+    world.spawnAppendedSlotCount += 1;
+  }
 
   writeAgentDefaults(world, index, input);
   return index;
@@ -368,7 +407,18 @@ export function spawnRandomAgents(world: WorldState, count: number, rng: RngLike
 
 export function killAgent(world: WorldState, index: number): void {
   assertIndexInRange(index, world.count, "agent index");
+
+  if (world.alive[index] !== 1) {
+    return;
+  }
+
   world.alive[index] = 0;
+
+  if (world.reusableSlotFlags[index] === 0) {
+    world.reusableSlotFlags[index] = 1;
+    world.reusableSlots[world.reusableSlotCount] = index;
+    world.reusableSlotCount += 1;
+  }
 }
 
 export function getAliveCount(world: WorldState): number {
@@ -400,6 +450,9 @@ export function makeWorldSnapshot(world: WorldState, sampleCount = Math.min(worl
     count: world.count,
     tick: world.tick,
     timeSeconds: world.timeSeconds,
+    reusableSlotCount: world.reusableSlotCount,
+    spawnReusedSlotCount: world.spawnReusedSlotCount,
+    spawnAppendedSlotCount: world.spawnAppendedSlotCount,
     sampleCount: safeSampleCount,
     x: toRoundedArray(world.x, safeSampleCount),
     y: toRoundedArray(world.y, safeSampleCount),
