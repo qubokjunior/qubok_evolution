@@ -15,6 +15,12 @@ M44 should make field source semantics easier to reason about and easier to debu
 - preserve renderer-agnostic simulation logic;
 - keep visualization QA on the current overlay/vector layer rather than rewriting rendering.
 
+## Runtime visualization QA
+
+- demo field source/sink behavior is checked over multiple simulation steps;
+- emitted magnitude must remain positive and stronger than sink absorption in the QA config;
+- field render snapshot must expose finite visible vectors without truncation.
+
 ## Out of scope
 
 - advection;
