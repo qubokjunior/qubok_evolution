@@ -338,3 +338,33 @@ body {
 .qubok_evolve-control-subsection-title + .qubok_evolve-control-check-row {
   margin-top: 0;
 }
+
+
+.qubok_evolve-control-resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -5px;
+  width: 10px;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.qubok_evolve-control-resize-handle::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  left: 4px;
+  width: 1px;
+  background: rgba(124, 199, 255, 0);
+}
+
+.qubok_evolve-control-panel:hover .qubok_evolve-control-resize-handle::before,
+.qubok_evolve-control-panel[data-resizing="true"] .qubok_evolve-control-resize-handle::before {
+  background: rgba(124, 199, 255, 0.46);
+}
+
+.qubok_evolve-control-panel[data-resizing="true"] {
+  user-select: none;
+}

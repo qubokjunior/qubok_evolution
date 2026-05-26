@@ -26,11 +26,27 @@ export function createCollapsibleControlPanel(options: {
   readonly ariaLabel: string;
   readonly title: string;
   readonly hint?: string;
+  readonly resizeStorageKey?: string;
+  readonly minWidth?: number;
+  readonly maxWidth?: number;
 }): ControlPanelHandle {
   const root = document.createElement("section");
   root.className = options.className ?? "qubok_evolve-control-panel";
   root.setAttribute("aria-label", options.ariaLabel);
   root.dataset.collapsed = "false";
+
+  const resizeHandle = document.createElement("div");
+  resizeHandle.className = "qubok_evolve-control-resize-handle";
+  resizeHandle.setAttribute("aria-hidden", "true");
+
+  const minWidth = options.minWidth ?? 220;
+  const maxWidth = options.maxWidth ?? 560;
+  const resizeStorageKey = options.resizeStorageKey ?? `qubok_evolve.control_panel_width.${slugifyPanelTitle(options.title)}`;
+  const storedWidth = readStoredPanelWidth(resizeStorageKey, minWidth, maxWidth);
+  if (storedWidth !== undefined) {
+    root.style.width = `${storedWidth}px`;
+  }
+  attachHorizontalResize(root, resizeHandle, resizeStorageKey, minWidth, maxWidth);
 
   const body = document.createElement("div");
   body.className = "qubok_evolve-control-body";
@@ -63,7 +79,7 @@ export function createCollapsibleControlPanel(options: {
     body.append(hint);
   }
 
-  root.append(title, body);
+  root.append(title, body, resizeHandle);
   options.host.append(root);
 
   return {
@@ -207,4 +223,61 @@ function normalizeValue(value: number, spec: NumericControlSpec): number {
 
 function formatValue(value: number, spec: NumericControlSpec): string {
   return spec.valueKind === "integer" ? Math.round(value).toString() : value.toFixed(2);
+}
+
+
+function attachHorizontalResize(panel: HTMLElement, handle: HTMLElement, storageKey: string, minWidth: number, maxWidth: number): void {
+  handle.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const startX = event.clientX;
+    const startWidth = panel.getBoundingClientRect().width;
+    panel.dataset.resizing = "true";
+    handle.setPointerCapture(event.pointerId);
+
+    const onMove = (moveEvent: PointerEvent): void => {
+      const nextWidth = clampNumber(startWidth + (startX - moveEvent.clientX), minWidth, maxWidth);
+      panel.style.width = `${nextWidth}px`;
+    };
+
+    const onEnd = (): void => {
+      delete panel.dataset.resizing;
+      const finalWidth = clampNumber(panel.getBoundingClientRect().width, minWidth, maxWidth);
+      panel.style.width = `${finalWidth}px`;
+      try {
+        localStorage.setItem(storageKey, String(Math.round(finalWidth)));
+      } catch {
+        // localStorage can be unavailable in restricted contexts.
+      }
+      handle.removeEventListener("pointermove", onMove);
+      handle.removeEventListener("pointerup", onEnd);
+      handle.removeEventListener("pointercancel", onEnd);
+    };
+
+    handle.addEventListener("pointermove", onMove);
+    handle.addEventListener("pointerup", onEnd);
+    handle.addEventListener("pointercancel", onEnd);
+  });
+}
+
+function readStoredPanelWidth(storageKey: string, minWidth: number, maxWidth: number): number | undefined {
+  try {
+    const rawValue = localStorage.getItem(storageKey);
+    if (rawValue === null) return undefined;
+    const value = Number(rawValue);
+    return Number.isFinite(value) ? clampNumber(value, minWidth, maxWidth) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function slugifyPanelTitle(title: string): string {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "panel";
+}
+
+function clampNumber(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
 }
