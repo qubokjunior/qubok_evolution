@@ -1,0 +1,65 @@
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const readText = (relativePath) => readFileSync(resolve(projectRoot, relativePath), "utf8");
+const assert = (condition, message) => { if (!condition) throw new Error(message); };
+
+const packageJson = JSON.parse(readText("package.json"));
+const readme = readText("README.md");
+const milestones = readText("docs/milestones.md");
+const roadmap = readText("docs/roadmap.md");
+const integrationM43 = readText("docs/integration_m43.md");
+const fieldSources = readText("src/sim/fieldSources.ts");
+const fieldSourcesTest = readText("scripts/test-field-sources.mjs");
+const fieldSourcesBench = readText("scripts/bench-field-sources.mjs");
+
+for (const requiredToken of [
+  "FIELD_SOURCES_VERSION",
+  "FieldPointSource",
+  "FieldPointSink",
+  "FieldSourceStepMetrics",
+  "emitFieldPointSource",
+  "absorbFieldPointSink",
+  "applyFieldSourcesAndSinks",
+  "measureTotalFieldMagnitude",
+  "totalMagnitudeEmitted",
+  "totalMagnitudeAbsorbed",
+  "totalMagnitudeAfter"
+]) {
+  assert(fieldSources.includes(requiredToken), "field sources module missing token: " + requiredToken);
+}
+
+for (const requiredToken of [
+  "FIELD_SOURCES_VERSION",
+  "emitFieldPointSource",
+  "absorbFieldPointSink",
+  "applyFieldSourcesAndSinks",
+  "measureTotalFieldMagnitude",
+  "field sources tests passed"
+]) {
+  assert(fieldSourcesTest.includes(requiredToken), "field sources test missing token: " + requiredToken);
+}
+
+for (const requiredToken of [
+  "field-sources",
+  "sourceCount",
+  "sinkCount",
+  "applyFieldSourcesAndSinks",
+  "msPerStep",
+  "stepsPerSecond"
+]) {
+  assert(fieldSourcesBench.includes(requiredToken), "field sources benchmark missing token: " + requiredToken);
+}
+
+assert(packageJson.version === "0.1.0-milestone.43", "package.json must expose milestone.43.");
+assert(packageJson.scripts["test:field-sources"] === "node scripts/test-field-sources.mjs", "package.json must expose test:field-sources.");
+assert(packageJson.scripts["bench:field-sources"] === "node scripts/bench-field-sources.mjs", "package.json must expose bench:field-sources.");
+assert(packageJson.scripts.test.includes("test:field-sources"), "npm run test must include test:field-sources.");
+assert(readme.includes("m43") && readme.includes("field sources/sinks"), "README must expose m43 field sources/sinks setup.");
+assert(milestones.includes("| m43 |") && milestones.includes("in progress"), "milestones must include m43 in progress.");
+assert(roadmap.includes("m43 in progress: field sources/sinks foundation"), "roadmap must include m43 current milestone.");
+assert(integrationM43.includes("field sources") && integrationM43.includes("sinks"), "integration_m43 must describe field sources/sinks.");
+
+console.log("field sources integration tests passed");
