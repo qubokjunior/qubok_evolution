@@ -14,6 +14,7 @@ const roadmap = readText("docs/roadmap.md");
 const architectureTracks = readText("docs/architecture_tracks.md");
 const integrationM40 = readText("docs/integration_m40.md");
 const integrationM41 = readText("docs/integration_m41.md");
+const integrationM42 = readText("docs/integration_m42.md");
 const repoStatusTest = readText("scripts/test-repo-status.mjs");
 const roadmapStatusTest = readText("scripts/test-roadmap-status.mjs");
 
@@ -34,28 +35,31 @@ const perfMetrics = readText("src/shared/perfMetrics.ts");
 const energy = readText("src/sim/energy.ts");
 const predatorPrey = readText("src/sim/predatorPrey.ts");
 
-assert(packageJson.version === "0.1.0-milestone.41", "package.json version must be 0.1.0-milestone.41.");
-assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.41"'), "appVersion must expose milestone.41.");
-assert(appVersion.includes("PROJECT_MILESTONE = 41"), "appVersion must expose milestone number 41.");
-assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m41"'), "appVersion must expose m41 overlay label.");
+assert(packageJson.version === "0.1.0-milestone.42", "package.json version must be 0.1.0-milestone.42.");
+assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.42"'), "appVersion must expose milestone.42.");
+assert(appVersion.includes("PROJECT_MILESTONE = 42"), "appVersion must expose milestone number 41.");
+assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m42"'), "appVersion must expose m42 overlay label.");
 
-assert(readme.includes("Current status: m41"), "README must expose current status m41.");
-assert(readme.includes("0.1.0-milestone.41"), "README must expose the current milestone version.");
+assert(readme.includes("Current status: m42"), "README must expose current status m42.");
+assert(readme.includes("0.1.0-milestone.42"), "README must expose the current milestone version.");
 assert(readme.includes("docs/milestones.md"), "README must link the milestone index.");
 assert(readme.includes("docs/roadmap.md"), "README must link roadmap docs.");
 assert(readme.includes("docs/integration_m40.md"), "README must keep m40 integration doc link.");
 assert(readme.includes("docs/integration_m41.md"), "README must link m41 integration doc.");
+assert(readme.includes("docs/integration_m42.md"), "README must link m42 integration doc.");
 
-for (const marker of ["| m36 |", "| m37 |", "| m38 |", "| m39 |", "| m40 |", "| m41 |"]) {
+for (const marker of ["| m36 |", "| m37 |", "| m38 |", "| m39 |", "| m40 |", "| m41 |", "| m42 |"]) {
   assert(milestones.includes(marker), "milestones index missing marker: " + marker);
 }
 assert(roadmap.includes("m40 shipped: environmental field render snapshot and Pixi vector debug layer"), "roadmap must include m40 shipped note.");
-assert(roadmap.includes("m41 field render controls / overlay grouping / visibility toggle"), "roadmap must include m41 current milestone.");
+assert(roadmap.includes("m41 shipped: render debug controls"), "roadmap must include m41 shipped note.");
+assert(roadmap.includes("m42 in progress: field decay/diffusion foundation"), "roadmap must include m42 current milestone.");
 assert(architectureTracks.includes("renderer must not own authoritative simulation state"), "architecture tracks must preserve sim/render boundary.");
 assert(integrationM40.includes("environmental field render snapshot"), "integration_m40 must describe field render snapshot.");
 assert(integrationM41.includes("render debug controls"), "integration_m41 must describe render debug controls.");
 assert(integrationM41.includes("overlay grouping"), "integration_m41 must describe overlay grouping.");
-assert(repoStatusTest.includes("0.1.0-milestone.41"), "repo status test must validate m41 status sync.");
+assert(integrationM42.includes("M42"), "integration_m42 must describe m42.");
+assert(repoStatusTest.includes("0.1.0-milestone.42"), "repo status test must validate m41 status sync.");
 assert(roadmapStatusTest.includes("fieldRenderVectorCount"), "roadmap status test must preserve field render metric assertion.");
 
 for (const [scriptName, command] of [
