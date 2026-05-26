@@ -9,6 +9,7 @@ const assert = (condition, message) => { if (!condition) throw new Error(message
 const packageJson = JSON.parse(readText("package.json"));
 const appVersion = readText("src/shared/appVersion.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
+const reproduction = readText("src/sim/reproduction.ts");
 const sensors = readText("src/sim/sensors.ts");
 const obstacleRenderSnapshot = readText("src/sim/obstacleRenderSnapshot.ts");
 const pixiRenderer = readText("src/render/pixiRenderer.ts");
@@ -33,13 +34,14 @@ const terrainDebugRenderLayerTest = readText("scripts/test-terrain-debug-render-
 const terrainMovementQueryTest = readText("scripts/test-terrain-movement-query.mjs");
 const terrainResourceAffinityTest = readText("scripts/test-terrain-resource-affinity.mjs");
 const terrainSensorSamplingTest = readText("scripts/test-terrain-sensor-sampling.mjs");
+const terrainReproductionPlacementTest = readText("scripts/test-terrain-reproduction-placement.mjs");
 const deathPathAuditTest = readText("scripts/test-death-path-audit.mjs");
 
-assert(packageJson.version === "0.1.0-milestone.37", "package.json version must be 0.1.0-milestone.37.");
-assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.37"'), "appVersion must expose milestone.37.");
-assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m37"'), "appVersion must expose m37 overlay label.");
-assert(demoSimulation.includes('DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v19"'), "demo simulation must expose v19.");
-assert(demoSimulation.includes('qubok_evolve:demo:m37'), "demo seed must expose m37.");
+assert(packageJson.version === "0.1.0-milestone.38", "package.json version must be 0.1.0-milestone.38.");
+assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.38"'), "appVersion must expose milestone.38.");
+assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m38"'), "appVersion must expose m38 overlay label.");
+assert(demoSimulation.includes('DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v20"'), "demo simulation must expose v20.");
+assert(demoSimulation.includes('qubok_evolve:demo:m38'), "demo seed must expose m38.");
 
 assert(energy.includes("killAgent(world, index)"), "energy deaths must use killAgent so dead slots enter the free-list.");
 assert(predatorPrey.includes("killAgent(world, preyIndex)"), "predator/prey kills must use killAgent so dead slots enter the free-list.");
@@ -48,19 +50,19 @@ assert(deathPathAuditTest.includes("direct alive-zero writes"), "death path audi
 assert(packageJson.scripts["test:death-path-audit"] === "node scripts/test-death-path-audit.mjs", "package.json must expose test:death-path-audit.");
 assert(packageJson.scripts.test.includes("test:death-path-audit"), "npm run test must include death path audit.");
 
-assert(readme.includes("0.1.0-milestone.37"), "README must expose the current milestone version.");
+assert(readme.includes("0.1.0-milestone.38"), "README must expose the current milestone version.");
 assert(readme.includes("docs/milestones.md"), "README must link the milestone index.");
-assert(readme.includes("docs/integration_m37.md"), "README must link m37 integration doc.");
-assert(milestones.includes("| m37 |"), "milestones index must include m37.");
-assert(repoStatusTest.includes("0.1.0-milestone.37"), "repo status test must validate m37 status sync.");
+assert(readme.includes("docs/integration_m38.md"), "README must link m38 integration doc.");
+assert(milestones.includes("| m38 |"), "milestones index must include m38.");
+assert(repoStatusTest.includes("0.1.0-milestone.38"), "repo status test must validate m38 status sync.");
 assert(packageJson.scripts["test:repo-status"] === "node scripts/test-repo-status.mjs", "package.json must expose test:repo-status.");
 assert(packageJson.scripts.test.includes("test:repo-status"), "npm run test must include repo status test.");
 assert(readme.includes("docs/roadmap.md"), "README must link roadmap docs.");
 assert(roadmap.includes("terrain/material track"), "roadmap must include terrain/material track.");
 assert(roadmap.includes("controller/brain track"), "roadmap must include controller/brain track.");
-assert(roadmap.includes("m37 shipped: terrain-aware sensor sampling on controlled cadence"), "roadmap must include m37 shipped note.");
+assert(roadmap.includes("m38 shipped: terrain-aware reproduction placement using offspring habitat acceptance"), "roadmap must include m38 shipped note.");
 assert(architectureTracks.includes("renderer must not own authoritative simulation state"), "architecture tracks must preserve sim/render boundary.");
-assert(roadmapStatusTest.includes("terrainSensorSampleCount"), "roadmap status test must validate terrain sensor metrics.");
+assert(roadmapStatusTest.includes("terrainOffspringSampleCount"), "roadmap status test must validate terrain offspring metrics.");
 assert(packageJson.scripts["test:roadmap-status"] === "node scripts/test-roadmap-status.mjs", "package.json must expose test:roadmap-status.");
 assert(packageJson.scripts.test.includes("test:roadmap-status"), "npm run test must include roadmap status test.");
 
@@ -114,6 +116,19 @@ assert(perfMetrics.includes("terrainSensorResourceAffinitySum"), "perf metrics m
 assert(pixiRenderer.includes("terrainSensorSampleCount"), "pixiRenderer must record terrain sensor metrics.");
 assert(debugOverlay.includes("terrain sensor samples"), "debugOverlay must expose terrain sensor labels.");
 assert(terrainSensorSamplingTest.includes("terrain sensor sampling tests passed"), "terrain sensor sampling test must expose pass token.");
+
+assert(packageJson.scripts["test:terrain-reproduction-placement"] === "node scripts/test-terrain-reproduction-placement.mjs", "package.json must expose test:terrain-reproduction-placement.");
+assert(packageJson.scripts.test.includes("test:terrain-reproduction-placement"), "npm run test must include terrain reproduction placement test.");
+assert(reproduction.includes("REPRODUCTION_SYSTEM_VERSION = \"qubok_evolve.reproduction.v4\""), "reproduction must expose v4.");
+assert(reproduction.includes("offspringTerrainMaxAttempts"), "reproduction must expose offspringTerrainMaxAttempts.");
+assert(reproduction.includes("terrainOffspringSampleCount"), "reproduction must expose terrain offspring sample stats.");
+assert(reproduction.includes("sampleTerrainAtPosition"), "reproduction must sample terrain.");
+assert(demoSimulation.includes("offspringTerrainMaxAttempts"), "demoSimulation must expose offspringTerrainMaxAttempts.");
+assert(demoSimulation.includes("terrain, offspringSpawnMaxAttempts"), "demoSimulation must pass terrain to reproduction.");
+assert(perfMetrics.includes("terrainOffspringAffinitySum"), "perf metrics must expose terrain offspring affinity sum.");
+assert(pixiRenderer.includes("terrainOffspringSampleCount"), "pixiRenderer must record terrain offspring metrics.");
+assert(debugOverlay.includes("terrain child samples"), "debugOverlay must expose terrain child labels.");
+assert(terrainReproductionPlacementTest.includes("terrain reproduction placement tests passed"), "terrain reproduction placement test must expose pass token.");
 
 for (const forbiddenImport of ["../render/", "./render/", "../ui/", "./ui/", "pixi.js", "react"]) {
   assert(!demoSimulation.includes(forbiddenImport), `demoSimulation must not import forbidden boundary token: ${forbiddenImport}`);
