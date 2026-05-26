@@ -29,6 +29,10 @@ import {
   seedDemoObstacleMask,
   type ObstacleMask
 } from "./obstacleMask";
+import {
+  makeObstacleMaskRenderSnapshot,
+  type ObstacleMaskRenderSnapshot
+} from "./obstacleRenderSnapshot";
 import { applyAgentSensors, type SensorPassStats } from "./sensors";
 import {
   respawnResourcesToTargetAvoidingObstacles,
@@ -39,7 +43,7 @@ import {
 import { buildSpatialHashGrid, createSpatialHashGrid, type SpatialHashBuildStats, type SpatialHashGrid } from "./spatialHash";
 import { createWorldState, type WorldState } from "./world";
 
-export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v15" as const;
+export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v16" as const;
 
 export type DemoSimulationConfig = {
   readonly seed?: RngSeed;
@@ -71,6 +75,7 @@ export type DemoSimulationConfig = {
 
 export type DemoSimulationStepResult = {
   readonly snapshot: RenderSnapshot;
+  readonly obstacleMaskSnapshot: ObstacleMaskRenderSnapshot;
   readonly snapshotStats: RenderSnapshotStats;
   readonly movementMetrics: MovementStepMetrics;
   readonly obstacleResponseStats: ObstacleSoftResponseStats;
@@ -187,8 +192,9 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     cellSize: config.obstacleCellSize ?? DEFAULT_OBSTACLE_CELL_SIZE
   });
 
-  const rng = createRng(config.seed ?? "qubok_evolve:demo:m24");
+  const rng = createRng(config.seed ?? "qubok_evolve:demo:m25");
   seedDemoObstacleMask(obstacleMask);
+  const obstacleMaskSnapshot = makeObstacleMaskRenderSnapshot(obstacleMask);
   const spawnConfig = { maxAttempts: spawnMaxAttempts, clearanceRadius: spawnClearanceRadius };
   const initialAgentSpawnStats = spawnRandomAgentsAvoidingObstacles(world, initialAgentCount, rng, obstacleMask, spawnConfig);
   tuneDemoAgents(world, rng);
@@ -326,6 +332,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
 
     return {
       snapshot,
+      obstacleMaskSnapshot,
       snapshotStats,
       movementMetrics,
       obstacleResponseStats,

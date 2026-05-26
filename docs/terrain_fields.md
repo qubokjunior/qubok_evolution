@@ -82,3 +82,8 @@ Parent energy is spent only after a valid offspring position is found.
 m24 adds `makeObstacleLifecycleTelemetry()` to aggregate obstacle-aware signals from sensors, soft response, spawn validation, resource respawn and reproduction placement.
 
 This layer is read-only. It does not change movement or lifecycle behavior.
+## m25 visible obstacle debug layer
+
+m25 adds an obstacle render snapshot and a Pixi debug layer for occupied cells. The layer is drawn under agents and above the grid.
+
+This is visualization only, not editing or collision solving.

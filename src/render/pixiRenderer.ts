@@ -3,6 +3,7 @@ import type { EnergySurvivalStats } from "../sim/energy";
 import type { ObstacleLifecycleTelemetry } from "../sim/lifecycleTelemetry";
 import type { MovementStepMetrics } from "../sim/movement";
 import type { ObstacleSoftResponseStats } from "../sim/obstacleResponse";
+import type { ObstacleMaskRenderSnapshot } from "../sim/obstacleRenderSnapshot";
 import type { LocalNeighborSummary } from "../sim/neighborQuery";
 import type { PredatorPreyInteractionStats } from "../sim/predatorPrey";
 import type { RenderSnapshot, RenderSnapshotStats } from "../sim/renderSnapshot";
@@ -15,6 +16,7 @@ import type { PerfOverlaySink } from "./debugOverlay";
 
 export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly snapshot: RenderSnapshot;
+  readonly obstacleMaskSnapshot: ObstacleMaskRenderSnapshot;
   readonly snapshotStats: RenderSnapshotStats;
   readonly movementMetrics: MovementStepMetrics;
   readonly obstacleResponseStats: ObstacleSoftResponseStats;
@@ -78,9 +80,10 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
   const world = new Container();
   const backgroundLayer = new Graphics();
   const gridLayer = new Graphics();
+  const obstacleLayer = new Graphics();
   const agentLayer = new Container();
 
-  world.addChild(backgroundLayer, gridLayer, agentLayer);
+  world.addChild(backgroundLayer, gridLayer, obstacleLayer, agentLayer);
   app.stage.addChild(world);
 
   const glyphs: AgentGlyph[] = [];
@@ -121,6 +124,7 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("obstacleReproductionBlocked", frame.obstacleLifecycleTelemetry.reproductionBlockedByObstacle);
     metrics.record("obstacleReproductionFailures", frame.obstacleLifecycleTelemetry.reproductionPlacementFailures);
     metrics.record("obstacleResourceRespawns", frame.obstacleLifecycleTelemetry.resourceRespawnedCount);
+    metrics.record("obstacleRenderCellCount", frame.obstacleMaskSnapshot.occupiedCellCount);
     metrics.record("predatorPreyMs", frame.predatorPreyMs);
     metrics.record("resourceMs", frame.resourceMs);
     metrics.record("energyMs", frame.energyMs);
@@ -164,6 +168,10 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("blockedBirthsByCapacity", frame.reproductionStats.blockedByCapacity);
     metrics.record("mutationChangedCount", frame.reproductionStats.mutationChangedCount);
 
+    const endObstacleRenderScope = metrics.beginScope("obstacleRenderMs");
+    renderObstacleMask(obstacleLayer, frame.obstacleMaskSnapshot, options.host.clientWidth, options.host.clientHeight);
+    const obstacleRenderMs = endObstacleRenderScope();
+
     renderSnapshot(agentLayer, glyphs, frame.snapshot, options.host.clientWidth, options.host.clientHeight);
 
     const renderMsPerFrame = endRenderScope();
@@ -198,6 +206,8 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         obstacleReproductionBlocked: snapshot.values.obstacleReproductionBlocked,
         obstacleReproductionFailures: snapshot.values.obstacleReproductionFailures,
         obstacleResourceRespawns: snapshot.values.obstacleResourceRespawns,
+        obstacleRenderMs: snapshot.values.obstacleRenderMs || obstacleRenderMs,
+        obstacleRenderCellCount: snapshot.values.obstacleRenderCellCount,
         predatorPreyMs: snapshot.values.predatorPreyMs,
         resourceMs: snapshot.values.resourceMs,
         energyMs: snapshot.values.energyMs,
@@ -260,6 +270,41 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
       );
     }
   };
+}
+
+function renderObstacleMask(
+  layer: Graphics,
+  snapshot: ObstacleMaskRenderSnapshot,
+  viewportWidth: number,
+  viewportHeight: number
+): void {
+  layer.clear();
+
+  if (snapshot.occupiedCellCount <= 0) {
+    return;
+  }
+
+  const scaleX = viewportWidth / snapshot.worldWidth;
+  const scaleY = viewportHeight / snapshot.worldHeight;
+  const scale = Math.min(scaleX, scaleY);
+  const offsetX = (viewportWidth - snapshot.worldWidth * scale) * 0.5;
+  const offsetY = (viewportHeight - snapshot.worldHeight * scale) * 0.5;
+  const cellSizePx = Math.max(1, snapshot.cellSize * scale);
+
+  for (let index = 0; index < snapshot.occupiedCellCount; index += 1) {
+    const cellId = snapshot.occupiedCellIds[index];
+    const cellX = cellId % snapshot.columns;
+    const cellY = Math.floor(cellId / snapshot.columns);
+    const x = offsetX + cellX * snapshot.cellSize * scale;
+    const y = offsetY + cellY * snapshot.cellSize * scale;
+
+    layer.rect(x, y, cellSizePx, cellSizePx).fill({ color: 0x314255, alpha: 0.34 });
+    layer.rect(x + 0.5, y + 0.5, Math.max(0, cellSizePx - 1), Math.max(0, cellSizePx - 1)).stroke({
+      width: 1,
+      color: 0x8fb8d8,
+      alpha: 0.16
+    });
+  }
 }
 
 function renderSnapshot(
