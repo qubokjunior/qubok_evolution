@@ -81,6 +81,9 @@ for (const [scriptName, command] of [
 for (const requiredToken of ["DEFAULT_RENDER_DEBUG_CONFIG", "renderDebugConfig: DEFAULT_RENDER_DEBUG_CONFIG", "mountPixiRenderer", "createPerfOverlay", "createDemoSimulation"]) {
   assert(app.includes(requiredToken), "App bridge missing token: " + requiredToken);
 }
+for (const requiredToken of ["RENDER_DEBUG_LAYER_KEYS", '"1": "showGrid"', '"2": "showTerrainLayer"', '"3": "showFieldVectorLayer"', '"4": "showObstacleLayer"', '"5": "showAgents"', "handleRenderDebugShortcut", "toggleRenderDebugLayer", "pixiRenderer.getRenderDebugConfig()", "pixiRenderer.updateRenderDebugConfig(nextConfig)", "window.addEventListener(\"keydown\", handleRenderDebugShortcut)", "window.removeEventListener(\"keydown\", handleRenderDebugShortcut)", "isTextInputEvent", "event.repeat", "event.preventDefault()", "event.altKey", "event.ctrlKey", "event.metaKey"]) {
+  assert(app.includes(requiredToken), "App keyboard debug bridge missing token: " + requiredToken);
+}
 for (const forbiddenImport of ["pixi.js", "../sim/world", "../sim/movement", "../sim/sensors"]) {
   assert(!app.includes(forbiddenImport), `App must not import low-level runtime/render internals directly: ${forbiddenImport}`);
 }
@@ -124,7 +127,7 @@ for (const requiredToken of ["RENDER_DEBUG_CONFIG_VERSION", "DEFAULT_RENDER_DEBU
   assert(renderDebugConfig.includes(requiredToken), "renderDebugConfig missing token: " + requiredToken);
 }
 
-for (const requiredToken of ["renderDebugConfig?: RenderDebugConfigPatch", "makeRenderDebugConfig(options.renderDebugConfig)", "applyRenderDebugVisibility", "gridLayer.visible", "terrainLayer.visible", "fieldLayer.visible", "obstacleLayer.visible", "agentLayer.visible", "renderFieldVectorLayer(fieldLayer", "fieldVectorAlpha", "fieldVectorScale", "fieldVectorStride", "fieldVectorMinMagnitude", "config.showTerrainLayer", "config.showFieldVectorLayer", "config.showObstacleLayer", "config.showAgents"]) {
+for (const requiredToken of ["renderDebugConfig?: RenderDebugConfigPatch", "makeRenderDebugConfig(options.renderDebugConfig)", "updateRenderDebugConfig: (patch: RenderDebugConfigPatch) => void", "getRenderDebugConfig: () => RenderDebugConfig", "let renderDebugConfig", "updateRenderDebugConfig = (patch: RenderDebugConfigPatch)", "getRenderDebugConfig: () => renderDebugConfig", "applyRenderDebugVisibility", "gridLayer.visible", "terrainLayer.visible", "fieldLayer.visible", "obstacleLayer.visible", "agentLayer.visible", "renderFieldVectorLayer(fieldLayer", "fieldVectorAlpha", "fieldVectorScale", "fieldVectorStride", "fieldVectorMinMagnitude", "config.showTerrainLayer", "config.showFieldVectorLayer", "config.showObstacleLayer", "config.showAgents"]) {
   assert(pixiRenderer.includes(requiredToken), "pixiRenderer missing render debug wiring token: " + requiredToken);
 }
 for (const requiredToken of ["fieldLayer", "renderFieldVectorLayer", "fieldRenderVectorCount", "terrainLayer", "renderTerrainLayer", "obstacleLayer", "renderObstacleMask", "reusableSlotCount", "spawnReusedSlotCount", "spawnAppendedSlotCount"]) {
