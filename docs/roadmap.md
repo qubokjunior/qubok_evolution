@@ -1,6 +1,6 @@
 # qubok_evolve roadmap
 
-Current status: m42 / 0.1.0-milestone.42.
+Current status: m43 / 0.1.0-milestone.43.
 
 m34 shipped: terrain Pixi debug render layer.
 
@@ -19,6 +19,8 @@ m40 shipped: environmental field render snapshot and Pixi vector debug layer.
 m41 shipped: render debug controls, keyboard layer visibility toggles, and grouped overlay metrics.
 
 m42 shipped: field decay/diffusion foundation with deterministic dynamics, benchmark, demo wiring, and overlay metrics.
+
+m43 in progress: field sources/sinks foundation.
 
 ## terrain/material track
 
@@ -46,8 +48,18 @@ Shipped sequence:
 - field vector visibility and render debug controls;
 - deterministic field decay/diffusion step with scratch buffers, metrics, benchmark, demo wiring, and overlay labels.
 
-Next candidates:
-- m43 field sources/sinks;
+Current milestone:
+- m43 field sources/sinks foundation.
+
+M43 scope:
+- deterministic point sources into field cells;
+- deterministic sinks/absorption for field cells;
+- focused tests before demo integration;
+- keep source/sink system simulation-only and renderer-agnostic.
+
+Follow-up candidates:
+- resource-driven food scent source wiring;
+- obstacle/terrain damping sources or sinks;
 - later field force integration separated from movement if field systems grow;
 - later field transport/advection branch.
 
@@ -56,17 +68,11 @@ Next candidates:
 Goal: introduce decision logic after sensing and morphology foundations are stable.
 
 Candidate:
-- controller/brain first pass after field dynamics/source semantics are stable.
+- controller/brain first pass after field source semantics are stable.
 
 ## render/performance track
 
 Goal: keep visual debugging useful while entity counts grow.
-
-Shipped in m41:
-- overlay grouping and keyboard visibility toggles;
-- render debug config defaults;
-- field vector alpha, scale, stride, and minimum magnitude config;
-- grouped overlay metrics for runtime, field, terrain, obstacle, movement, spatial, sensors, combat, resources, reproduction, and world slots.
 
 Near steps:
 - render snapshot cost checks;
