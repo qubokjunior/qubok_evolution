@@ -57,3 +57,14 @@ Unchanged traits for now:
 - colorRGBA
 
 Morphology placement/add/remove mutation remains locked until the compiler and validation layer exist.
+## m23 obstacle-aware offspring placement
+
+`applyReproduction()` accepts optional obstacle spawn validation:
+
+| Config | Purpose |
+|---|---|
+| `obstacleMask` | occupied-cell source |
+| `offspringSpawnMaxAttempts` | local attempts before fallback |
+| `offspringClearanceRadius` | extra clearance around child position |
+
+New stats track blocked obstacle placement and fallback usage.

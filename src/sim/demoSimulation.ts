@@ -35,7 +35,7 @@ import {
 import { buildSpatialHashGrid, createSpatialHashGrid, type SpatialHashBuildStats, type SpatialHashGrid } from "./spatialHash";
 import { createWorldState, type WorldState } from "./world";
 
-export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v13" as const;
+export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v14" as const;
 
 export type DemoSimulationConfig = {
   readonly seed?: RngSeed;
@@ -301,7 +301,10 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
       spawnRadius: 14,
       inheritVelocityScale: 0.35,
       mutationChance: 0.35,
-      mutationStandardDeviationScale: 0.4
+      mutationStandardDeviationScale: 0.4,
+      obstacleMask,
+      offspringSpawnMaxAttempts: spawnMaxAttempts,
+      offspringClearanceRadius: spawnClearanceRadius
     });
     const reproductionMs = performance.now() - reproductionStart;
 

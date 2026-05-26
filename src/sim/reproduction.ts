@@ -7,10 +7,12 @@ import {
   type MutationRule,
   type MutationStats
 } from "./mutation";
+import type { ObstacleMask } from "./obstacleMask";
 import type { DeterministicRng } from "./rng";
+import { findFreePositionNearOrRandom } from "./spawnValidation";
 import { spawnAgent, type WorldState } from "./world";
 
-export const REPRODUCTION_SYSTEM_VERSION = "qubok_evolve.reproduction.v2" as const;
+export const REPRODUCTION_SYSTEM_VERSION = "qubok_evolve.reproduction.v3" as const;
 
 export type ReproductionConfig = {
   readonly energyThreshold?: number;
@@ -20,6 +22,15 @@ export type ReproductionConfig = {
   readonly maxBirthsPerStep?: number;
   readonly spawnRadius?: number;
   readonly inheritVelocityScale?: number;
+
+  /** Optional obstacle mask used to avoid placing offspring inside occupied cells. */
+  readonly obstacleMask?: ObstacleMask;
+
+  /** Attempts used for obstacle-aware offspring placement. */
+  readonly offspringSpawnMaxAttempts?: number;
+
+  /** Extra radius used when checking whether an offspring position overlaps an obstacle cell. */
+  readonly offspringClearanceRadius?: number;
 
   /**
    * Global per-parameter mutation probability override.
@@ -45,6 +56,10 @@ export type ReproductionStepStats = {
   readonly eligibleCount: number;
   readonly birthsThisStep: number;
   readonly blockedByCapacity: number;
+  readonly blockedByObstacle: number;
+  readonly obstacleFallbackUsedCount: number;
+  readonly obstaclePlacementFailedCount: number;
+  readonly obstacleBlockedAttemptCount: number;
   readonly parentEnergySpent: number;
   readonly childEnergyCreated: number;
   readonly averageChildMutationAbs: number;
@@ -62,6 +77,8 @@ const DEFAULT_SPAWN_RADIUS = 10;
 const DEFAULT_MUTATION_CHANCE = 0.75;
 const DEFAULT_MUTATION_STANDARD_DEVIATION_SCALE = 1;
 const DEFAULT_INHERIT_VELOCITY_SCALE = 0.35;
+const DEFAULT_OFFSPRING_SPAWN_MAX_ATTEMPTS = 24;
+const DEFAULT_OFFSPRING_CLEARANCE_RADIUS = 0;
 const MAX_BIRTHS_PER_STEP = 4096;
 
 const REPRODUCTION_MUTATION_PARAMETERS = [
@@ -107,12 +124,26 @@ export function applyReproduction(
     DEFAULT_INHERIT_VELOCITY_SCALE,
     "inheritVelocityScale"
   );
+  const offspringClearanceRadius = finiteOrDefault(
+    config.offspringClearanceRadius,
+    DEFAULT_OFFSPRING_CLEARANCE_RADIUS,
+    "offspringClearanceRadius"
+  );
+  const offspringSpawnMaxAttempts = config.offspringSpawnMaxAttempts ?? DEFAULT_OFFSPRING_SPAWN_MAX_ATTEMPTS;
   const maxBirthsPerStep = config.maxBirthsPerStep ?? MAX_BIRTHS_PER_STEP;
 
   assertNonNegativeInteger(maxBirthsPerStep, "maxBirthsPerStep");
 
   if (energyThreshold < 0 || energyCost < 0 || childEnergy < 0 || minAgeSeconds < 0 || spawnRadius < 0) {
     throw new Error("Reproduction energy, age and spawn-radius values must be non-negative.");
+  }
+
+  if (offspringClearanceRadius < 0) {
+    throw new Error(`offspringClearanceRadius must be non-negative. Received: ${offspringClearanceRadius}`);
+  }
+
+  if (!Number.isInteger(offspringSpawnMaxAttempts) || offspringSpawnMaxAttempts <= 0) {
+    throw new Error(`offspringSpawnMaxAttempts must be a positive integer. Received: ${offspringSpawnMaxAttempts}`);
   }
 
   if (mutationChance < 0 || mutationChance > 1) {
@@ -135,6 +166,10 @@ export function applyReproduction(
   let eligibleCount = 0;
   let birthsThisStep = 0;
   let blockedByCapacity = 0;
+  let blockedByObstacle = 0;
+  let obstacleFallbackUsedCount = 0;
+  let obstaclePlacementFailedCount = 0;
+  let obstacleBlockedAttemptCount = 0;
   let parentEnergySpent = 0;
   let childEnergyCreated = 0;
   let mutationAttempts = 0;
@@ -165,13 +200,30 @@ export function applyReproduction(
       continue;
     }
 
+    const childPosition = resolveChildPosition(world, parentIndex, rng, {
+      obstacleMask: config.obstacleMask,
+      spawnRadius,
+      offspringSpawnMaxAttempts,
+      offspringClearanceRadius
+    });
+
+    obstacleBlockedAttemptCount += Math.max(0, childPosition.attempts - 1);
+    obstacleFallbackUsedCount += childPosition.fallbackUsed ? 1 : 0;
+
+    if (!childPosition.found) {
+      blockedByObstacle += 1;
+      obstaclePlacementFailedCount += 1;
+      continue;
+    }
+
     const childGenomeId = nextGenomeId;
     nextGenomeId += 1;
 
     const child = spawnChild(world, parentIndex, childGenomeId, rng, {
       energyCost,
       childEnergy,
-      spawnRadius,
+      childX: childPosition.x,
+      childY: childPosition.y,
       inheritVelocityScale,
       mutationRules
     });
@@ -191,6 +243,10 @@ export function applyReproduction(
     eligibleCount,
     birthsThisStep,
     blockedByCapacity,
+    blockedByObstacle,
+    obstacleFallbackUsedCount,
+    obstaclePlacementFailedCount,
+    obstacleBlockedAttemptCount,
     parentEnergySpent,
     childEnergyCreated,
     averageChildMutationAbs: mutationAttempts > 0 ? mutationAbsoluteDeltaSum / mutationAttempts : 0,
@@ -226,10 +282,26 @@ export function createReproductionMutationRules(
   return rules;
 }
 
+type ChildPositionConfig = {
+  readonly obstacleMask?: ObstacleMask;
+  readonly spawnRadius: number;
+  readonly offspringSpawnMaxAttempts: number;
+  readonly offspringClearanceRadius: number;
+};
+
+type ChildPositionResult = {
+  readonly x: number;
+  readonly y: number;
+  readonly found: boolean;
+  readonly attempts: number;
+  readonly fallbackUsed: boolean;
+};
+
 type SpawnChildConfig = {
   readonly energyCost: number;
   readonly childEnergy: number;
-  readonly spawnRadius: number;
+  readonly childX: number;
+  readonly childY: number;
   readonly inheritVelocityScale: number;
   readonly mutationRules: Readonly<Record<ReproductionMutableParameter, MutationRule>>;
 };
@@ -239,6 +311,45 @@ type SpawnChildResult = {
   readonly mutationStats: MutationStats;
 };
 
+function resolveChildPosition(
+  world: WorldState,
+  parentIndex: number,
+  rng: DeterministicRng,
+  config: ChildPositionConfig
+): ChildPositionResult {
+  if (config.obstacleMask) {
+    const searchRadius = Math.max(
+      config.spawnRadius,
+      config.offspringClearanceRadius + config.obstacleMask.cellSize,
+      0.0001
+    );
+    return findFreePositionNearOrRandom(
+      config.obstacleMask,
+      rng,
+      world.x[parentIndex],
+      world.y[parentIndex],
+      searchRadius,
+      {
+        maxAttempts: config.offspringSpawnMaxAttempts,
+        clearanceRadius: config.offspringClearanceRadius
+      }
+    );
+  }
+
+  const angle = rng.range(0, Math.PI * 2);
+  const distance = config.spawnRadius > 0 ? rng.range(0, config.spawnRadius) : 0;
+  const offsetX = Math.cos(angle) * distance;
+  const offsetY = Math.sin(angle) * distance;
+
+  return {
+    x: wrap(world.x[parentIndex] + offsetX, world.worldWidth),
+    y: wrap(world.y[parentIndex] + offsetY, world.worldHeight),
+    found: true,
+    attempts: 1,
+    fallbackUsed: false
+  };
+}
+
 function spawnChild(
   world: WorldState,
   parentIndex: number,
@@ -246,11 +357,6 @@ function spawnChild(
   rng: DeterministicRng,
   config: SpawnChildConfig
 ): SpawnChildResult {
-  const angle = rng.range(0, Math.PI * 2);
-  const distance = config.spawnRadius > 0 ? rng.range(0, config.spawnRadius) : 0;
-  const offsetX = Math.cos(angle) * distance;
-  const offsetY = Math.sin(angle) * distance;
-
   const basePhenotype: Record<ReproductionMutableParameter, number> = {
     radius: world.radius[parentIndex],
     mass: world.mass[parentIndex],
@@ -277,8 +383,8 @@ function spawnChild(
   world.energy[parentIndex] = parentEnergyAfterCost;
 
   const childIndex = spawnAgent(world, {
-    x: wrap(world.x[parentIndex] + offsetX, world.worldWidth),
-    y: wrap(world.y[parentIndex] + offsetY, world.worldHeight),
+    x: wrap(config.childX, world.worldWidth),
+    y: wrap(config.childY, world.worldHeight),
     vx: world.vx[parentIndex] * config.inheritVelocityScale + rng.range(-2, 2),
     vy: world.vy[parentIndex] * config.inheritVelocityScale + rng.range(-2, 2),
     headingX: world.headingX[parentIndex],

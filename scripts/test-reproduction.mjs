@@ -12,21 +12,21 @@ const temporaryDirectory = join(projectRoot, ".tmp_reproduction_test");
 await rm(temporaryDirectory, { force: true, recursive: true });
 await mkdir(temporaryDirectory, { recursive: true });
 
-await transpileSimModule("arrays.ts", "arrays.mjs");
-await transpileSimModule("rng.ts", "rng.mjs");
-await transpileSimModule("mutation.ts", "mutation.mjs");
-await transpileSimModule("world.ts", "world.mjs");
-await transpileSimModule("reproduction.ts", "reproduction.mjs");
+for (const moduleName of ["arrays.ts", "rng.ts", "mutation.ts", "world.ts", "obstacleMask.ts", "resources.ts", "spawnValidation.ts", "reproduction.ts"]) {
+  await transpileSimModule(moduleName, moduleName.replace(".ts", ".mjs"));
+}
 
 const { createRng } = await import(pathToFileURL(join(temporaryDirectory, "rng.mjs")).href);
 const { createWorldState, spawnAgent } = await import(pathToFileURL(join(temporaryDirectory, "world.mjs")).href);
+const { createObstacleMask, setObstacleCell, setObstacleRect } = await import(pathToFileURL(join(temporaryDirectory, "obstacleMask.mjs")).href);
+const { isPositionBlockedByObstacleMask } = await import(pathToFileURL(join(temporaryDirectory, "spawnValidation.mjs")).href);
 const {
   applyReproduction,
   createReproductionMutationRules,
   REPRODUCTION_SYSTEM_VERSION
 } = await import(pathToFileURL(join(temporaryDirectory, "reproduction.mjs")).href);
 
-assertEqual(REPRODUCTION_SYSTEM_VERSION, "qubok_evolve.reproduction.v2", "system version");
+assertEqual(REPRODUCTION_SYSTEM_VERSION, "qubok_evolve.reproduction.v3", "system version");
 
 {
   const rules = createReproductionMutationRules(0.25, 2);
@@ -75,6 +75,8 @@ assertEqual(REPRODUCTION_SYSTEM_VERSION, "qubok_evolve.reproduction.v2", "system
   assertEqual(stats.eligibleCount, 1, "eligible count");
   assertEqual(stats.birthsThisStep, 1, "birth count");
   assertEqual(stats.blockedByCapacity, 0, "blocked count");
+  assertEqual(stats.blockedByObstacle, 0, "obstacle blocked count");
+  assertEqual(stats.obstaclePlacementFailedCount, 0, "obstacle placement failed count");
   assertEqual(stats.mutationAttempts, 17, "mutation attempts from dedicated module");
   assertEqual(stats.mutationChangedCount, 0, "zero scale mutation changes nothing");
   assertEqual(world.count, 2, "world count after birth");
@@ -191,6 +193,87 @@ assertEqual(REPRODUCTION_SYSTEM_VERSION, "qubok_evolve.reproduction.v2", "system
   assertEqual(stats.birthsThisStep, 2, "max births per step respected");
 }
 
+{
+  const world = createWorldState({ capacity: 4, worldWidth: 100, worldHeight: 100 });
+  const mask = createObstacleMask({ worldWidth: 100, worldHeight: 100, cellSize: 10 });
+  setObstacleCell(mask, 5, 5, true);
+
+  const parent = spawnAgent(world, {
+    x: 55,
+    y: 55,
+    energy: 120,
+    maxEnergy: 150,
+    genomeId: 500,
+    generationId: 2
+  });
+  world.age[parent] = 10;
+
+  const stats = applyReproduction(world, createRng("obstacle-aware-child"), {
+    energyThreshold: 100,
+    energyCost: 40,
+    childEnergy: 30,
+    minAgeSeconds: 2,
+    maxBirthsPerStep: 1,
+    spawnRadius: 0,
+    mutationStandardDeviationScale: 0,
+    mutationChance: 0,
+    obstacleMask: mask,
+    offspringSpawnMaxAttempts: 1,
+    offspringClearanceRadius: 0
+  });
+
+  assertEqual(stats.birthsThisStep, 1, "obstacle-aware birth count");
+  assertEqual(stats.blockedByObstacle, 0, "obstacle-aware placement not blocked");
+  assertEqual(stats.obstaclePlacementFailedCount, 0, "obstacle-aware placement did not fail");
+  assertEqual(world.count, 2, "world count after obstacle-aware birth");
+  assertEqual(isPositionBlockedByObstacleMask(mask, world.x[1], world.y[1], 0), false, "child spawned outside obstacle");
+  assertClose(world.energy[parent], 80, 0.00001, "parent energy spent after valid obstacle-aware placement");
+}
+
+{
+  const world = createWorldState({ capacity: 4, worldWidth: 30, worldHeight: 30 });
+  const mask = createObstacleMask({ worldWidth: 30, worldHeight: 30, cellSize: 10 });
+  setObstacleRect(mask, 0, 0, 30, 30, true);
+
+  const parent = spawnAgent(world, {
+    x: 15,
+    y: 15,
+    energy: 120,
+    maxEnergy: 150,
+    genomeId: 600
+  });
+  world.age[parent] = 10;
+
+  const stats = applyReproduction(world, createRng("blocked-child"), {
+    energyThreshold: 100,
+    energyCost: 40,
+    childEnergy: 30,
+    minAgeSeconds: 2,
+    maxBirthsPerStep: 1,
+    spawnRadius: 0,
+    mutationStandardDeviationScale: 0,
+    mutationChance: 0,
+    obstacleMask: mask,
+    offspringSpawnMaxAttempts: 2,
+    offspringClearanceRadius: 0
+  });
+
+  assertEqual(stats.birthsThisStep, 0, "blocked obstacle birth count");
+  assertEqual(stats.blockedByObstacle, 1, "blocked by obstacle count");
+  assertEqual(stats.obstaclePlacementFailedCount, 1, "failed placement count");
+  assertEqual(world.count, 1, "world count unchanged after blocked offspring");
+  assertClose(world.energy[parent], 120, 0.00001, "parent energy not spent when placement fails");
+}
+
+assertThrows(
+  () => applyReproduction(createWorldState({ capacity: 1 }), createRng("bad-attempts"), { offspringSpawnMaxAttempts: 0 }),
+  "invalid offspring attempts"
+);
+assertThrows(
+  () => applyReproduction(createWorldState({ capacity: 1 }), createRng("bad-clearance"), { offspringClearanceRadius: -1 }),
+  "invalid offspring clearance"
+);
+
 await rm(temporaryDirectory, { force: true, recursive: true });
 console.log("reproduction tests passed");
 
@@ -208,6 +291,9 @@ async function transpileSimModule(sourceName, outputName) {
   output = output.replaceAll('from "./rng"', 'from "./rng.mjs"');
   output = output.replaceAll('from "./world"', 'from "./world.mjs"');
   output = output.replaceAll('from "./mutation"', 'from "./mutation.mjs"');
+  output = output.replaceAll('from "./obstacleMask"', 'from "./obstacleMask.mjs"');
+  output = output.replaceAll('from "./resources"', 'from "./resources.mjs"');
+  output = output.replaceAll('from "./spawnValidation"', 'from "./spawnValidation.mjs"');
   await writeFile(join(temporaryDirectory, outputName), output, "utf8");
 }
 
@@ -242,5 +328,18 @@ function assertEqual(actual, expected, label) {
 function assertClose(actual, expected, tolerance, label) {
   if (Math.abs(actual - expected) > tolerance) {
     throw new Error(`${label}: expected ${expected}, got ${actual}`);
+  }
+}
+
+function assertThrows(fn, label) {
+  let thrown = false;
+  try {
+    fn();
+  } catch {
+    thrown = true;
+  }
+
+  if (!thrown) {
+    throw new Error(`${label}: expected function to throw`);
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "qubok_evolve",
   "private": true,
-  "version": "0.1.0-milestone.22",
+  "version": "0.1.0-milestone.23",
   "type": "module",
   "scripts": {
     "preview": "vite preview --host 127.0.0.1",
@@ -11,6 +11,7 @@
     "bench:movement": "node scripts/bench-movement.mjs",
     "bench:obstacle-response": "node scripts/bench-obstacle-response.mjs",
     "bench:spawn-validation": "node scripts/bench-spawn-validation.mjs",
+    "bench:reproduction-spawn-validation": "node scripts/bench-reproduction-spawn-validation.mjs",
     "bench:perf-metrics": "node scripts/bench-perf-metrics.mjs",
     "dev": "vite --host 127.0.0.1",
     "build": "tsc && vite build",
