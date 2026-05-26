@@ -5,6 +5,10 @@ export type FieldDampingControlPanelHandle = {
   readonly destroy: () => void;
 };
 
+export type FieldDampingControlPanelOptions = {
+  readonly onConfigChange?: (config: DemoSimulationFieldDampingConfig) => void;
+};
+
 type NumericConfigKey = "obstacleFieldDampingPerSecond" | "terrainFieldDampingScalePerSecond" | "fieldDampingMaxObstacleCells" | "fieldDampingMaxTerrainCells";
 
 const NUMERIC_CONTROLS: readonly NumericControlSpec<NumericConfigKey>[] = Object.freeze([
@@ -14,7 +18,7 @@ const NUMERIC_CONTROLS: readonly NumericControlSpec<NumericConfigKey>[] = Object
   { key: "fieldDampingMaxTerrainCells", label: "max terrain cells", valueKind: "integer", sliderMin: 0, sliderMax: 4096, inputMin: 0, inputMax: 1000000, step: 1 }
 ]);
 
-export function createFieldDampingControlPanel(host: HTMLElement, simulation: DemoSimulationHandle): FieldDampingControlPanelHandle {
+export function createFieldDampingControlPanel(host: HTMLElement, simulation: DemoSimulationHandle, options: FieldDampingControlPanelOptions = {}): FieldDampingControlPanelHandle {
   const initialConfig = simulation.getFieldDampingConfig();
   const panel = createCollapsibleControlPanel({
     host,
@@ -26,21 +30,25 @@ export function createFieldDampingControlPanel(host: HTMLElement, simulation: De
   const obstacleToggle = createBooleanControl<DemoSimulationFieldDampingConfig>({
     label: "obstacle damping",
     getValue: (config) => config.enableObstacleFieldDamping,
-    setValue: (value) => simulation.updateFieldDampingConfig({ enableObstacleFieldDamping: value }),
+    setValue: (value) => {
+      options.onConfigChange?.(simulation.updateFieldDampingConfig({ enableObstacleFieldDamping: value }));
+    },
     changeEventName: "qubok-field-damping-control-change"
   });
 
   const terrainToggle = createBooleanControl<DemoSimulationFieldDampingConfig>({
     label: "terrain damping",
     getValue: (config) => config.enableTerrainFieldDamping,
-    setValue: (value) => simulation.updateFieldDampingConfig({ enableTerrainFieldDamping: value }),
+    setValue: (value) => {
+      options.onConfigChange?.(simulation.updateFieldDampingConfig({ enableTerrainFieldDamping: value }));
+    },
     changeEventName: "qubok-field-damping-control-change"
   });
 
   const numericControls = NUMERIC_CONTROLS.map((spec) => createNumericControl<DemoSimulationFieldDampingConfig, NumericConfigKey>(spec, {
     getValue: (config) => config[spec.key],
     setValue: (value) => {
-      simulation.updateFieldDampingConfig({ [spec.key]: value } as DemoSimulationFieldDampingConfigPatch);
+      options.onConfigChange?.(simulation.updateFieldDampingConfig({ [spec.key]: value } as DemoSimulationFieldDampingConfigPatch));
       sync();
     }
   }));
@@ -48,7 +56,7 @@ export function createFieldDampingControlPanel(host: HTMLElement, simulation: De
   const footer = createControlFooter({
     infoText: "6/7 toggles · [] ;'",
     onReset: () => {
-      simulation.updateFieldDampingConfig(initialConfig);
+      options.onConfigChange?.(simulation.updateFieldDampingConfig(initialConfig));
       sync();
     }
   });

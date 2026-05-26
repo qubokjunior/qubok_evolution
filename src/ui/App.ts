@@ -1,4 +1,4 @@
-import { createDemoSimulation, type DemoSimulationHandle } from "../sim/demoSimulation";
+import { createDemoSimulation, type DemoSimulationFieldDampingConfig, type DemoSimulationHandle } from "../sim/demoSimulation";
 import { createPerfOverlay } from "../render/debugOverlay";
 import { mountPixiRenderer } from "../render/pixiRenderer";
 import { createFieldDampingControlPanel } from "./fieldDampingPanel";
@@ -8,6 +8,7 @@ import { createRenderLayersPanel } from "./renderLayersPanel";
 import { createFieldVectorDebugPanel } from "./fieldVectorDebugPanel";
 import { toggleRenderDebugLayer, type RenderDebugConfig } from "../render/renderDebugConfig";
 import { loadStoredRenderDebugConfig, saveRenderDebugConfig } from "../render/renderDebugConfigPersistence";
+import { loadStoredFieldDampingConfig, saveFieldDampingConfig } from "../sim/fieldDampingConfigPersistence";
 
 export type QubokEvolveAppHandle = {
   destroy: () => void;
@@ -38,6 +39,8 @@ const FIELD_DAMPING_CONTROL_KEYS: Record<string, FieldDampingControlAction> = Ob
 export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolveAppHandle> {
   root.replaceChildren();
 
+  const initialFieldDampingConfig = loadStoredFieldDampingConfig();
+
   const shell = document.createElement("div");
   shell.className = "qubok_evolve-shell";
 
@@ -57,10 +60,11 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
     seed: "qubok_evolve:demo:m16",
     capacity: 1536,
     worldWidth: 2048,
-    worldHeight: 2048
+    worldHeight: 2048,
+    ...initialFieldDampingConfig
   });
 
-  const fieldDampingPanel = createFieldDampingControlPanel(controlStack, simulation);
+  const fieldDampingPanel = createFieldDampingControlPanel(controlStack, simulation, { onConfigChange: saveFieldDampingConfig });
 
   const perfOverlay = createPerfOverlay(overlayHost);
   const initialRenderDebugConfig = loadStoredRenderDebugConfig();
@@ -85,7 +89,7 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
     const dampingAction = FIELD_DAMPING_CONTROL_KEYS[event.key];
     if (dampingAction) {
       event.preventDefault();
-      applyFieldDampingControlShortcut(simulation, dampingAction);
+      saveFieldDampingConfig(applyFieldDampingControlShortcut(simulation, dampingAction));
       return;
     }
 
@@ -115,28 +119,22 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
   };
 }
 
-function applyFieldDampingControlShortcut(simulation: DemoSimulationHandle, action: FieldDampingControlAction): void {
+function applyFieldDampingControlShortcut(simulation: DemoSimulationHandle, action: FieldDampingControlAction): DemoSimulationFieldDampingConfig {
   const config = simulation.getFieldDampingConfig();
 
   switch (action) {
     case "toggleObstacle":
-      simulation.updateFieldDampingConfig({ enableObstacleFieldDamping: !config.enableObstacleFieldDamping });
-      return;
+      return simulation.updateFieldDampingConfig({ enableObstacleFieldDamping: !config.enableObstacleFieldDamping });
     case "toggleTerrain":
-      simulation.updateFieldDampingConfig({ enableTerrainFieldDamping: !config.enableTerrainFieldDamping });
-      return;
+      return simulation.updateFieldDampingConfig({ enableTerrainFieldDamping: !config.enableTerrainFieldDamping });
     case "obstacleDown":
-      simulation.updateFieldDampingConfig({ obstacleFieldDampingPerSecond: scaleControl(config.obstacleFieldDampingPerSecond, 0.8) });
-      return;
+      return simulation.updateFieldDampingConfig({ obstacleFieldDampingPerSecond: scaleControl(config.obstacleFieldDampingPerSecond, 0.8) });
     case "obstacleUp":
-      simulation.updateFieldDampingConfig({ obstacleFieldDampingPerSecond: scaleControl(config.obstacleFieldDampingPerSecond, 1.25) });
-      return;
+      return simulation.updateFieldDampingConfig({ obstacleFieldDampingPerSecond: scaleControl(config.obstacleFieldDampingPerSecond, 1.25) });
     case "terrainDown":
-      simulation.updateFieldDampingConfig({ terrainFieldDampingScalePerSecond: scaleControl(config.terrainFieldDampingScalePerSecond, 0.8) });
-      return;
+      return simulation.updateFieldDampingConfig({ terrainFieldDampingScalePerSecond: scaleControl(config.terrainFieldDampingScalePerSecond, 0.8) });
     case "terrainUp":
-      simulation.updateFieldDampingConfig({ terrainFieldDampingScalePerSecond: scaleControl(config.terrainFieldDampingScalePerSecond, 1.25) });
-      return;
+      return simulation.updateFieldDampingConfig({ terrainFieldDampingScalePerSecond: scaleControl(config.terrainFieldDampingScalePerSecond, 1.25) });
   }
 }
 

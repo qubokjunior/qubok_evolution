@@ -69,6 +69,8 @@ M45-J2 adds a field vectors panel for editable vector rendering parameters: alph
 
 M45-J3 persists render debug configuration in localStorage. Layer visibility and render debug numeric values survive reloads, while the debug UI layout reset panel can clear the stored render config when needed.
 
+M45-J4 persists editable field damping debug configuration in localStorage. Damping toggles, strengths, and sample caps survive reloads, and the debug UI layout reset panel clears the stored damping config.
+
 M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel change event when damping checkboxes are toggled.
 
 ## Validation target
@@ -94,6 +96,7 @@ M45-E1 formats damping enabled overlay readouts as `on/off` and emits a panel ch
 - npm run test:render-layers-panel
 - npm run test:field-vector-debug-panel
 - npm run test:render-debug-config-persistence
+- npm run test:field-damping-config-persistence
 - npm run test:editable-panel-resize
 - npm run test:demo-integration
 - npm run build

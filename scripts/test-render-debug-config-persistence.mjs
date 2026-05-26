@@ -25,7 +25,7 @@ for (const token of ["loadStoredRenderDebugConfig", "saveRenderDebugConfig", "in
   assert(app.includes(token), "App missing render debug persistence token: " + token);
 }
 
-for (const token of ["clearStoredRenderDebugConfig", "reset layout + render config"]) {
+for (const token of ["clearStoredRenderDebugConfig", "reset layout + debug config"]) {
   assert(debugLayoutPanel.includes(token), "debugLayoutPanel missing render debug reset token: " + token);
 }
 
