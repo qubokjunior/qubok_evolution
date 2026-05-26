@@ -16,15 +16,17 @@ const integrationM42 = readText("docs/integration_m42.md");
 const integrationM43 = readText("docs/integration_m43.md");
 const integrationM44 = readText("docs/integration_m44.md");
 const integrationM45 = readText("docs/integration_m45.md");
+const integrationM46 = readText("docs/integration_m46.md");
 const fieldDamping = readText("src/sim/fieldDamping.ts");
+const fieldAdvection = readText("src/sim/fieldAdvection.ts");
 
-assert(packageJson.version === "0.1.0-milestone.45", "package.json must expose 0.1.0-milestone.45.");
-assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.45\""), "appVersion must expose milestone.45.");
-assert(appVersion.includes("PROJECT_MILESTONE = 45"), "appVersion must expose milestone number 45.");
-assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m45\""), "appVersion must expose m45 label.");
-assert(readme.includes("0.1.0-milestone.45"), "README.md must expose current milestone version.");
-assert(readme.includes("Current status: m45"), "README.md must expose current status m45.");
-for (const marker of ["| m32 |", "| m33 |", "| m34 |", "| m35 |", "| m36 |", "| m37 |", "| m38 |", "| m39 |", "| m40 |", "| m41 |", "| m42 |", "| m43 |", "| m44 |", "| m45 |"]) assert(milestones.includes(marker), "docs/milestones.md missing marker: " + marker);
+assert(packageJson.version === "0.1.0-milestone.45", "package.json must keep 0.1.0-milestone.45 until m46 runtime integration bumps version.");
+assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.45\""), "appVersion must keep milestone.45 until m46 runtime integration bumps version.");
+assert(appVersion.includes("PROJECT_MILESTONE = 45"), "appVersion must keep milestone number 45 until m46 runtime integration bumps version.");
+assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m45\""), "appVersion must keep m45 label until m46 runtime integration bumps version.");
+assert(readme.includes("m46 planning"), "README.md must expose current m46 planning status.");
+assert(readme.includes("environmental field transport/advection"), "README.md must expose current field advection track.");
+for (const marker of ["| m32 |", "| m33 |", "| m34 |", "| m35 |", "| m36 |", "| m37 |", "| m38 |", "| m39 |", "| m40 |", "| m41 |", "| m42 |", "| m43 |", "| m44 |", "| m45 |", "| m46 |"]) assert(milestones.includes(marker), "docs/milestones.md missing marker: " + marker);
 assert(integrationM40.includes("environmental field render snapshot"), "integration_m40 must describe environmental field render snapshot.");
 assert(integrationM41.includes("render debug controls"), "integration_m41 must describe render debug controls.");
 assert(integrationM42.includes("decay") && integrationM42.includes("diffusion"), "integration_m42 must describe field decay/diffusion.");
@@ -41,18 +43,18 @@ assert(packageJson.scripts["bench:field-sources"] === "node scripts/bench-field-
 assert(packageJson.scripts.test.includes("test:field-sources"), "npm run test must include test:field-sources.");
 assert(packageJson.scripts.test.includes("test:field-sources-integration"), "npm run test must include test:field-sources-integration.");
 
-
 assert(integrationM44.includes("field source semantics tuning") && integrationM44.includes("visualization QA"), "integration_m44 must describe field source semantics tuning and visualization QA.");
-
-
 assert(integrationM45.includes("obstacle/terrain damping sources") && integrationM45.includes("editable debug parameters"), "integration_m45 must describe obstacle/terrain damping sources and editable debug parameters.");
-
-
 assert(fieldDamping.includes("FIELD_DAMPING_VERSION") && fieldDamping.includes("applyFieldDamping"), "fieldDamping must expose m45 core damping API.");
 assert(packageJson.scripts["test:field-damping"] === "node scripts/test-field-damping.mjs", "package.json must expose test:field-damping.");
 assert(packageJson.scripts.test.includes("test:field-damping"), "npm run test must include test:field-damping.");
 assert(packageJson.scripts["test:field-damping-integration"] === "node scripts/test-field-damping-integration.mjs", "package.json must expose test:field-damping-integration.");
 assert(packageJson.scripts.test.includes("test:field-damping-integration"), "npm run test must include test:field-damping-integration.");
 assert(integrationM45.includes("fieldDampingStats") && integrationM45.includes("fieldDampingMs"), "integration_m45 must document damping runtime outputs.");
+
+assert(integrationM46.includes("environmental field transport") && integrationM46.includes("advection"), "integration_m46 must describe m46 field transport/advection.");
+assert(fieldAdvection.includes("FIELD_ADVECTION_VERSION") && fieldAdvection.includes("advectEnvironmentalField"), "fieldAdvection must expose m46 core advection API.");
+assert(packageJson.scripts["test:field-advection"] === "node scripts/test-field-advection.mjs", "package.json must expose test:field-advection.");
+assert(packageJson.scripts.test.includes("test:field-advection"), "npm run test must include test:field-advection.");
 
 console.log("repo status tests passed");
