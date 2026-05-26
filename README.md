@@ -2,7 +2,7 @@
 
 High-performance realtime 2D artificial-life ecosystem simulator.
 
-Current status: m36 / 0.1.0-milestone.36.
+Current status: m37 / 0.1.0-milestone.37.
 
 ## What exists now
 
@@ -14,13 +14,14 @@ Implemented runtime foundations:
 - movement, spatial hash, neighbor query, resources, energy survival, reproduction, mutation, predator/prey interaction, and sector sensors;
 - obstacle mask used by sensing, soft movement response, spawn validation, lifecycle telemetry, and debug rendering;
 - free-list dead-slot reuse so death creates structural room for later births;
-- live performance/debug overlay with obstacle and world-slot telemetry;
+- live performance/debug overlay with obstacle, terrain, sensor, and world-slot telemetry;
 - static tests guarding architecture boundaries, repo status, roadmap status, and lifecycle death routing;
 - terrain/material data layer with deterministic cell/material sampling;
-- terrain render snapshot foundation for future terrain debug visualization;
+- terrain render snapshot foundation for terrain debug visualization;
 - terrain Pixi debug render layer with overlay metrics;
 - terrain movement query integration using material friction, drag, and movement cost;
-- terrain resource-affinity spawning and respawning.
+- terrain resource-affinity spawning and respawning;
+- terrain-aware sensor sampling on controlled cadence.
 
 ## Commands
 
@@ -41,6 +42,7 @@ npm run test:terrain-render-snapshot
 npm run test:terrain-debug-render-layer
 npm run test:terrain-movement-query
 npm run test:terrain-resource-affinity
+npm run test:terrain-sensor-sampling
 npm run test:death-path-audit
 npm run test:lifecycle-pressure
 npm run bench:world-free-list
@@ -55,11 +57,12 @@ http://127.0.0.1:5173/
 
 ## Milestones and docs
 
-- `docs/milestones.md` — compact milestone index through m36.
-- `docs/roadmap.md` — development tracks after m31.
+- `docs/milestones.md` — compact milestone index through m37.
+- `docs/roadmap.md` — development tracks after m37.
 - `docs/architecture_tracks.md` — boundary contracts for future work.
 - `docs/world_state.md` — typed-array world state and lifecycle slot contract.
-- `docs/integration_m36.md` — current terrain resource-affinity milestone.
+- `docs/integration_m36.md` — terrain resource-affinity milestone.
+- `docs/integration_m37.md` — terrain-aware sensor sampling milestone.
 
 ## Boundary rule
 
