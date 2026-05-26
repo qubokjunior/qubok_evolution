@@ -100,6 +100,7 @@ export function createDebugLayoutPanel(host: HTMLElement): DebugLayoutPanelHandl
     const removedCount = clearDebugLayoutState();
     clearStoredRenderDebugConfig();
     clearStoredFieldDampingConfig();
+    clearStoredFieldAdvectionConfig();
     status.textContent = `cleared ${removedCount} stored ui keys · reloading`;
     window.setTimeout(() => window.location.reload(), 80);
   });
