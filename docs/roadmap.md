@@ -1,6 +1,6 @@
 # qubok_evolve roadmap
 
-Current status: m45 / 0.1.0-milestone.45 closed.
+Current status: m46 planning / field transport-advection track.
 
 m34 shipped: terrain Pixi debug render layer.
 
@@ -25,6 +25,8 @@ m43 shipped: field sources/sinks foundation with demo wiring and overlay metrics
 m44 shipped: field source semantics tuning and visualization QA.
 
 m45 shipped: obstacle/terrain damping sources, editable debug parameters, panel stack persistence, render layer controls, and debug config preset import/export UX.
+
+m46 planned: deterministic environmental field transport/advection before controller/brain work.
 
 ## terrain/material track
 
@@ -56,22 +58,19 @@ Shipped sequence:
 - obstacle/terrain damping sources with runtime metrics, editable damping controls, persisted debug config, render layer/vector controls, and preset import/export UX.
 
 Current milestone:
-- m45 closed: obstacle/terrain damping sources and editable debug parameters.
+- m46 planning: deterministic field transport/advection using a CPU semi-Lagrangian pass.
 
-M45 scope:
-- damp environmental field magnitude around obstacle cells and terrain materials;
-- expose deterministic damping stats and overlay readouts;
-- expose editable damping controls and panels;
-- add agent field visual debug controls;
-- consolidate right-side editable panels into a scrollable, resizable, persistent stack;
-- persist render debug and field damping config;
-- export/import debug config presets with validation UX;
-- keep field damping simulation-only and renderer-agnostic.
+M46 planned scope:
+- define advection separately from diffusion, sources/sinks, damping, and field force;
+- keep first pass CPU, deterministic, low-resolution, and renderer-agnostic;
+- add core advection API and deterministic tests before demo wiring;
+- benchmark field sizes and substep counts before UI controls;
+- keep Stable Fluids pressure solve, WebGPU, controller/brain, and render rewrite out of scope.
 
 Follow-up candidates:
-- m46 candidate: field transport/advection research spike or field-force separation, if the next track remains fluid-like fields;
-- signed-distance-field correction, if the next track returns to terrain/material response;
-- controller/brain first pass, if the next milestone should begin behavior decision logic after the debug/config foundation is stable.
+- field-force separation after advection behavior is stable;
+- signed-distance-field correction if the next track returns to terrain/material response;
+- controller/brain first pass after field behavior remains understandable and measurable.
 
 ## controller/brain track
 
