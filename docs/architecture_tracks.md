@@ -1,6 +1,6 @@
 # qubok_evolve architecture tracks
 
-Current status: m34.
+Current status: m35.
 
 ## Shared boundary rule
 
@@ -12,7 +12,7 @@ PixiJS remains confined to src/render. Simulation modules under src/sim must sta
 
 | Track | May touch | Must not touch |
 |---|---|---|
-| terrain/material | terrain data modules including src/sim/terrain.ts and terrain render snapshots including src/sim/terrainRenderSnapshot.ts and terrain debug rendering in src/render/pixiRenderer.ts, movement/resource/sensor query integration, tests | Pixi internals except through snapshots |
+| terrain/material | terrain data modules including src/sim/terrain.ts and terrain render snapshots including src/sim/terrainRenderSnapshot.ts and terrain debug rendering in src/render/pixiRenderer.ts, movement query integration, later resource/sensor query integration, tests | Pixi internals except through snapshots |
 | fluid-like field | field data modules, movement force inputs, field snapshots | entity lifecycle ownership |
 | morphology/entity editor | schema/compiler/tests for phenotype data | direct DOM/Pixi editor coupling inside src/sim |
 | controller/brain | action vector contract, controller modules, deterministic tests | renderer-owned decision state |

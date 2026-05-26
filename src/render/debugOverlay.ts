@@ -18,6 +18,10 @@ export type PerfOverlaySnapshot = {
   readonly averageEnergy01: number;
   readonly tick: number;
   readonly movementIntegratedCount: number;
+  readonly terrainMovementSampleCount: number;
+  readonly terrainMovementCostSum: number;
+  readonly terrainFrictionSum: number;
+  readonly terrainDragSum: number;
   readonly obstacleResponseMs: number;
   readonly obstacleResponseForces: number;
   readonly obstacleResponseHits: number;
@@ -125,6 +129,10 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     averageEnergy01: createValueRow(root, "avg energy"),
     tick: createValueRow(root, "tick"),
     movementIntegratedCount: createValueRow(root, "integrated"),
+    terrainMovementSampleCount: createValueRow(root, "terrain move samples"),
+    terrainMovementCostSum: createValueRow(root, "terrain move cost"),
+    terrainFrictionSum: createValueRow(root, "terrain friction"),
+    terrainDragSum: createValueRow(root, "terrain drag"),
     obstacleResponseMs: createValueRow(root, "obs response"),
     obstacleResponseForces: createValueRow(root, "obs forces"),
     obstacleResponseHits: createValueRow(root, "obs hits"),
@@ -204,6 +212,10 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     rows.averageEnergy01.textContent = formatPercent(snapshot.averageEnergy01);
     rows.tick.textContent = formatInt(snapshot.tick);
     rows.movementIntegratedCount.textContent = formatInt(snapshot.movementIntegratedCount);
+    rows.terrainMovementSampleCount.textContent = formatInt(snapshot.terrainMovementSampleCount);
+    rows.terrainMovementCostSum.textContent = formatDecimal(snapshot.terrainMovementCostSum);
+    rows.terrainFrictionSum.textContent = formatDecimal(snapshot.terrainFrictionSum);
+    rows.terrainDragSum.textContent = formatDecimal(snapshot.terrainDragSum);
     rows.obstacleResponseMs.textContent = formatMs(snapshot.obstacleResponseMs);
     rows.obstacleResponseForces.textContent = formatInt(snapshot.obstacleResponseForces);
     rows.obstacleResponseHits.textContent = formatInt(snapshot.obstacleResponseHits);
