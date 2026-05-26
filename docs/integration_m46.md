@@ -103,3 +103,4 @@ Add a focused benchmark before UI integration:
 - M46-A3: demo wiring behind conservative config: sources/sinks -> damping -> advection -> dynamics;
 - M46-A4: overlay metrics/readouts;
 - M46-A5: editable advection controls for enabled, strength, substeps, and minimum active magnitude.
+- M46-A6: persisted field advection controls using localStorage and debug layout reset clearing.

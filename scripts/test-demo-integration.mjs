@@ -45,8 +45,8 @@ assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.45"'), "appVersio
 assert(appVersion.includes("PROJECT_MILESTONE = 45"), "appVersion must expose milestone number 45.");
 assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m45"'), "appVersion must expose m42 overlay label.");
 
-assert(readme.includes("Current status: m45"), "README must expose current status m45.");
-assert(readme.includes("0.1.0-milestone.45"), "README must expose the current milestone version.");
+assert(readme.includes("m46 planning"), "README must expose current m46 planning status.");
+assert(readme.includes("environmental field transport-advection"), "README must expose the current m46 field track.");
 assert(readme.includes("docs/milestones.md"), "README must link the milestone index.");
 assert(readme.includes("docs/roadmap.md"), "README must link roadmap docs.");
 assert(readme.includes("docs/integration_m40.md"), "README must keep m40 integration doc link.");
@@ -171,7 +171,7 @@ assert(readme.includes("docs/integration_m44.md"), "README must link m44 integra
 assert(integrationM45.includes("obstacle/terrain damping sources") && integrationM45.includes("editable debug parameters"), "integration_m45 must describe obstacle/terrain damping sources and editable debug parameters.");
 
 
-assert(roadmap.includes("m45 in progress: obstacle/terrain damping sources and editable debug parameters"), "roadmap must include m45 current milestone.");
+assert(roadmap.includes("m45 shipped: obstacle/terrain damping sources"), "roadmap must include m45 shipped milestone.");
 
 
 assert(readme.includes("docs/integration_m45.md"), "README must link m45 integration doc.");
