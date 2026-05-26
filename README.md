@@ -2,7 +2,7 @@
 
 High-performance realtime 2D artificial-life ecosystem simulator.
 
-Current status: m32 / 0.1.0-milestone.32.
+Current status: m33 / 0.1.0-milestone.33.
 
 ## What exists now
 
@@ -16,7 +16,8 @@ Implemented runtime foundations:
 - free-list dead-slot reuse so death creates structural room for later births;
 - live performance/debug overlay with obstacle and world-slot telemetry;
 - static tests guarding architecture boundaries, repo status, roadmap status, and lifecycle death routing;
-- terrain/material data layer with deterministic cell/material sampling.
+- terrain/material data layer with deterministic cell/material sampling;
+- terrain render snapshot foundation for future terrain debug visualization.
 
 ## Commands
 
@@ -32,9 +33,12 @@ Targeted checks:
 ```powershell
 npm run test:repo-status
 npm run test:roadmap-status
+npm run test:terrain
+npm run test:terrain-render-snapshot
 npm run test:death-path-audit
 npm run test:lifecycle-pressure
 npm run bench:world-free-list
+npm run bench:terrain-render-snapshot
 ```
 
 Open the local URL printed by Vite, usually:
@@ -45,11 +49,11 @@ http://127.0.0.1:5173/
 
 ## Milestones and docs
 
-- `docs/milestones.md` — compact milestone index through m30.
+- `docs/milestones.md` — compact milestone index through m33.
 - `docs/roadmap.md` — development tracks after m31.
 - `docs/architecture_tracks.md` — boundary contracts for future work.
 - `docs/world_state.md` — typed-array world state and lifecycle slot contract.
-- `docs/integration_m31.md` — current roadmap architecture-track milestone.
+- `docs/integration_m33.md` — current terrain render snapshot milestone.
 
 ## Boundary rule
 
