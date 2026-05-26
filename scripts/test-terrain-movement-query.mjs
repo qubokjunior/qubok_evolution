@@ -35,8 +35,6 @@ const agentInput = {
   y: 5,
   vx: 0,
   vy: 0,
-  fx: 100,
-  fy: 0,
   headingX: 1,
   headingY: 0,
   radius: 2,
@@ -68,6 +66,8 @@ const agentInput = {
 
 spawnAgent(worldWithoutTerrain, agentInput);
 spawnAgent(worldWithTerrain, agentInput);
+worldWithoutTerrain.fx[0] = 100;
+worldWithTerrain.fx[0] = 100;
 
 const baseline = stepMovement(worldWithoutTerrain, { deltaSeconds: TEST_DELTA_SECONDS, boundsMode: "none", clearForces: false, minimumEnergy: -1 });
 const terrainInfluenced = stepMovement(worldWithTerrain, { deltaSeconds: TEST_DELTA_SECONDS, boundsMode: "none", clearForces: false, minimumEnergy: -1, terrain });
