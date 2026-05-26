@@ -44,3 +44,16 @@ Milestone 26 changes lifecycle capacity semantics without changing the typed-arr
 `spawnAgent(world, input)` now reuses a queued dead slot before appending. It throws only when there is no reusable slot and `world.count >= world.capacity`.
 
 No compaction is performed. Render snapshots still expose slots from `0..world.count`, and downstream code must continue to respect `alive[index]`.
+
+
+## m27 world slot telemetry
+
+Milestone 27 exposes the m26 slot reuse counters in runtime telemetry and the debug overlay.
+
+The tracked counters are:
+
+- reusableSlotCount: dead slots currently available for reuse.
+- spawnReusedSlotCount: total spawns that reused a dead slot.
+- spawnAppendedSlotCount: total spawns that appended at the historical end of world.count.
+
+These values are read-only observability surfaces. They do not change the reuse algorithm introduced in m26.
