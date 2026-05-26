@@ -17,17 +17,13 @@ const appVersion = readText("src/shared/appVersion.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
 const debugOverlay = readText("src/render/debugOverlay.ts");
 const pixiRenderer = readText("src/render/pixiRenderer.ts");
-const sensors = readText("src/sim/sensors.ts");
-const obstacleMask = readText("src/sim/obstacleMask.ts");
+const obstacleResponse = readText("src/sim/obstacleResponse.ts");
 
-assert(packageJson.version === "0.1.0-milestone.19", "package.json version must be 0.1.0-milestone.19.");
-assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.19"'), "appVersion must expose milestone.19.");
-assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m19"'), "appVersion must expose m19 overlay label.");
+assert(packageJson.version === "0.1.0-milestone.20", "package.json version must be 0.1.0-milestone.20.");
+assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.20"'), "appVersion must expose milestone.20.");
+assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m20"'), "appVersion must expose m20 overlay label.");
 
-assert(!debugOverlay.includes('badge.textContent = "m10"'), "debug overlay must not hardcode m10.");
-assert(!debugOverlay.includes('badge.textContent = "m16"'), "debug overlay must not hardcode m16.");
-assert(!debugOverlay.includes('badge.textContent = "m17"'), "debug overlay must not hardcode m17.");
-assert(!debugOverlay.includes('badge.textContent = "m18"'), "debug overlay must not hardcode m18.");
+assert(!debugOverlay.includes('badge.textContent = "m19"'), "debug overlay must not hardcode m19.");
 assert(debugOverlay.includes("../shared/appVersion"), "debug overlay must read milestone label from shared/appVersion.");
 
 for (const forbiddenImport of ["../render/", "./render/", "../ui/", "./ui/", "pixi.js", "react"]) {
@@ -35,44 +31,32 @@ for (const forbiddenImport of ["../render/", "./render/", "../ui/", "./ui/", "pi
 }
 
 for (const requiredDemoToken of [
-  "createObstacleMask",
-  "seedDemoObstacleMask",
-  "obstacleMask",
-  "applyAgentSensors",
-  "sensorFoodTickInterval",
-  "sensorObstacleTickInterval",
-  "preserveSkippedSectorChannels"
+  "applyObstacleSoftResponse",
+  "obstacleResponseStats",
+  "obstacleResponseMs",
+  "obstacleResponseRadius",
+  "obstacleResponseForceScale",
+  "obstacleResponseMaxForce"
 ]) {
-  assert(demoSimulation.includes(requiredDemoToken), `demoSimulation is missing live integration token: ${requiredDemoToken}`);
+  assert(demoSimulation.includes(requiredDemoToken), `demoSimulation is missing obstacle response token: ${requiredDemoToken}`);
 }
 
-for (const requiredSensorToken of [
-  "sectorObstacle",
-  "obstacleMask",
-  "obstacleMaskCellChecks",
-  "obstacleMaskHits",
-  "obstacleMaskSectorWrites",
-  "accumulateObstacleMaskSectors",
-  "assertObstacleMaskCompatible"
+for (const requiredResponseToken of [
+  "OBSTACLE_RESPONSE_VERSION",
+  "applyObstacleSoftResponse",
+  "responseRadius",
+  "forceScale",
+  "maxForcePerAgent",
+  "forceAppliedCount"
 ]) {
-  assert(sensors.includes(requiredSensorToken), `sensors m19 contract is missing token: ${requiredSensorToken}`);
-}
-
-for (const requiredObstacleToken of [
-  "OBSTACLE_MASK_VERSION",
-  "createObstacleMask",
-  "setObstacleRect",
-  "seedDemoObstacleMask",
-  "Uint8Array"
-]) {
-  assert(obstacleMask.includes(requiredObstacleToken), `obstacle mask module is missing token: ${requiredObstacleToken}`);
+  assert(obstacleResponse.includes(requiredResponseToken), `obstacle response module is missing token: ${requiredResponseToken}`);
 }
 
 for (const requiredOverlayToken of [
-  "sensorObstacleMaskHits",
-  "sensorObstacleMaskSectorWrites",
-  "sensorFoodScheduled",
-  "sensorObstacleScheduled"
+  "obstacleResponseMs",
+  "obstacleResponseForces",
+  "obstacleResponseHits",
+  "obstacleResponseBoundaryHits"
 ]) {
   assert(pixiRenderer.includes(requiredOverlayToken), `pixiRenderer is missing overlay metric token: ${requiredOverlayToken}`);
   assert(debugOverlay.includes(requiredOverlayToken), `debugOverlay is missing overlay row token: ${requiredOverlayToken}`);

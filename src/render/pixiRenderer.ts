@@ -1,6 +1,7 @@
 import { Application, Container, Graphics } from "pixi.js";
 import type { EnergySurvivalStats } from "../sim/energy";
 import type { MovementStepMetrics } from "../sim/movement";
+import type { ObstacleSoftResponseStats } from "../sim/obstacleResponse";
 import type { LocalNeighborSummary } from "../sim/neighborQuery";
 import type { PredatorPreyInteractionStats } from "../sim/predatorPrey";
 import type { RenderSnapshot, RenderSnapshotStats } from "../sim/renderSnapshot";
@@ -15,6 +16,7 @@ export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly snapshot: RenderSnapshot;
   readonly snapshotStats: RenderSnapshotStats;
   readonly movementMetrics: MovementStepMetrics;
+  readonly obstacleResponseStats: ObstacleSoftResponseStats;
   readonly energyStats: EnergySurvivalStats;
   readonly spatialBuildStats: SpatialHashBuildStats;
   readonly neighborQueryStats: LocalNeighborSummary;
@@ -29,6 +31,7 @@ export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly gridBuildMs: number;
   readonly neighborQueryMs: number;
   readonly sensorMs: number;
+  readonly obstacleResponseMs: number;
   readonly predatorPreyMs: number;
   readonly resourceMs: number;
   readonly energyMs: number;
@@ -101,6 +104,10 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("gridBuildMs", frame.gridBuildMs);
     metrics.record("neighborQueryMs", frame.neighborQueryMs);
     metrics.record("sensorMs", frame.sensorMs);
+    metrics.record("obstacleResponseMs", frame.obstacleResponseMs);
+    metrics.record("obstacleResponseForces", frame.obstacleResponseStats.forceAppliedCount);
+    metrics.record("obstacleResponseHits", frame.obstacleResponseStats.obstacleHits);
+    metrics.record("obstacleResponseBoundaryHits", frame.obstacleResponseStats.boundaryHits);
     metrics.record("predatorPreyMs", frame.predatorPreyMs);
     metrics.record("resourceMs", frame.resourceMs);
     metrics.record("energyMs", frame.energyMs);
@@ -163,6 +170,10 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         gridBuildMs: snapshot.values.gridBuildMs,
         neighborQueryMs: snapshot.values.neighborQueryMs,
         sensorMs: snapshot.values.sensorMs,
+        obstacleResponseMs: snapshot.values.obstacleResponseMs,
+        obstacleResponseForces: snapshot.values.obstacleResponseForces,
+        obstacleResponseHits: snapshot.values.obstacleResponseHits,
+        obstacleResponseBoundaryHits: snapshot.values.obstacleResponseBoundaryHits,
         predatorPreyMs: snapshot.values.predatorPreyMs,
         resourceMs: snapshot.values.resourceMs,
         energyMs: snapshot.values.energyMs,

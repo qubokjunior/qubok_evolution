@@ -18,6 +18,10 @@ export type PerfOverlaySnapshot = {
   readonly averageEnergy01: number;
   readonly tick: number;
   readonly movementIntegratedCount: number;
+  readonly obstacleResponseMs: number;
+  readonly obstacleResponseForces: number;
+  readonly obstacleResponseHits: number;
+  readonly obstacleResponseBoundaryHits: number;
   readonly deathsThisStep: number;
   readonly starvingCount: number;
   readonly starvationDamage: number;
@@ -102,6 +106,10 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     averageEnergy01: createValueRow(root, "avg energy"),
     tick: createValueRow(root, "tick"),
     movementIntegratedCount: createValueRow(root, "integrated"),
+    obstacleResponseMs: createValueRow(root, "obs response"),
+    obstacleResponseForces: createValueRow(root, "obs forces"),
+    obstacleResponseHits: createValueRow(root, "obs hits"),
+    obstacleResponseBoundaryHits: createValueRow(root, "obs boundary"),
     deathsThisStep: createValueRow(root, "deaths/tick"),
     starvingCount: createValueRow(root, "starving"),
     starvationDamage: createValueRow(root, "starve dmg"),
@@ -158,6 +166,10 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     rows.averageEnergy01.textContent = formatPercent(snapshot.averageEnergy01);
     rows.tick.textContent = formatInt(snapshot.tick);
     rows.movementIntegratedCount.textContent = formatInt(snapshot.movementIntegratedCount);
+    rows.obstacleResponseMs.textContent = formatMs(snapshot.obstacleResponseMs);
+    rows.obstacleResponseForces.textContent = formatInt(snapshot.obstacleResponseForces);
+    rows.obstacleResponseHits.textContent = formatInt(snapshot.obstacleResponseHits);
+    rows.obstacleResponseBoundaryHits.textContent = formatInt(snapshot.obstacleResponseBoundaryHits);
     rows.deathsThisStep.textContent = formatInt(snapshot.deathsThisStep);
     rows.starvingCount.textContent = formatInt(snapshot.starvingCount);
     rows.starvationDamage.textContent = formatDecimal(snapshot.starvationDamage);
