@@ -187,6 +187,9 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("birthsThisStep", frame.reproductionStats.birthsThisStep);
     metrics.record("reproductionEligibleCount", frame.reproductionStats.eligibleCount);
     metrics.record("blockedBirthsByCapacity", frame.reproductionStats.blockedByCapacity);
+    metrics.record("terrainOffspringSampleCount", frame.reproductionStats.terrainOffspringSampleCount);
+    metrics.record("terrainOffspringAffinitySum", frame.reproductionStats.terrainOffspringAffinitySum);
+    metrics.record("terrainOffspringRejectedCount", frame.reproductionStats.terrainOffspringRejectedCount);
     metrics.record("reusableSlotCount", frame.snapshot.reusableSlotCount);
     metrics.record("spawnReusedSlotCount", frame.snapshot.spawnReusedSlotCount);
     metrics.record("spawnAppendedSlotCount", frame.snapshot.spawnAppendedSlotCount);
@@ -296,6 +299,9 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         birthsThisStep: snapshot.values.birthsThisStep,
         reproductionEligibleCount: snapshot.values.reproductionEligibleCount,
         blockedBirthsByCapacity: snapshot.values.blockedBirthsByCapacity,
+        terrainOffspringSampleCount: snapshot.values.terrainOffspringSampleCount,
+        terrainOffspringAffinitySum: snapshot.values.terrainOffspringAffinitySum,
+        terrainOffspringRejectedCount: snapshot.values.terrainOffspringRejectedCount,
         reusableSlotCount: snapshot.values.reusableSlotCount,
         spawnReusedSlotCount: snapshot.values.spawnReusedSlotCount,
         spawnAppendedSlotCount: snapshot.values.spawnAppendedSlotCount,
