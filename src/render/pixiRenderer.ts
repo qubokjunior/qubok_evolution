@@ -16,6 +16,7 @@ import type { SpatialHashBuildStats } from "../sim/spatialHash";
 import type { SpawnValidationStats } from "../sim/spawnValidation";
 import { createPerfMetricsBus } from "../shared/perfMetrics";
 import type { PerfOverlaySink } from "./debugOverlay";
+import { makeRenderDebugConfig, type RenderDebugConfig, type RenderDebugConfigPatch } from "./renderDebugConfig";
 
 export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly snapshot: RenderSnapshot;
@@ -53,6 +54,7 @@ export type PixiRendererOptions = {
   host: HTMLElement;
   perfOverlay: PerfOverlaySink;
   snapshotSource: SimulationFrameSource;
+  renderDebugConfig?: RenderDebugConfigPatch;
 };
 
 export type PixiRendererHandle = { destroy: () => void };
@@ -80,6 +82,7 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
   app.canvas.className = "qubok_evolve-canvas";
   options.host.append(app.canvas);
 
+  const renderDebugConfig = makeRenderDebugConfig(options.renderDebugConfig);
   const world = new Container();
   const backgroundLayer = new Graphics();
   const gridLayer = new Graphics();
@@ -90,6 +93,7 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
 
   world.addChild(backgroundLayer, gridLayer, terrainLayer, fieldLayer, obstacleLayer, agentLayer);
   app.stage.addChild(world);
+  applyRenderDebugVisibility(renderDebugConfig, gridLayer, terrainLayer, fieldLayer, obstacleLayer, agentLayer);
 
   const glyphs: AgentGlyph[] = [];
   const metrics = createPerfMetricsBus();
@@ -108,6 +112,8 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     const endRenderScope = metrics.beginScope("renderMsPerFrame");
     const deltaSeconds = Math.min(ticker.deltaMS / 1000, MAX_RENDER_DELTA_SECONDS);
     const frame = options.snapshotSource(deltaSeconds);
+
+    applyRenderDebugVisibility(renderDebugConfig, gridLayer, terrainLayer, fieldLayer, obstacleLayer, agentLayer);
 
     metrics.record("simMsPerTick", frame.simMsPerTick);
     metrics.record("gridBuildMs", frame.gridBuildMs);
@@ -201,18 +207,32 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("mutationChangedCount", frame.reproductionStats.mutationChangedCount);
 
     const endTerrainRenderScope = metrics.beginScope("terrainRenderMs");
-    renderTerrainLayer(terrainLayer, frame.terrainRenderSnapshot, options.host.clientWidth, options.host.clientHeight);
+    if (renderDebugConfig.showTerrainLayer) {
+      renderTerrainLayer(terrainLayer, frame.terrainRenderSnapshot, options.host.clientWidth, options.host.clientHeight);
+    } else {
+      terrainLayer.clear();
+    }
     const terrainRenderMs = endTerrainRenderScope();
 
     const endFieldRenderScope = metrics.beginScope("fieldRenderMs");
-    renderFieldVectorLayer(fieldLayer, frame.fieldRenderSnapshot, options.host.clientWidth, options.host.clientHeight);
+    if (renderDebugConfig.showFieldVectorLayer) {
+      renderFieldVectorLayer(fieldLayer, frame.fieldRenderSnapshot, options.host.clientWidth, options.host.clientHeight, renderDebugConfig);
+    } else {
+      fieldLayer.clear();
+    }
     const fieldRenderMs = endFieldRenderScope();
 
     const endObstacleRenderScope = metrics.beginScope("obstacleRenderMs");
-    renderObstacleMask(obstacleLayer, frame.obstacleMaskSnapshot, options.host.clientWidth, options.host.clientHeight);
+    if (renderDebugConfig.showObstacleLayer) {
+      renderObstacleMask(obstacleLayer, frame.obstacleMaskSnapshot, options.host.clientWidth, options.host.clientHeight);
+    } else {
+      obstacleLayer.clear();
+    }
     const obstacleRenderMs = endObstacleRenderScope();
 
-    renderSnapshot(agentLayer, glyphs, frame.snapshot, options.host.clientWidth, options.host.clientHeight);
+    if (renderDebugConfig.showAgents) {
+      renderSnapshot(agentLayer, glyphs, frame.snapshot, options.host.clientWidth, options.host.clientHeight);
+    }
 
     const renderMsPerFrame = endRenderScope();
     metrics.record("frameMs", ticker.elapsedMS);
@@ -333,24 +353,34 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
   };
 }
 
-function renderFieldVectorLayer(layer: Graphics, snapshot: FieldRenderSnapshot, viewportWidth: number, viewportHeight: number): void {
+function applyRenderDebugVisibility(config: RenderDebugConfig, gridLayer: Graphics, terrainLayer: Graphics, fieldLayer: Graphics, obstacleLayer: Graphics, agentLayer: Container): void {
+  gridLayer.visible = config.showGrid;
+  terrainLayer.visible = config.showTerrainLayer;
+  fieldLayer.visible = config.showFieldVectorLayer;
+  obstacleLayer.visible = config.showObstacleLayer;
+  agentLayer.visible = config.showAgents;
+}
+
+function renderFieldVectorLayer(layer: Graphics, snapshot: FieldRenderSnapshot, viewportWidth: number, viewportHeight: number, config: RenderDebugConfig): void {
   layer.clear();
-  if (snapshot.sampleVectorCount <= 0) return;
+  if (snapshot.sampleVectorCount <= 0 || config.fieldVectorAlpha <= 0 || config.fieldVectorScale <= 0) return;
 
   const scaleX = viewportWidth / snapshot.worldWidth;
   const scaleY = viewportHeight / snapshot.worldHeight;
   const scale = Math.min(scaleX, scaleY);
   const offsetX = (viewportWidth - snapshot.worldWidth * scale) * 0.5;
   const offsetY = (viewportHeight - snapshot.worldHeight * scale) * 0.5;
+  const stride = Math.max(1, Math.round(config.fieldVectorStride));
 
   for (let index = 0; index < snapshot.sampleVectorCount; index += 1) {
+    if (index % stride !== 0) continue;
     const magnitude = snapshot.magnitude[index];
-    if (magnitude <= 0) continue;
+    if (magnitude < config.fieldVectorMinMagnitude) continue;
     const x = offsetX + snapshot.centerX[index] * scale;
     const y = offsetY + snapshot.centerY[index] * scale;
     const dirX = snapshot.flowX[index] / magnitude;
     const dirY = snapshot.flowY[index] / magnitude;
-    const length = Math.max(FIELD_VECTOR_MIN_SCREEN_LENGTH, Math.min(FIELD_VECTOR_MAX_SCREEN_LENGTH, magnitude * 3.2));
+    const length = Math.max(FIELD_VECTOR_MIN_SCREEN_LENGTH, Math.min(FIELD_VECTOR_MAX_SCREEN_LENGTH, magnitude * config.fieldVectorScale));
     const endX = x + dirX * length;
     const endY = y + dirY * length;
     const headLength = Math.min(5, length * 0.35);
@@ -364,7 +394,7 @@ function renderFieldVectorLayer(layer: Graphics, snapshot: FieldRenderSnapshot, 
     layer.lineTo(endX - dirX * headLength - normalX * headLength * 0.45, endY - dirY * headLength - normalY * headLength * 0.45);
   }
 
-  layer.stroke({ width: 1, color: 0x7cc7ff, alpha: 0.34 });
+  layer.stroke({ width: 1, color: 0x7cc7ff, alpha: config.fieldVectorAlpha });
 }
 
 function renderTerrainLayer(layer: Graphics, snapshot: TerrainRenderSnapshot, viewportWidth: number, viewportHeight: number): void {
