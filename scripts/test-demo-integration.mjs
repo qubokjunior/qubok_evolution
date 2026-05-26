@@ -16,6 +16,7 @@ const integrationM40 = readText("docs/integration_m40.md");
 const integrationM41 = readText("docs/integration_m41.md");
 const integrationM42 = readText("docs/integration_m42.md");
 const integrationM43 = readText("docs/integration_m43.md");
+const integrationM44 = readText("docs/integration_m44.md");
 const repoStatusTest = readText("scripts/test-repo-status.mjs");
 const roadmapStatusTest = readText("scripts/test-roadmap-status.mjs");
 
@@ -37,20 +38,20 @@ const perfMetrics = readText("src/shared/perfMetrics.ts");
 const energy = readText("src/sim/energy.ts");
 const predatorPrey = readText("src/sim/predatorPrey.ts");
 
-assert(packageJson.version === "0.1.0-milestone.43", "package.json version must be 0.1.0-milestone.43.");
-assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.43"'), "appVersion must expose milestone.43.");
-assert(appVersion.includes("PROJECT_MILESTONE = 43"), "appVersion must expose milestone number 41.");
-assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m43"'), "appVersion must expose m42 overlay label.");
+assert(packageJson.version === "0.1.0-milestone.44", "package.json version must be 0.1.0-milestone.44.");
+assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.44"'), "appVersion must expose milestone.44.");
+assert(appVersion.includes("PROJECT_MILESTONE = 44"), "appVersion must expose milestone number 44.");
+assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m44"'), "appVersion must expose m42 overlay label.");
 
-assert(readme.includes("Current status: m43"), "README must expose current status m43.");
-assert(readme.includes("0.1.0-milestone.43"), "README must expose the current milestone version.");
+assert(readme.includes("Current status: m44"), "README must expose current status m44.");
+assert(readme.includes("0.1.0-milestone.44"), "README must expose the current milestone version.");
 assert(readme.includes("docs/milestones.md"), "README must link the milestone index.");
 assert(readme.includes("docs/roadmap.md"), "README must link roadmap docs.");
 assert(readme.includes("docs/integration_m40.md"), "README must keep m40 integration doc link.");
 assert(readme.includes("docs/integration_m41.md"), "README must link m41 integration doc.");
 assert(readme.includes("docs/integration_m42.md"), "README must link m42 integration doc.");
 
-for (const marker of ["| m36 |", "| m37 |", "| m38 |", "| m39 |", "| m40 |", "| m41 |", "| m42 |", "| m43 |"]) {
+for (const marker of ["| m36 |", "| m37 |", "| m38 |", "| m39 |", "| m40 |", "| m41 |", "| m42 |", "| m43 |", "| m44 |"]) {
   assert(milestones.includes(marker), "milestones index missing marker: " + marker);
 }
 assert(roadmap.includes("m40 shipped: environmental field render snapshot and Pixi vector debug layer"), "roadmap must include m40 shipped note.");
@@ -61,7 +62,7 @@ assert(integrationM40.includes("environmental field render snapshot"), "integrat
 assert(integrationM41.includes("render debug controls"), "integration_m41 must describe render debug controls.");
 assert(integrationM41.includes("overlay grouping"), "integration_m41 must describe overlay grouping.");
 assert(integrationM42.includes("M42"), "integration_m42 must describe m42.");
-assert(repoStatusTest.includes("0.1.0-milestone.43"), "repo status test must validate m41 status sync.");
+assert(repoStatusTest.includes("0.1.0-milestone.44"), "repo status test must validate m41 status sync.");
 assert(roadmapStatusTest.includes("fieldRenderVectorCount"), "roadmap status test must preserve field render metric assertion.");
 
 for (const [scriptName, command] of [
@@ -153,5 +154,14 @@ for (const requiredToken of ["applyFieldSourcesAndSinks", "fieldSourceStats", "f
 for (const requiredToken of ["FieldSourceStepMetrics", "fieldSourceStats", "fieldSourcesMs", "fieldSourceMagnitudeAfter"]) assert(pixiRenderer.includes(requiredToken), "pixiRenderer missing field source metric token: " + requiredToken);
 for (const requiredToken of ["fieldSourcesMs", "fieldSourceCount", "fieldSinkCount", "fieldSourceMagnitudeAfter"]) assert(perfMetrics.includes(requiredToken), "perf metrics missing field source token: " + requiredToken);
 for (const requiredToken of ["field src", "field sink", "field src after"]) assert(debugOverlay.includes(requiredToken), "debugOverlay missing field source label: " + requiredToken);
+
+
+assert(integrationM44.includes("field source semantics tuning") && integrationM44.includes("visualization QA"), "integration_m44 must describe field source semantics tuning and visualization QA.");
+
+
+assert(roadmap.includes("m44 in progress: field source semantics tuning and visualization QA"), "roadmap must include m44 current milestone.");
+
+
+assert(readme.includes("docs/integration_m44.md"), "README must link m44 integration doc.");
 
 console.log("demo integration tests passed");

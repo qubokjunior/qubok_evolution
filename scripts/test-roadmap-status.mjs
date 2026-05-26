@@ -15,6 +15,7 @@ const integrationM40 = readText("docs/integration_m40.md");
 const integrationM41 = readText("docs/integration_m41.md");
 const integrationM42 = readText("docs/integration_m42.md");
 const integrationM43 = readText("docs/integration_m43.md");
+const integrationM44 = readText("docs/integration_m44.md");
 const field = readText("src/sim/field.ts");
 const fieldRenderSnapshot = readText("src/sim/fieldRenderSnapshot.ts");
 const fieldDynamics = readText("src/sim/fieldDynamics.ts");
@@ -25,10 +26,10 @@ const perfMetrics = readText("src/shared/perfMetrics.ts");
 const pixiRenderer = readText("src/render/pixiRenderer.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
 
-assert(packageJson.version === "0.1.0-milestone.43", "package.json must expose m43 version.");
-assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.43\""), "appVersion must expose milestone.43.");
-assert(appVersion.includes("PROJECT_MILESTONE = 43"), "appVersion must expose milestone number 42.");
-assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m43\""), "appVersion must expose m43 label.");
+assert(packageJson.version === "0.1.0-milestone.44", "package.json must expose m44 version.");
+assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.44\""), "appVersion must expose milestone.44.");
+assert(appVersion.includes("PROJECT_MILESTONE = 44"), "appVersion must expose milestone number 44.");
+assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m44\""), "appVersion must expose m44 label.");
 assert(readme.includes("docs/roadmap.md"), "README.md must link docs/roadmap.md.");
 assert(roadmap.includes("m39 shipped: low-resolution environmental flow field sampled by movement"), "roadmap must include m39 field milestone.");
 assert(roadmap.includes("m40 shipped: environmental field render snapshot and Pixi vector debug layer"), "roadmap must include m40 field render milestone.");
@@ -68,5 +69,11 @@ for (const requiredToken of ["fieldSourceStats", "fieldSourcesMs", "applyFieldSo
 for (const requiredToken of ["fieldSourceStats", "fieldSourcesMs", "fieldSourceMagnitudeAfter"]) assert(pixiRenderer.includes(requiredToken), "pixiRenderer missing field source token: " + requiredToken);
 for (const requiredToken of ["field src", "field sink", "field src after"]) assert(debugOverlay.includes(requiredToken), "debugOverlay missing field source label: " + requiredToken);
 for (const requiredToken of ["fieldSourcesMs", "fieldSourceCount", "fieldSinkCount", "fieldSourceMagnitudeAfter"]) assert(perfMetrics.includes(requiredToken), "perf metrics missing field source token: " + requiredToken);
+
+
+assert(integrationM44.includes("field source semantics tuning") && integrationM44.includes("visualization QA"), "integration_m44 must describe field source semantics tuning and visualization QA.");
+
+
+assert(roadmap.includes("m44 in progress: field source semantics tuning and visualization QA"), "roadmap must include m44 current milestone.");
 
 console.log("roadmap status tests passed");
