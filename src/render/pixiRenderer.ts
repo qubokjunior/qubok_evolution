@@ -124,6 +124,10 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("sensorObstacleSectorWrites", frame.sensorStats.obstacleSectorWrites);
     metrics.record("sensorFoodSignalSum", frame.sensorStats.foodSignalSum);
     metrics.record("sensorObstacleSignalSum", frame.sensorStats.obstacleSignalSum);
+    metrics.record("sensorFoodScheduled", frame.sensorStats.foodSensorScheduled ? 1 : 0);
+    metrics.record("sensorObstacleScheduled", frame.sensorStats.obstacleSensorScheduled ? 1 : 0);
+    metrics.record("sensorFoodSkippedByCadence", frame.sensorStats.foodSkippedByCadence ? 1 : 0);
+    metrics.record("sensorObstacleSkippedByCadence", frame.sensorStats.obstacleSkippedByCadence ? 1 : 0);
     metrics.record("avgVisibleNeighborsPerAgent", frame.sensorStats.averageVisibleNeighborsPerCheckedAgent);
     metrics.record("attacksThisStep", frame.predatorPreyStats.attacksThisStep);
     metrics.record("killsThisStep", frame.predatorPreyStats.killsThisStep);
@@ -181,6 +185,10 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         sensorObstacleSectorWrites: snapshot.values.sensorObstacleSectorWrites,
         sensorFoodSignalSum: snapshot.values.sensorFoodSignalSum,
         sensorObstacleSignalSum: snapshot.values.sensorObstacleSignalSum,
+        sensorFoodScheduled: snapshot.values.sensorFoodScheduled,
+        sensorObstacleScheduled: snapshot.values.sensorObstacleScheduled,
+        sensorFoodSkippedByCadence: snapshot.values.sensorFoodSkippedByCadence,
+        sensorObstacleSkippedByCadence: snapshot.values.sensorObstacleSkippedByCadence,
         attacksThisStep: snapshot.values.attacksThisStep,
         killsThisStep: snapshot.values.killsThisStep,
         predatorDamageDealt: snapshot.values.predatorDamageDealt,

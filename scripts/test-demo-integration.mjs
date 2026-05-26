@@ -19,12 +19,13 @@ const debugOverlay = readText("src/render/debugOverlay.ts");
 const pixiRenderer = readText("src/render/pixiRenderer.ts");
 const sensors = readText("src/sim/sensors.ts");
 
-assert(packageJson.version === "0.1.0-milestone.17", "package.json version must be 0.1.0-milestone.17.");
-assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.17"'), "appVersion must expose milestone.17.");
-assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m17"'), "appVersion must expose m17 overlay label.");
+assert(packageJson.version === "0.1.0-milestone.18", "package.json version must be 0.1.0-milestone.18.");
+assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.18"'), "appVersion must expose milestone.18.");
+assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m18"'), "appVersion must expose m18 overlay label.");
 
 assert(!debugOverlay.includes('badge.textContent = "m10"'), "debug overlay must not hardcode m10.");
 assert(!debugOverlay.includes('badge.textContent = "m16"'), "debug overlay must not hardcode m16.");
+assert(!debugOverlay.includes('badge.textContent = "m17"'), "debug overlay must not hardcode m17.");
 assert(debugOverlay.includes("../shared/appVersion"), "debug overlay must read milestone label from shared/appVersion.");
 
 for (const forbiddenImport of ["../render/", "./render/", "../ui/", "./ui/", "pixi.js", "react"]) {
@@ -42,7 +43,10 @@ for (const requiredDemoToken of [
   "predatorPreyMs",
   "reproductionMs",
   "resources",
-  "resourceBuildStats"
+  "resourceBuildStats",
+  "sensorFoodTickInterval",
+  "sensorObstacleTickInterval",
+  "preserveSkippedSectorChannels"
 ]) {
   assert(demoSimulation.includes(requiredDemoToken), `demoSimulation is missing live integration token: ${requiredDemoToken}`);
 }
@@ -55,9 +59,14 @@ for (const requiredSensorToken of [
   "includeFood",
   "includeObstacles",
   "foodSectorWrites",
-  "obstacleSectorWrites"
+  "obstacleSectorWrites",
+  "foodTickInterval",
+  "obstacleTickInterval",
+  "preserveSkippedSectorChannels",
+  "foodSkippedByCadence",
+  "obstacleSkippedByCadence"
 ]) {
-  assert(sensors.includes(requiredSensorToken), `sensors m17 contract is missing token: ${requiredSensorToken}`);
+  assert(sensors.includes(requiredSensorToken), `sensors m18 contract is missing token: ${requiredSensorToken}`);
 }
 
 for (const requiredOverlayToken of [
@@ -67,6 +76,10 @@ for (const requiredOverlayToken of [
   "sensorObstacleSectorWrites",
   "sensorFoodSignalSum",
   "sensorObstacleSignalSum",
+  "sensorFoodScheduled",
+  "sensorObstacleScheduled",
+  "sensorFoodSkippedByCadence",
+  "sensorObstacleSkippedByCadence",
   "attacksThisStep",
   "killsThisStep",
   "birthsThisStep",
