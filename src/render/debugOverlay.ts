@@ -69,6 +69,9 @@ export type PerfOverlaySnapshot = {
   readonly birthsThisStep: number;
   readonly reproductionEligibleCount: number;
   readonly blockedBirthsByCapacity: number;
+  readonly reusableSlotCount: number;
+  readonly spawnReusedSlotCount: number;
+  readonly spawnAppendedSlotCount: number;
   readonly mutationChangedCount: number;
   readonly metrics?: PerfMetricsSnapshot;
 };
@@ -170,6 +173,9 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     birthsThisStep: createValueRow(root, "births"),
     reproductionEligibleCount: createValueRow(root, "repro elig"),
     blockedBirthsByCapacity: createValueRow(root, "birth block"),
+    reusableSlotCount: createValueRow(root, "free slots"),
+    spawnReusedSlotCount: createValueRow(root, "spawn reused"),
+    spawnAppendedSlotCount: createValueRow(root, "spawn append"),
     mutationChangedCount: createValueRow(root, "mut changed")
   };
 
@@ -243,6 +249,9 @@ export function createPerfOverlay(host: HTMLElement): PerfOverlaySink {
     rows.birthsThisStep.textContent = formatInt(snapshot.birthsThisStep);
     rows.reproductionEligibleCount.textContent = formatInt(snapshot.reproductionEligibleCount);
     rows.blockedBirthsByCapacity.textContent = formatInt(snapshot.blockedBirthsByCapacity);
+    rows.reusableSlotCount.textContent = formatInt(snapshot.reusableSlotCount);
+    rows.spawnReusedSlotCount.textContent = formatInt(snapshot.spawnReusedSlotCount);
+    rows.spawnAppendedSlotCount.textContent = formatInt(snapshot.spawnAppendedSlotCount);
     rows.mutationChangedCount.textContent = formatInt(snapshot.mutationChangedCount);
   };
 

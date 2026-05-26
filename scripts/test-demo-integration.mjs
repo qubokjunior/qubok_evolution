@@ -20,9 +20,9 @@ const pixiRenderer = readText("src/render/pixiRenderer.ts");
 const debugOverlay = readText("src/render/debugOverlay.ts");
 const perfMetrics = readText("src/shared/perfMetrics.ts");
 
-assert(packageJson.version === "0.1.0-milestone.26", "package.json version must be 0.1.0-milestone.26.");
-assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.26"'), "appVersion must expose milestone.26.");
-assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m26"'), "appVersion must expose m26 overlay label.");
+assert(packageJson.version === "0.1.0-milestone.27", "package.json version must be 0.1.0-milestone.27.");
+assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.27"'), "appVersion must expose milestone.27.");
+assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m27"'), "appVersion must expose m27 overlay label.");
 
 for (const forbiddenImport of ["../render/", "./render/", "../ui/", "./ui/", "pixi.js", "react"]) {
   assert(!demoSimulation.includes(forbiddenImport), `demoSimulation must not import forbidden boundary token: ${forbiddenImport}`);
@@ -70,6 +70,21 @@ for (const requiredOverlayToken of [
   "obs cells"
 ]) {
   assert(debugOverlay.includes(requiredOverlayToken), `debugOverlay missing obstacle render token: ${requiredOverlayToken}`);
+}
+
+
+for (const requiredWorldSlotTelemetryToken of [
+  "reusableSlotCount",
+  "spawnReusedSlotCount",
+  "spawnAppendedSlotCount"
+]) {
+  assert(perfMetrics.includes(requiredWorldSlotTelemetryToken), "perf metrics missing world slot telemetry token: " + requiredWorldSlotTelemetryToken);
+  assert(pixiRenderer.includes(requiredWorldSlotTelemetryToken), "pixiRenderer missing world slot telemetry token: " + requiredWorldSlotTelemetryToken);
+  assert(debugOverlay.includes(requiredWorldSlotTelemetryToken), "debugOverlay missing world slot telemetry token: " + requiredWorldSlotTelemetryToken);
+}
+
+for (const requiredWorldSlotOverlayLabel of ["free slots", "spawn reused", "spawn append"]) {
+  assert(debugOverlay.includes(requiredWorldSlotOverlayLabel), "debugOverlay missing world slot overlay label: " + requiredWorldSlotOverlayLabel);
 }
 
 console.log("demo integration tests passed");
