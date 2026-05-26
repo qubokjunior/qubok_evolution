@@ -18,11 +18,11 @@ const pixiRenderer = readText("src/render/pixiRenderer.ts");
 const debugOverlay = readText("src/render/debugOverlay.ts");
 const integrationDoc = readText("docs/integration_m27.md");
 
-assert(packageJson.version === "0.1.0-milestone.27", "package.json version must be m27");
+assert(/^0\.1\.0-milestone\.\d+$/.test(packageJson.version), "package.json version must be a milestone version");
+assert(appVersion.includes(`PROJECT_VERSION = "${packageJson.version}"`), "appVersion must match package.json version");
+assert(appVersion.includes("PROJECT_MILESTONE_LABEL"), "appVersion must expose milestone label");
 assert(packageJson.scripts["test:world-slot-telemetry"] === "node scripts/test-world-slot-telemetry.mjs", "missing test:world-slot-telemetry script");
 assert(packageJson.scripts.test.includes("npm run test:world-slot-telemetry"), "npm run test must include world slot telemetry test");
-assert(appVersion.includes('PROJECT_VERSION = "0.1.0-milestone.27"'), "appVersion must expose m27 version");
-assert(appVersion.includes('PROJECT_MILESTONE_LABEL = "m27"'), "appVersion must expose m27 label");
 
 for (const token of ["reusableSlotCount", "spawnReusedSlotCount", "spawnAppendedSlotCount"]) {
   assert(perfMetrics.includes(token), "perfMetrics missing " + token);
