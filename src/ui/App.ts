@@ -5,6 +5,7 @@ import { createFieldDampingControlPanel } from "./fieldDampingPanel";
 import { createFieldVisualDebugPanel } from "./fieldVisualDebugPanel";
 import { createDebugLayoutPanel } from "./debugLayoutPanel";
 import { createRenderLayersPanel } from "./renderLayersPanel";
+import { createFieldVectorDebugPanel } from "./fieldVectorDebugPanel";
 import { DEFAULT_RENDER_DEBUG_CONFIG, toggleRenderDebugLayer, type RenderDebugConfig } from "../render/renderDebugConfig";
 
 export type QubokEvolveAppHandle = {
@@ -69,6 +70,7 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
   });
 
   const renderLayersPanel = createRenderLayersPanel(controlStack, pixiRenderer);
+  const fieldVectorDebugPanel = createFieldVectorDebugPanel(controlStack, pixiRenderer);
   const fieldVisualDebugPanel = createFieldVisualDebugPanel(controlStack, pixiRenderer);
   const debugLayoutPanel = createDebugLayoutPanel(controlStack);
 
@@ -102,6 +104,7 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
       perfOverlay.destroy();
       fieldDampingPanel.destroy();
       renderLayersPanel.destroy();
+      fieldVectorDebugPanel.destroy();
       fieldVisualDebugPanel.destroy();
       debugLayoutPanel.destroy();
       root.replaceChildren();
