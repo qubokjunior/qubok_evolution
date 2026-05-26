@@ -16,8 +16,6 @@ import {
   consumeResourcesForWorld,
   createResourceLayer,
   rebuildResourceGrid,
-  respawnResourcesToTarget,
-  spawnRandomResources,
   type ResourceBuildStats,
   type ResourceLayer,
   type ResourcePickupStats
@@ -28,10 +26,16 @@ import {
   type ObstacleMask
 } from "./obstacleMask";
 import { applyAgentSensors, type SensorPassStats } from "./sensors";
+import {
+  respawnResourcesToTargetAvoidingObstacles,
+  spawnRandomAgentsAvoidingObstacles,
+  spawnRandomResourcesAvoidingObstacles,
+  type SpawnValidationStats
+} from "./spawnValidation";
 import { buildSpatialHashGrid, createSpatialHashGrid, type SpatialHashBuildStats, type SpatialHashGrid } from "./spatialHash";
-import { createWorldState, spawnRandomAgents, type WorldState } from "./world";
+import { createWorldState, type WorldState } from "./world";
 
-export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v12" as const;
+export const DEMO_SIMULATION_VERSION = "qubok_evolve.demo_simulation.v13" as const;
 
 export type DemoSimulationConfig = {
   readonly seed?: RngSeed;
@@ -52,6 +56,8 @@ export type DemoSimulationConfig = {
   readonly obstacleResponseCellStride?: number;
   readonly obstacleResponseMaxCellChecksPerAgent?: number;
   readonly obstacleResponseBoundsOnly?: boolean;
+  readonly spawnMaxAttempts?: number;
+  readonly spawnClearanceRadius?: number;
   readonly sensorRadiusScale?: number;
   readonly sensorFoodTickInterval?: number;
   readonly sensorObstacleTickInterval?: number;
@@ -72,6 +78,7 @@ export type DemoSimulationStepResult = {
   readonly reproductionStats: ReproductionStepStats;
   readonly resourceBuildStats: ResourceBuildStats;
   readonly resourcePickupStats: ResourcePickupStats;
+  readonly resourceRespawnStats: SpawnValidationStats;
   readonly resourceAliveCount: number;
   readonly resourceTargetCount: number;
   readonly resourceRespawnedCount: number;
@@ -91,6 +98,8 @@ export type DemoSimulationHandle = {
   readonly spatialGrid: SpatialHashGrid;
   readonly resources: ResourceLayer;
   readonly obstacleMask: ObstacleMask;
+  readonly initialAgentSpawnStats: SpawnValidationStats;
+  readonly initialResourceSpawnStats: SpawnValidationStats;
   readonly step: (deltaSeconds: number) => DemoSimulationStepResult;
   readonly getSnapshot: () => RenderSnapshot;
 };
@@ -110,6 +119,8 @@ const DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE = 140;
 const DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE = 220;
 const DEFAULT_OBSTACLE_RESPONSE_CELL_STRIDE = 1;
 const DEFAULT_OBSTACLE_RESPONSE_MAX_CELL_CHECKS_PER_AGENT = 64;
+const DEFAULT_SPAWN_MAX_ATTEMPTS = 96;
+const DEFAULT_SPAWN_CLEARANCE_RADIUS = 4;
 const DEFAULT_SENSOR_RADIUS_SCALE = 1;
 const DEFAULT_SENSOR_FOOD_TICK_INTERVAL = 4;
 const DEFAULT_SENSOR_OBSTACLE_TICK_INTERVAL = 8;
@@ -136,6 +147,8 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const obstacleResponseMaxCellChecksPerAgent =
     config.obstacleResponseMaxCellChecksPerAgent ?? DEFAULT_OBSTACLE_RESPONSE_MAX_CELL_CHECKS_PER_AGENT;
   const obstacleResponseBoundsOnly = config.obstacleResponseBoundsOnly ?? false;
+  const spawnMaxAttempts = config.spawnMaxAttempts ?? DEFAULT_SPAWN_MAX_ATTEMPTS;
+  const spawnClearanceRadius = config.spawnClearanceRadius ?? DEFAULT_SPAWN_CLEARANCE_RADIUS;
   const sensorRadiusScale = config.sensorRadiusScale ?? DEFAULT_SENSOR_RADIUS_SCALE;
   const sensorFoodTickInterval = config.sensorFoodTickInterval ?? DEFAULT_SENSOR_FOOD_TICK_INTERVAL;
   const sensorObstacleTickInterval = config.sensorObstacleTickInterval ?? DEFAULT_SENSOR_OBSTACLE_TICK_INTERVAL;
@@ -169,10 +182,12 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     cellSize: config.obstacleCellSize ?? DEFAULT_OBSTACLE_CELL_SIZE
   });
 
-  const rng = createRng(config.seed ?? "qubok_evolve:demo:m21");
-  spawnDemoAgents(world, initialAgentCount, rng);
-  spawnRandomResources(resources, resourceTargetCount, rng);
+  const rng = createRng(config.seed ?? "qubok_evolve:demo:m22");
   seedDemoObstacleMask(obstacleMask);
+  const spawnConfig = { maxAttempts: spawnMaxAttempts, clearanceRadius: spawnClearanceRadius };
+  const initialAgentSpawnStats = spawnRandomAgentsAvoidingObstacles(world, initialAgentCount, rng, obstacleMask, spawnConfig);
+  tuneDemoAgents(world, rng);
+  const initialResourceSpawnStats = spawnRandomResourcesAvoidingObstacles(resources, resourceTargetCount, rng, obstacleMask, spawnConfig);
   buildSpatialHashGrid(spatialGrid, world);
   rebuildResourceGrid(resources);
 
@@ -255,7 +270,14 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
       pickupRadius: resourcePickupRadius,
       maxPickupsPerAgent: 1
     });
-    const resourceRespawnedCount = respawnResourcesToTarget(resources, resourceTargetCount, rng);
+    const resourceRespawnStats = respawnResourcesToTargetAvoidingObstacles(
+      resources,
+      resourceTargetCount,
+      rng,
+      obstacleMask,
+      spawnConfig
+    );
+    const resourceRespawnedCount = resourceRespawnStats.spawnedCount;
     const resourceMs = resourceGridMs + performance.now() - resourceStart;
 
     const energyStart = performance.now();
@@ -300,6 +322,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
       reproductionStats,
       resourceBuildStats,
       resourcePickupStats,
+      resourceRespawnStats,
       resourceAliveCount: resources.aliveCount,
       resourceTargetCount,
       resourceRespawnedCount,
@@ -320,14 +343,14 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     spatialGrid,
     resources,
     obstacleMask,
+    initialAgentSpawnStats,
+    initialResourceSpawnStats,
     step,
     getSnapshot: () => makeRenderSnapshot(world)
   };
 }
 
-function spawnDemoAgents(world: WorldState, count: number, rng: DeterministicRng): void {
-  spawnRandomAgents(world, count, rng);
-
+function tuneDemoAgents(world: WorldState, rng: DeterministicRng): void {
   for (let index = 0; index < world.count; index += 1) {
     const species = index % 6;
     const angle = rng.range(0, Math.PI * 2);
