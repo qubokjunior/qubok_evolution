@@ -48,9 +48,11 @@ Compact milestone index through m45. Older early milestones are summarized at th
 | m42 | Field decay/diffusion foundation with deterministic field dynamics, metrics, benchmark, demo wiring, and overlay labels. | complete |
 | m43 | Field sources/sinks foundation for deterministic emission and absorption into environmental fields, demo wiring, overlay metrics, tests, and benchmark. | complete |
 | m44 | Field source semantics tuning and visualization QA with runtime visual and overlay/readout guards. | complete |
-| m45 | Obstacle/terrain damping sources and editable debug parameters. | in progress |
+| m45 | Obstacle/terrain damping sources, editable debug parameters, panel persistence, render layer controls, and debug config preset import/export UX. | complete |
 
 ## Current next-step candidates
 
-- m45: obstacle/terrain damping sources and editable debug parameters. [in progress]
-- Later: field transport/advection, signed-distance-field correction, controller/brain layer, morphology compiler/editor, workerization, and WebGPU experiments.
+- m46 candidate: field transport/advection research spike or field-force separation if the next track remains fluid-like fields.
+- Alternative: signed-distance-field correction if the next track returns to terrain/material response.
+- Alternative: controller/brain first pass if the next milestone should start behavior decision logic.
+- Later: terrain editor tools, morphology compiler/editor, workerization, and WebGPU experiments.
