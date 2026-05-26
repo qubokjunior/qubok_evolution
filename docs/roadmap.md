@@ -1,6 +1,6 @@
 # qubok_evolve roadmap
 
-Current status: m40 / 0.1.0-milestone.40.
+Current status: m41 / 0.1.0-milestone.41.
 
 m34 shipped: terrain Pixi debug render layer.
 
@@ -15,6 +15,8 @@ m38 shipped: terrain-aware reproduction placement using offspring habitat accept
 m39 shipped: low-resolution environmental flow field sampled by movement.
 
 m40 shipped: environmental field render snapshot and Pixi vector debug layer.
+
+m41 in progress: field render controls / overlay grouping / visibility toggle.
 
 ## terrain/material track
 
@@ -40,7 +42,7 @@ Shipped sequence:
 - field render snapshot;
 - Pixi vector debug layer with decimated arrows and field render metrics.
 
-Next likely milestone:
+Current milestone:
 - m41 field render controls / overlay grouping / visibility toggle.
 
 Follow-up candidates:
