@@ -1,6 +1,6 @@
 # qubok_evolve roadmap
 
-Current status: m46 complete / field transport-advection shipped.
+Current status: m46 complete / field transport-advection shipped; m47 planning opened for field-force separation.
 
 m34 shipped: terrain Pixi debug render layer.
 
@@ -27,6 +27,8 @@ m44 shipped: field source semantics tuning and visualization QA.
 m45 shipped: obstacle/terrain damping sources, editable debug parameters, panel stack persistence, render layer controls, and debug config preset import/export UX.
 
 m46 shipped: deterministic environmental field advection with tests, benchmark, demo wiring, overlay/readouts, editable controls, and persistence.
+
+m47 planned: field-force separation and explicit agent response to environmental fields.
 
 ## terrain/material track
 
@@ -59,7 +61,7 @@ Shipped sequence:
 - deterministic environmental field advection with core tests, benchmark, demo wiring, overlay/readouts, editable controls, and persisted config.
 
 Current milestone:
-- m46 planning: deterministic field transport/advection using a CPU semi-Lagrangian pass.
+- m47 planning: field-force separation after advection behavior is stable.
 
 M46 shipped scope:
 - define advection separately from diffusion, sources/sinks, damping, and field force;
@@ -68,10 +70,22 @@ M46 shipped scope:
 - benchmark field sizes and substep counts before UI controls;
 - keep Stable Fluids pressure solve, WebGPU, controller/brain, and render rewrite out of scope.
 
+M47 planned scope:
+- define field force as a separate stage after sources/sinks, damping, advection, and dynamics;
+- keep field-force sampling simulation-only and renderer-agnostic;
+- ensure field force reads fields without mutating field buffers;
+- keep default agent behavior unchanged unless field force is explicitly enabled;
+- add deterministic no-op, clamp, alive-only, and metrics tests before demo wiring;
+- keep controller/brain, pathfinding, full fluid solver, hard collision, WebGPU, and large UI panels out of scope.
+
 Follow-up candidates:
-- field-force separation after advection behavior is stable;
+- M47-A1 core field-force API + deterministic unit tests, no demo wiring;
+- M47-A2 metrics and benchmark;
+- M47-A3 demo wiring behind conservative disabled/default-light config;
+- M47-A4 overlay/readout QA;
+- M47-A5 optional controls/persistence after behavior is stable;
 - signed-distance-field correction if the next track returns to terrain/material response;
-- controller/brain first pass after field behavior remains understandable and measurable.
+- controller/brain first pass after field response remains understandable and measurable.
 
 ## controller/brain track
 
