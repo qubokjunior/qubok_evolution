@@ -29,7 +29,18 @@ M49-A3 demo wiring is implemented behind disabled/default-neutral config:
 - demo handle exposes `getControllerActuatorConfig()` and `updateControllerActuatorConfig(...)` for later UI/persistence slices;
 - `scripts/test-controller-integration.mjs` guards actuator ordering, default-disabled state, and no direct controller-output-to-movement wiring.
 
-No render overlay, panel, or persistence wiring is added in A3. Those remain M49-A4/A5.
+M49-A4 overlay/readout QA is complete:
+
+- Pixi renderer records controller actuator metrics into the shared performance bus;
+- debug overlay groups and labels `controllerActuator*` metrics under controller;
+- `scripts/test-controller-overlay-qa.mjs` guards perf metrics, renderer readouts, and overlay labels.
+
+M49-A5 panel controls and persistence are implemented:
+
+- `src/ui/controllerActuatorPanel.ts` exposes a collapsed-by-default actuator panel;
+- `src/sim/controllerActuatorConfigPersistence.ts` stores actuator config under `qubok_evolve.controller_actuator_config.v1`;
+- `src/ui/App.ts` loads, applies, saves, and destroys the actuator panel/persistence path;
+- `scripts/test-controller-panel.mjs` and `scripts/test-controller-config-persistence.mjs` guard actuator panel and storage tokens.
 
 ## Goal
 
@@ -48,7 +59,7 @@ The actuator bridge converts `intentX`, `intentY`, and `intentMagnitude` into bo
 
 ## Runtime order
 
-Current A3 demo order keeps the existing pipeline shape for low-risk integration:
+Current A3/A5 demo order keeps the existing pipeline shape for low-risk integration:
 
 1. apply demo forces;
 2. apply obstacle response;
@@ -74,7 +85,7 @@ Target final M49 conceptual order remains:
 - M49-A2: actuator metrics and benchmark for controller + actuator cost. Complete.
 - M49-A3: demo wiring behind disabled/default-neutral config. Complete.
 - M49-A4: overlay/readout QA for actuator metrics. Complete.
-- M49-A5: optional panel controls and persistence after behavior and metrics are stable.
+- M49-A5: optional panel controls and persistence after behavior and metrics are stable. Complete.
 - M49-final: version/status/docs close and full validation.
 
 ## Config shape
@@ -84,7 +95,7 @@ Initial config is small and bounded:
 - `enableControllerMovementInfluence`: default `false`;
 - `controllerForceScale`: finite non-negative force multiplier;
 - `controllerMaxForce`: finite non-negative force clamp;
-- `minActiveIntentMagnitude`: finite non-negative threshold for ignoring tiny intent.
+- `controllerMinActiveIntentMagnitude`: finite non-negative threshold for ignoring tiny intent.
 
 ## Actuator metrics
 
@@ -129,24 +140,26 @@ A1 test coverage:
 - controller intent buffers are not mutated;
 - deterministic repeat with identical world/controller output/config.
 
-A3 guard coverage:
+A3/A4/A5 guard coverage:
 
 - demo integration includes controller actuator config/readout surfaces;
 - controller actuator runs after field force and before movement;
 - controller actuator remains disabled by default;
-- controller output is not passed directly into movement.
+- controller output is not passed directly into movement;
+- overlay exposes controller actuator metrics;
+- panel controls and persistence exist but remain collapsed/default-disabled.
 
-Remaining M49 tests for later slices:
+Remaining M49 tests for final close:
 
-- render/overlay guard for actuator metrics;
-- panel/persistence guard after controls exist.
+- full M49 validation set;
+- version/status/docs close to `0.1.0-milestone.49`.
 
 ## Required debug and UI
 
 - overlay labels for actuator milliseconds, affected count, clamp count, total force magnitude, and max force magnitude;
-- optional intent-vector visual layer separate from environmental field vectors and agent-field influence debug;
-- right-panel controls only after core API, tests, benchmark, and demo guard are stable;
-- persistence only after controls are stable.
+- actuator panel for enable, force scale, max force, and minimum active intent;
+- persistence for actuator config under a dedicated storage key;
+- default remains disabled.
 
 ## Out of scope
 
