@@ -1,6 +1,6 @@
 # qubok_evolve milestones
 
-Compact milestone index through m47. Older early milestones are summarized at the system level; recent lifecycle, terrain, field, and render-debug milestones are listed with stricter implementation detail.
+Compact milestone index through m48. Older early milestones are summarized at the system level; recent lifecycle, terrain, field, and render-debug milestones are listed with stricter implementation detail.
 
 | Milestone | Focus | Status |
 |---|---|---|
