@@ -1,6 +1,6 @@
 # qubok_evolve milestones
 
-Compact milestone index through m49. Older early milestones are summarized at the system level; recent lifecycle, terrain, field, render-debug, controller-observability, and actuator milestones are listed with stricter implementation detail.
+Compact milestone index through m50. Older early milestones are summarized at the system level; recent lifecycle, terrain, field, render-debug, controller-observability, actuator, and ecology-planning milestones are listed with stricter implementation detail.
 
 | Milestone | Focus | Status |
 |---|---|---|
@@ -53,10 +53,15 @@ Compact milestone index through m49. Older early milestones are summarized at th
 | m47 | Field-force separation and explicit agent response to environmental fields, with core API, tests, benchmark, demo wiring, overlay/readouts, controls, and persistence. | complete |
 | m48 | Controller/brain first pass: renderer-agnostic controller API, deterministic intent buffers, disabled-by-default demo wiring, benchmark, overlay/readouts, panel controls, persistence, source overview, and status guards. Controller intent is observable/configurable but not actuated by M48. | complete |
 | m49 | Controller actuator bridge: explicit intent-to-force boundary, core API/tests, benchmark, disabled-by-default demo wiring, overlay/readouts, panel controls, persistence, and status guards. | complete |
+| m50 | Ecology pressure calibration planning: hunger, scarcity, reproduction pressure, predator pressure, capacity pressure metrics, and guard scope before runtime ecology changes. | planned |
 
 ## Current next-step candidates
 
-- M50: ecology pressure calibration for hunger, scarcity, reproduction, and predation.
+- M50-A1: bounded ecology pressure config/readout shape for demo simulation, no panel yet.
+- M50-A2: deterministic pressure scenario tests for resources, energy, starvation, births, blocked births, and predator kills.
+- M50-A3: demo preset wiring behind safe defaults.
+- M50-A4: overlay/readout QA for ecology pressure metrics.
+- M50-A5: compact ecology panel and persistence after metrics/presets are stable.
 - M51: sensor budgeting and perception quality pass.
 - M52: agent inspector and lab tools.
 - M53: morphology/component compiler foundation.
