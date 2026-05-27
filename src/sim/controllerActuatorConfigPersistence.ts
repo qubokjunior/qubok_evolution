@@ -7,12 +7,12 @@ export function loadStoredControllerActuatorConfig(): DemoSimulationControllerAc
     const rawValue = localStorage.getItem(CONTROLLER_ACTUATOR_CONFIG_STORAGE_KEY);
     if (rawValue === null) return {};
     const parsed = JSON.parse(rawValue) as Partial<DemoSimulationControllerActuatorConfig>;
-    const patch: DemoSimulationControllerActuatorConfigPatch = {};
+    const patch: Record<string, boolean | number> = {};
     if (typeof parsed.enableControllerMovementInfluence === "boolean") patch.enableControllerMovementInfluence = parsed.enableControllerMovementInfluence;
     if (typeof parsed.controllerForceScale === "number" && Number.isFinite(parsed.controllerForceScale)) patch.controllerForceScale = parsed.controllerForceScale;
     if (typeof parsed.controllerMaxForce === "number" && Number.isFinite(parsed.controllerMaxForce)) patch.controllerMaxForce = parsed.controllerMaxForce;
     if (typeof parsed.controllerMinActiveIntentMagnitude === "number" && Number.isFinite(parsed.controllerMinActiveIntentMagnitude)) patch.controllerMinActiveIntentMagnitude = parsed.controllerMinActiveIntentMagnitude;
-    return patch;
+    return patch as DemoSimulationControllerActuatorConfigPatch;
   } catch {
     return {};
   }
