@@ -35,7 +35,8 @@ for (const marker of ["| m32 |", "| m33 |", "| m34 |", "| m35 |", "| m36 |", "| 
   assert(milestones.includes(marker), "docs/milestones.md missing marker: " + marker);
 }
 assert(milestones.includes("| m49 | Controller actuator bridge:") && milestones.includes("| complete |"), "docs/milestones.md must close M49 as complete.");
-assert(!milestones.includes("| planned |"), "docs/milestones.md must not leave M49 as planned after close.");
+assert(!milestones.includes("| m49 | Controller actuator bridge:") || milestones.includes("| m49 | Controller actuator bridge:") && milestones.includes("| m49 | Controller actuator bridge: explicit intent-to-force boundary"), "docs/milestones.md must keep M49 closed.");
+assert(milestones.includes("| m50 | Ecology pressure calibration planning:") && milestones.includes("| planned |"), "docs/milestones.md must keep M50 as planned during M50 work.");
 
 for (const token of [
   "realtime 2D artificial-life ecosystem simulator",

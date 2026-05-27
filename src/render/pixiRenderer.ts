@@ -599,7 +599,6 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
   };
 }
 
-function applyRenderDebugVisibility(config: RenderDebugConfig, gridLayer: Graphics, terrainLayer: Graphics, fieldLayer: Graphics, obstacleLayer: Graphics, agentLayer: Container): void {
 function ecologyPressurePresetId(preset: string): number {
   switch (preset) {
     case "neutral_lab": return 0;
@@ -611,6 +610,7 @@ function ecologyPressurePresetId(preset: string): number {
   }
 }
 
+function applyRenderDebugVisibility(config: RenderDebugConfig, gridLayer: Graphics, terrainLayer: Graphics, fieldLayer: Graphics, obstacleLayer: Graphics, agentLayer: Container): void {
   gridLayer.visible = config.showGrid;
   terrainLayer.visible = config.showTerrainLayer;
   fieldLayer.visible = config.showFieldVectorLayer;

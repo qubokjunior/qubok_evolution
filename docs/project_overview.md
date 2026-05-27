@@ -50,7 +50,7 @@ Core architectural invariants:
 
 - spatial hash foundation;
 - neighbor query and local sampling;
-- fixed-width sector sensor buffers;
+- fixed-width sector sensors and fixed-width sensor buffers;
 - predator/prey local interaction using spatial proximity, diet masks, damage, armor, kills, and energy transfer.
 
 ### Resources, energy, reproduction, mutation
