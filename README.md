@@ -2,7 +2,7 @@
 
 High-performance realtime 2D artificial-life ecosystem simulator.
 
-Current status: m49 complete / controller actuator bridge shipped behind explicit disabled-by-default config. Controller intent can now be converted into bounded movement force only when `enableControllerMovementInfluence` is explicitly enabled. M50 is next for ecology pressure calibration.
+Current status: m49 complete / controller actuator bridge shipped behind explicit disabled-by-default config. M50 planning is open for ecology pressure calibration: hunger, scarcity, reproduction, predation, and population pressure.
 
 ## What exists now
 
@@ -66,8 +66,8 @@ http://127.0.0.1:5173/
 ## Milestones and docs
 
 - `docs/project_overview.md` — technical source-material overview: current architecture, implemented systems, known limits, philosophy, and M50 -> M57 roadmap.
-- `docs/milestones.md` — compact milestone index through m49.
-- `docs/roadmap.md` — development tracks after m49 actuator bridge and before M50 ecology pressure calibration.
+- `docs/milestones.md` — compact milestone index through m50.
+- `docs/roadmap.md` — development tracks after m49 actuator bridge and before M50 runtime ecology wiring.
 - `docs/architecture_tracks.md` — boundary contracts for future work.
 - `docs/world_state.md` — typed-array world state and lifecycle slot contract.
 - `docs/integration_m36.md` — terrain resource-affinity milestone.
@@ -84,6 +84,7 @@ http://127.0.0.1:5173/
 - `docs/integration_m47.md` — completed field-force separation milestone.
 - `docs/integration_m48.md` — completed controller/brain first-pass milestone.
 - `docs/integration_m49.md` — completed controller actuator bridge milestone.
+- `docs/integration_m50.md` — ecology pressure calibration planning scope.
 
 ## Boundary rule
 
