@@ -1,55 +1,64 @@
-# Integration m48 - controller/brain first-pass planning
+# Integration m48 - controller/brain first pass
 
-M48 starts after the closed m47 field-force separation milestone. The goal is to introduce a minimal, deterministic controller layer without turning it into a neural-network, learning, morphology, or behavior-editor milestone.
+## Final status
+
+M48 is closed.
+
+M48 adds the first deterministic controller boundary as a renderer-agnostic, behavior-neutral observation and configuration layer. It does not actuate controller intent into movement. The actuator bridge is intentionally deferred to M49.
 
 ## Goal
 
-M48 should define where agent decision logic lives, what it may read, and what it may output.
+M48 defines where agent decision logic lives, what it may read, and what it may output.
 
-The first controller should be small, deterministic, simulation-only, and disabled or behavior-neutral by default. It should sit after sensors and environmental readouts are available, but before movement integration consumes force/intent.
+The first controller is small, deterministic, simulation-only, and disabled by default. It runs after sensors are available in the current demo pipeline and writes bounded intent buffers that can be inspected, benchmarked, persisted through config, and rendered through overlay readouts.
 
-## Why this milestone now
+## Implemented scope
 
-The runtime already has:
+- renderer-agnostic controller API under `src/sim/controller.ts`;
+- controller version marker: `qubok_evolve.controller.m48`;
+- deterministic output arrays: `intentX`, `intentY`, `intentMagnitude`;
+- bounded config: enable, strength, max intent, food weight, threat weight, flow weight;
+- deterministic tests for default disabled behavior, clamping, alive-only processing, zero intent, invalid finite checks, and repeatability;
+- benchmark script exposed as `bench:controller`;
+- demo wiring behind `DEFAULT_ENABLE_CONTROLLER = false`;
+- controller metrics and overlay/readouts;
+- controller panel with collapsed-by-default controls;
+- config persistence through `qubok_evolve.controller_config.v1`;
+- status and roadmap guards updated for M48 closure;
+- `docs/project_overview.md` added as source-material overview for the project.
+
+## Runtime boundary
+
+M48 writes intent only. It does not call `addForce`, does not pass controller output into `stepMovement`, and does not change default agent behavior.
+
+Current M48 demo ordering relevant to the controller:
+
+1. environment/field/terrain/resource foundations run according to the existing demo pipeline;
+2. sensors run and fill fixed-width readout buffers;
+3. `stepAgentController(...)` reads sensor/flow channels and writes intent buffers;
+4. predator/prey, resources, energy, reproduction, and snapshots continue through the existing pipeline;
+5. renderer/UI consume metrics and snapshots read-only.
+
+M49 owns the final behavior order for actuated control:
+
+`environment -> spatial/resource rebuild -> sensors -> controller -> actuators/forces -> movement -> interactions -> lifecycle/reproduction -> snapshots`.
+
+## Why this milestone exists
+
+Before M48, the runtime already had:
 
 - fixed-width sector sensors;
 - terrain/material sampling;
 - obstacle-aware movement and sensing;
 - resource, predator/prey, energy, reproduction, and lifecycle systems;
 - environmental field sampling, dynamics, sources/sinks, damping, advection, and field force;
-- debug overlay/readouts for terrain, field, movement, and lifecycle pressure.
+- debug overlay/readouts for terrain, field, movement, lifecycle pressure, and render cost.
 
-This gives enough observable state to define a first controller boundary without inventing a full brain system.
-
-## Definitions
-
-- `controller`: deterministic simulation layer that reads agent-local observations and writes a bounded movement/behavior intent;
-- `brain`: later richer decision system, possibly compositional or evolvable, but not part of M48-A0/A1;
-- `intent`: compact output such as desired movement bias, aggression/avoidance scalar, or target steering signal;
-- `actuator output`: bounded value consumed by existing movement/force systems.
-
-## Proposed order
-
-Target conceptual order:
-
-1. update world/environment systems;
-2. run sensors and local observations;
-3. sample terrain/field readouts already available to agents;
-4. run controller/intent pass;
-5. apply forces/movement using existing movement integration;
-6. keep render/debug as read-only consumers.
-
-## Planned scope
-
-- define a renderer-agnostic controller API under `src/sim`;
-- keep first output narrow and bounded;
-- preserve default behavior unless controller is explicitly enabled;
-- add deterministic no-op tests before demo wiring;
-- expose metrics before UI controls;
-- reuse existing sensor/field/terrain data instead of adding a new perception system.
+That made it safe to define a controller boundary without also introducing neural evolution, behavior editing, morphology compilation, or movement actuation.
 
 ## Out of scope
 
+- wiring controller intent into movement or forces;
 - neural-network training or learning;
 - genetic brain evolution;
 - behavior tree editor;
@@ -58,21 +67,34 @@ Target conceptual order:
 - terrain editor;
 - WebGPU compute;
 - full fluid solver;
-- large UI panels in A0/A1;
 - changing default agent behavior without explicit configuration.
 
-## Planned slices
+## Final validation set
 
-- M48-A1: core controller/intent API + deterministic no-op tests, no demo wiring;
-- M48-A2: metrics and benchmark;
-- M48-A3: demo wiring behind disabled/default-light config;
-- M48-A4: overlay/readout QA;
-- M48-A5: optional controls/persistence only after behavior is stable.
+M48-final should be validated with:
 
-## Acceptance checks for M48-A0
+```powershell
+npm run test:repo-status
+npm run test:roadmap-status
+npm run test:controller
+npm run test:controller-panel
+npm run test:controller-config-persistence
+npm run test:controller-integration
+npm run test:controller-overlay-qa
+npm run test:demo-integration
+npm run build
+```
 
-- `docs/integration_m48.md` exists and defines controller/brain scope;
-- roadmap points current planning to M48 controller/brain first pass;
-- milestones list M48 as planned;
-- status guard checks M48 planning document;
-- no runtime, render, or UI behavior is changed in A0.
+Optional benchmark:
+
+```powershell
+npm run bench:controller
+```
+
+## Known limits after close
+
+- controller output is observable and configurable, but not actuated;
+- ecology pressure still needs calibration before behavior quality can be evaluated;
+- sensor cost remains a known hotspot;
+- debug render layers still need throttling/cache in later performance work;
+- Vite chunk warning is known and belongs to the M57 code-splitting/performance split.
