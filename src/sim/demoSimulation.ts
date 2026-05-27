@@ -7,6 +7,7 @@ import { applyFieldForces, type FieldForceStepMetrics } from "./fieldForce";
 import { createFieldDynamicsScratch, stepEnvironmentalFieldDynamics, type FieldDynamicsStepMetrics } from "./fieldDynamics";
 import { createAgentControllerOutput, stepAgentController, type AgentControllerOutput, type AgentControllerStepMetrics } from "./controller";
 import { applyControllerActuator, type ControllerActuatorStepMetrics } from "./controllerActuator";
+import { makeEcologyPressureConfig, makeEcologyPressureReadout, type EcologyPressureConfig, type EcologyPressureReadout, type ResolvedEcologyPressureConfig } from "./ecologyPressure";
 import { makeFieldRenderSnapshot, type FieldRenderSnapshot } from "./fieldRenderSnapshot";
 import { createRng, type DeterministicRng, type RngSeed } from "./rng";
 import { addForce, stepMovement, type MovementStepMetrics } from "./movement";
@@ -111,6 +112,14 @@ export type DemoSimulationConfig = {
   readonly controllerForceScale?: number;
   readonly controllerMaxForce?: number;
   readonly controllerMinActiveIntentMagnitude?: number;
+  readonly ecologyPreset?: EcologyPressureConfig["ecologyPreset"];
+  readonly basalMetabolismScale?: number;
+  readonly starvationEnergyThreshold?: number;
+  readonly starvationDamagePerSecond?: number;
+  readonly resourceTargetCount?: number;
+  readonly resourceRespawnPerSecond?: number;
+  readonly reproductionEnergyCost?: number;
+  readonly predatorDamageScale?: number;
   readonly spawnMaxAttempts?: number;
   readonly spawnClearanceRadius?: number;
   readonly sensorRadiusScale?: number;
@@ -172,6 +181,9 @@ export type DemoSimulationControllerActuatorConfig = {
 
 export type DemoSimulationControllerActuatorConfigPatch = Partial<DemoSimulationControllerActuatorConfig>;
 
+export type DemoSimulationEcologyPressureConfig = ResolvedEcologyPressureConfig;
+export type DemoSimulationEcologyPressureConfigPatch = EcologyPressureConfig;
+
 export type DemoSimulationStepResult = {
   readonly snapshot: RenderSnapshot;
   readonly obstacleMaskSnapshot: ObstacleMaskRenderSnapshot;
@@ -186,6 +198,8 @@ export type DemoSimulationStepResult = {
   readonly controllerActuatorStats: ControllerActuatorStepMetrics;
   readonly controllerConfig: DemoSimulationControllerConfig;
   readonly controllerActuatorConfig: DemoSimulationControllerActuatorConfig;
+  readonly ecologyPressureConfig: DemoSimulationEcologyPressureConfig;
+  readonly ecologyPressureReadout: EcologyPressureReadout;
   readonly fieldDampingConfig: DemoSimulationFieldDampingConfig;
   readonly fieldForceConfig: DemoSimulationFieldForceConfig;
   readonly snapshotStats: RenderSnapshotStats;
@@ -244,6 +258,8 @@ export type DemoSimulationHandle = {
   readonly updateControllerConfig: (patch: DemoSimulationControllerConfigPatch) => DemoSimulationControllerConfig;
   readonly getControllerActuatorConfig: () => DemoSimulationControllerActuatorConfig;
   readonly updateControllerActuatorConfig: (patch: DemoSimulationControllerActuatorConfigPatch) => DemoSimulationControllerActuatorConfig;
+  readonly getEcologyPressureConfig: () => DemoSimulationEcologyPressureConfig;
+  readonly updateEcologyPressureConfig: (patch: DemoSimulationEcologyPressureConfigPatch) => DemoSimulationEcologyPressureConfig;
 };
 
 const DEFAULT_CAPACITY = 1536;
@@ -304,8 +320,6 @@ const DEFAULT_SENSOR_OBSTACLE_TICK_INTERVAL = 8;
 const DEFAULT_SENSOR_TERRAIN_TICK_INTERVAL = 2;
 const DEFAULT_OFFSPRING_TERRAIN_MAX_ATTEMPTS = 6;
 const DEFAULT_OFFSPRING_TERRAIN_MIN_ACCEPTANCE = 0.05;
-const DEFAULT_PREDATOR_ATTACK_RADIUS = 24;
-const DEFAULT_REPRODUCTION_ENERGY_THRESHOLD = 88;
 const MAX_DELTA_SECONDS = 1 / 30;
 
 export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSimulationHandle {
@@ -315,7 +329,18 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const worldHeight = config.worldHeight ?? DEFAULT_WORLD_HEIGHT;
   const neighborRadius = config.neighborRadius ?? DEFAULT_NEIGHBOR_RADIUS;
   const resourceCapacity = config.resourceCapacity ?? DEFAULT_RESOURCE_CAPACITY;
-  const resourceTargetCount = Math.min(config.targetResourceCount ?? DEFAULT_TARGET_RESOURCE_COUNT, resourceCapacity);
+  let ecologyPressureConfig = makeEcologyPressureConfig({
+    ecologyPreset: config.ecologyPreset,
+    basalMetabolismScale: config.basalMetabolismScale,
+    starvationEnergyThreshold: config.starvationEnergyThreshold,
+    starvationDamagePerSecond: config.starvationDamagePerSecond,
+    resourceTargetCount: config.resourceTargetCount ?? config.targetResourceCount ?? DEFAULT_TARGET_RESOURCE_COUNT,
+    resourceRespawnPerSecond: config.resourceRespawnPerSecond,
+    reproductionEnergyThreshold: config.reproductionEnergyThreshold,
+    reproductionEnergyCost: config.reproductionEnergyCost,
+    predatorAttackRadius: config.predatorAttackRadius,
+    predatorDamageScale: config.predatorDamageScale
+  }, { resourceCapacity });
   const resourcePickupRadius = config.resourcePickupRadius ?? DEFAULT_RESOURCE_PICKUP_RADIUS;
   const fieldForceScale = config.fieldForceScale ?? DEFAULT_FIELD_FORCE_SCALE;
   const fieldRenderStride = config.fieldRenderStride ?? DEFAULT_FIELD_RENDER_STRIDE;
@@ -366,8 +391,6 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const sensorTerrainTickInterval = config.sensorTerrainTickInterval ?? DEFAULT_SENSOR_TERRAIN_TICK_INTERVAL;
   const offspringTerrainMaxAttempts = config.offspringTerrainMaxAttempts ?? DEFAULT_OFFSPRING_TERRAIN_MAX_ATTEMPTS;
   const offspringTerrainMinAcceptance = config.offspringTerrainMinAcceptance ?? DEFAULT_OFFSPRING_TERRAIN_MIN_ACCEPTANCE;
-  const predatorAttackRadius = config.predatorAttackRadius ?? DEFAULT_PREDATOR_ATTACK_RADIUS;
-  const reproductionEnergyThreshold = config.reproductionEnergyThreshold ?? DEFAULT_REPRODUCTION_ENERGY_THRESHOLD;
 
   const world = createWorldState({ capacity, worldWidth, worldHeight, sectorCount: 8 });
   const spatialGrid = createSpatialHashGrid({ capacity, worldWidth, worldHeight, cellSize: config.spatialCellSize ?? DEFAULT_SPATIAL_CELL_SIZE });
@@ -389,8 +412,8 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const spawnConfig = { maxAttempts: spawnMaxAttempts, clearanceRadius: spawnClearanceRadius };
   const initialAgentSpawnStats = spawnRandomAgentsAvoidingObstacles(world, initialAgentCount, rng, obstacleMask, spawnConfig);
   tuneDemoAgents(world, rng);
-  const initialResourceSpawnStats = resourceTargetCount > 0
-    ? spawnRandomResourcesAvoidingObstacles(resources, resourceTargetCount, rng, obstacleMask, { ...spawnConfig, terrain })
+  const initialResourceSpawnStats = ecologyPressureConfig.resourceTargetCount > 0
+    ? spawnRandomResourcesAvoidingObstacles(resources, ecologyPressureConfig.resourceTargetCount, rng, obstacleMask, { ...spawnConfig, terrain })
     : { requestedCount: 0, spawnedCount: 0, blockedAttemptCount: 0, fallbackUsedCount: 0, failedCount: 0, terrainResourceSampleCount: 0, terrainResourceAffinitySum: 0, terrainResourceRejectedCount: 0 };
   buildSpatialHashGrid(spatialGrid, world);
   rebuildResourceGrid(resources);
@@ -447,6 +470,13 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     if (patch.controllerMaxForce !== undefined) controllerMaxForce = clampFinite(patch.controllerMaxForce, 0, 10_000);
     if (patch.controllerMinActiveIntentMagnitude !== undefined) controllerMinActiveIntentMagnitude = clampFinite(patch.controllerMinActiveIntentMagnitude, 0, Number.MAX_SAFE_INTEGER);
     return getControllerActuatorConfig();
+  };
+
+  const getEcologyPressureConfig = (): DemoSimulationEcologyPressureConfig => Object.freeze({ ...ecologyPressureConfig });
+
+  const updateEcologyPressureConfig = (patch: DemoSimulationEcologyPressureConfigPatch): DemoSimulationEcologyPressureConfig => {
+    ecologyPressureConfig = makeEcologyPressureConfig({ ...ecologyPressureConfig, ...patch }, { resourceCapacity });
+    return getEcologyPressureConfig();
   };
 
   const step = (deltaSeconds: number): DemoSimulationStepResult => {
@@ -526,22 +556,24 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     const controllerMs = performance.now() - controllerStart;
 
     const predatorPreyStart = performance.now();
-    const predatorPreyStats = applyPredatorPreyInteraction(world, spatialGrid, { attackRadius: predatorAttackRadius, maxAttacksPerPredator: 1, sameSpeciesProtection: true, damageScale: 0.85, actionEnergyCost: 0.2, energyGainPerDamage: 0.35, preyEnergyHarvestRatio: 0.25 });
+    const predatorPreyStats = applyPredatorPreyInteraction(world, spatialGrid, { attackRadius: ecologyPressureConfig.predatorAttackRadius, maxAttacksPerPredator: 1, sameSpeciesProtection: true, damageScale: ecologyPressureConfig.predatorDamageScale, actionEnergyCost: 0.2, energyGainPerDamage: 0.35, preyEnergyHarvestRatio: 0.25 });
     const predatorPreyMs = performance.now() - predatorPreyStart;
 
     const resourceStart = performance.now();
     const resourcePickupStats = consumeResourcesForWorld(resources, world, { pickupRadius: resourcePickupRadius, maxPickupsPerAgent: 1 });
-    const resourceRespawnStats = respawnResourcesToTargetAvoidingObstacles(resources, resourceTargetCount, rng, obstacleMask, { ...spawnConfig, terrain });
+    const resourceRespawnStats = respawnResourcesToTargetAvoidingObstacles(resources, ecologyPressureConfig.resourceTargetCount, rng, obstacleMask, { ...spawnConfig, terrain });
     const resourceRespawnedCount = resourceRespawnStats.spawnedCount;
     const resourceMs = resourceGridMs + performance.now() - resourceStart;
 
     const energyStart = performance.now();
-    const energyStats = applyEnergySurvival(world, { deltaSeconds: safeDeltaSeconds, basalMetabolismScale: 0, starvationEnergyThreshold: 0, starvationDamagePerSecond: 18, energyDebtDamageScale: 0.35, killOnZeroHealth: true });
+    const energyStats = applyEnergySurvival(world, { deltaSeconds: safeDeltaSeconds, basalMetabolismScale: ecologyPressureConfig.basalMetabolismScale, starvationEnergyThreshold: ecologyPressureConfig.starvationEnergyThreshold, starvationDamagePerSecond: ecologyPressureConfig.starvationDamagePerSecond, energyDebtDamageScale: 0.35, killOnZeroHealth: true });
     const energyMs = performance.now() - energyStart;
 
     const reproductionStart = performance.now();
-    const reproductionStats = applyReproduction(world, rng, { energyThreshold: reproductionEnergyThreshold, energyCost: 44, childEnergy: 32, minAgeSeconds: 2.5, maxBirthsPerStep: 8, spawnRadius: 14, inheritVelocityScale: 0.35, mutationChance: 0.35, mutationStandardDeviationScale: 0.4, obstacleMask, terrain, offspringSpawnMaxAttempts: spawnMaxAttempts, offspringClearanceRadius: spawnClearanceRadius, offspringTerrainMaxAttempts, offspringTerrainMinAcceptance });
+    const reproductionStats = applyReproduction(world, rng, { energyThreshold: ecologyPressureConfig.reproductionEnergyThreshold, energyCost: ecologyPressureConfig.reproductionEnergyCost, childEnergy: 32, minAgeSeconds: 2.5, maxBirthsPerStep: 8, spawnRadius: 14, inheritVelocityScale: 0.35, mutationChance: 0.35, mutationStandardDeviationScale: 0.4, obstacleMask, terrain, offspringSpawnMaxAttempts: spawnMaxAttempts, offspringClearanceRadius: spawnClearanceRadius, offspringTerrainMaxAttempts, offspringTerrainMinAcceptance });
     const reproductionMs = performance.now() - reproductionStart;
+
+    const ecologyPressureReadout = makeEcologyPressureReadout({ world, resources, config: ecologyPressureConfig, energyStats, reproductionStats, predatorPreyStats, resourcePickupStats, resourceRespawnStats });
 
     const obstacleLifecycleTelemetry = makeObstacleLifecycleTelemetry({ sensorStats, obstacleResponseStats, resourceRespawnStats, reproductionStats });
     const snapshot = makeRenderSnapshot(world);
@@ -550,10 +582,10 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     const snapshotStats = analyzeRenderSnapshot(snapshot);
     const simMsPerTick = performance.now() - start;
 
-    return { snapshot, obstacleMaskSnapshot, terrainRenderSnapshot, fieldRenderSnapshot, fieldDynamicsStats, fieldSourceStats, fieldDampingStats, fieldAdvectionStats, fieldForceStats, controllerStats, controllerActuatorStats, controllerConfig: getControllerConfig(), controllerActuatorConfig: getControllerActuatorConfig(), fieldDampingConfig: getFieldDampingConfig(), fieldForceConfig: getFieldForceConfig(), snapshotStats, movementMetrics, obstacleResponseStats, obstacleLifecycleTelemetry, energyStats, spatialBuildStats, neighborQueryStats, sensorStats, predatorPreyStats, reproductionStats, resourceBuildStats, resourcePickupStats, resourceRespawnStats, resourceAliveCount: resources.aliveCount, resourceTargetCount, resourceRespawnedCount, gridBuildMs, neighborQueryMs, sensorMs, obstacleResponseMs, predatorPreyMs, resourceMs, energyMs, reproductionMs, fieldDynamicsMs, fieldSourcesMs, fieldDampingMs, fieldAdvectionMs, fieldForceMs, controllerMs, controllerActuatorMs, simMsPerTick };
+    return { snapshot, obstacleMaskSnapshot, terrainRenderSnapshot, fieldRenderSnapshot, fieldDynamicsStats, fieldSourceStats, fieldDampingStats, fieldAdvectionStats, fieldForceStats, controllerStats, controllerActuatorStats, controllerConfig: getControllerConfig(), controllerActuatorConfig: getControllerActuatorConfig(), ecologyPressureConfig: getEcologyPressureConfig(), ecologyPressureReadout, fieldDampingConfig: getFieldDampingConfig(), fieldForceConfig: getFieldForceConfig(), snapshotStats, movementMetrics, obstacleResponseStats, obstacleLifecycleTelemetry, energyStats, spatialBuildStats, neighborQueryStats, sensorStats, predatorPreyStats, reproductionStats, resourceBuildStats, resourcePickupStats, resourceRespawnStats, resourceAliveCount: resources.aliveCount, resourceTargetCount: ecologyPressureConfig.resourceTargetCount, resourceRespawnedCount, gridBuildMs, neighborQueryMs, sensorMs, obstacleResponseMs, predatorPreyMs, resourceMs, energyMs, reproductionMs, fieldDynamicsMs, fieldSourcesMs, fieldDampingMs, fieldAdvectionMs, fieldForceMs, controllerMs, controllerActuatorMs, simMsPerTick };
   };
 
-  return { world, spatialGrid, resources, obstacleMask, terrain, field, controllerOutput, initialAgentSpawnStats, initialResourceSpawnStats, step, getSnapshot: () => makeRenderSnapshot(world), getFieldDampingConfig, updateFieldDampingConfig, getFieldAdvectionConfig, updateFieldAdvectionConfig, getFieldForceConfig, updateFieldForceConfig, getControllerConfig, updateControllerConfig, getControllerActuatorConfig, updateControllerActuatorConfig };
+  return { world, spatialGrid, resources, obstacleMask, terrain, field, controllerOutput, initialAgentSpawnStats, initialResourceSpawnStats, step, getSnapshot: () => makeRenderSnapshot(world), getFieldDampingConfig, updateFieldDampingConfig, getFieldAdvectionConfig, updateFieldAdvectionConfig, getFieldForceConfig, updateFieldForceConfig, getControllerConfig, updateControllerConfig, getControllerActuatorConfig, updateControllerActuatorConfig, getEcologyPressureConfig, updateEcologyPressureConfig };
 }
 
 function fillResourceFieldSources(resources: ResourceLayer, target: FieldPointSource[], maxResources: number, strength: number): void {
