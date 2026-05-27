@@ -15,7 +15,13 @@ M49-A1 core API is implemented without demo wiring:
 - `scripts/test-controller-actuator.mjs` covers disabled no-op, config clamping, alive-only application, force clamping, determinism, output capacity guard, non-finite intent guard, and intent-buffer non-mutation;
 - `package.json` exposes `test:controller-actuator` and includes it in `npm run test`.
 
-No demo runtime, render, or UI wiring is added in A1.
+M49-A2 benchmark exposure is implemented without demo wiring:
+
+- `scripts/bench-controller-actuator.mjs` benchmarks actuator-only cost at 1k/5k/10k agents;
+- `package.json` exposes `bench:controller-actuator`;
+- benchmark output reports average step time, agent count, sample count, affected count, zero intent count, clamp count, total force magnitude, and max force magnitude.
+
+No demo runtime, render, or UI wiring is added in A1/A2.
 
 ## Goal
 
@@ -50,8 +56,8 @@ The first demo implementation may keep the existing demo order if changing order
 ## Planned slices
 
 - M49-A0: integration scope document and guard updates, no runtime behavior change. Complete.
-- M49-A1: core `controllerActuator` / `intentToForce` API with deterministic no-op tests, no demo wiring. Implemented.
-- M49-A2: actuator metrics and benchmark for controller + actuator cost.
+- M49-A1: core `controllerActuator` / `intentToForce` API with deterministic no-op tests, no demo wiring. Complete.
+- M49-A2: actuator metrics and benchmark for controller + actuator cost. Complete.
 - M49-A3: demo wiring behind disabled/default-neutral config.
 - M49-A4: overlay/readout QA for actuator metrics.
 - M49-A5: optional panel controls and persistence after behavior and metrics are stable.
@@ -83,6 +89,17 @@ Core actuator metrics are distinct from controller metrics:
 - max force magnitude;
 - total input intent magnitude.
 
+Benchmark-visible metrics:
+
+- average step milliseconds;
+- agent count;
+- sample count;
+- affected agent count;
+- zero-intent count;
+- clamp count;
+- total force magnitude;
+- max force magnitude.
+
 ## Required tests
 
 A1 test coverage:
@@ -101,8 +118,7 @@ A1 test coverage:
 Remaining M49 tests for later slices:
 
 - demo integration guard proves default disabled behavior after demo wiring;
-- guard proves controller output is not passed directly into movement without the actuator stage;
-- benchmark 1k/5k/10k agents for controller + actuator cost.
+- guard proves controller output is not passed directly into movement without the actuator stage.
 
 ## Required debug and UI
 
