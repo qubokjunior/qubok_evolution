@@ -1,6 +1,6 @@
 # qubok_evolve milestones
 
-Compact milestone index through m46. Older early milestones are summarized at the system level; recent lifecycle, terrain, field, and render-debug milestones are listed with stricter implementation detail.
+Compact milestone index through m47. Older early milestones are summarized at the system level; recent lifecycle, terrain, field, and render-debug milestones are listed with stricter implementation detail.
 
 | Milestone | Focus | Status |
 |---|---|---|
@@ -50,11 +50,13 @@ Compact milestone index through m46. Older early milestones are summarized at th
 | m44 | Field source semantics tuning and visualization QA with runtime visual and overlay/readout guards. | complete |
 | m45 | Obstacle/terrain damping sources, editable debug parameters, panel persistence, render layer controls, and debug config preset import/export UX. | complete |
 | m46 | Deterministic environmental field transport/advection core, benchmark, demo wiring, overlay/readouts, editable controls, and persistence. | complete |
+| m47 | Field-force separation and explicit agent response to environmental fields. | planned |
 
 ## Current next-step candidates
 
-- m46-A1: core advection API + deterministic unit tests, no demo wiring.
-- m46-A2: benchmark + metrics struct.
-- m46-A3: demo wiring behind conservative config.
-- m46-A4: overlay metrics/readouts.
-- Later: field-force separation, signed-distance-field correction, controller/brain layer, terrain editor tools, morphology compiler/editor, workerization, and WebGPU experiments.
+- m47-A1: core field-force API + deterministic unit tests, no demo wiring.
+- m47-A2: metrics and benchmark.
+- m47-A3: demo wiring behind conservative disabled/default-light config.
+- m47-A4: overlay/readout QA.
+- m47-A5: optional controls/persistence only after behavior is stable.
+- Later: signed-distance-field correction, controller/brain layer, terrain editor tools, morphology compiler/editor, workerization, and WebGPU experiments.
