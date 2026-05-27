@@ -4,12 +4,12 @@
 
 ## Project goal
 
-qubok_evolve is a high-performance realtime 2D artificial-life ecosystem simulator. The target is a deterministic browser-first simulation where many agents, resources, terrain layers, environmental fields, sensors, reproduction, mutation, and later controller/morphology systems can be observed and tuned without turning the simulation hot path into a UI/game-object scene.
+qubok_evolve is a high-performance realtime 2D artificial-life ecosystem simulator. The target is a deterministic browser-first simulation where many agents, resources, terrain layers, environmental fields, sensors, reproduction, mutation, controller logic, actuator influence, and later morphology systems can be observed and tuned without turning the simulation hot path into a UI/game-object scene.
 
 The practical direction is:
 
 - realtime 2D ecosystem simulation;
-- artificial-life behavior emerging from energy, sensors, environment, reproduction, mutation, predation, terrain, and fields;
+- artificial-life behavior emerging from energy, sensors, environment, reproduction, mutation, predation, terrain, fields, controller intent, and explicit actuator influence;
 - data-oriented runtime that can scale before visual complexity is added;
 - debug-first workflow where every new system exposes metrics, tests, and validation guards.
 
@@ -82,33 +82,41 @@ Core architectural invariants:
 
 Current field-stage order is intentionally separated into sources/sinks, damping, advection, dynamics, and field-force style response so each cost and effect remains observable.
 
-### Controller first pass
+### Controller and actuator
 
-M48 is closed. The controller first pass exists as an observation/configuration layer:
+M48 closed the controller first pass as an observation/configuration layer:
 
 - `src/sim/controller.ts` defines a renderer-agnostic controller API;
 - controller output uses deterministic intent arrays: `intentX`, `intentY`, and `intentMagnitude`;
 - config is bounded and includes enable, strength, max intent, food weight, threat weight, and flow weight;
-- demo wiring exists behind disabled/default-neutral config;
-- overlay/readouts, benchmark, panel controls, persistence, and exposure tests exist;
-- repo status, roadmap status, milestone, integration, package version, and app version now report `0.1.0-milestone.48` / `m48`.
+- controller overlay/readouts, benchmark, panel controls, persistence, and exposure tests exist.
 
-Important limit: M48 controller output is not yet actuated into movement. The controller is observable and configurable, but it does not currently apply force or change agent locomotion. The actuator bridge belongs to M49.
+M49 closes the explicit controller actuator bridge:
+
+- `src/sim/controllerActuator.ts` converts controller intent into bounded force writes;
+- default config remains disabled through `enableControllerMovementInfluence = false`;
+- demo wiring exists but is default-neutral;
+- actuator metrics are exposed through the shared performance bus and overlay;
+- actuator controls and persistence exist under `qubok_evolve.controller_actuator_config.v1`;
+- benchmark coverage exists through `bench:controller-actuator`;
+- repo status, roadmap status, milestone, integration, package version, and app version now report `0.1.0-milestone.49` / `m49`.
+
+Important limit: current M49 demo order uses the previous available controller output for actuator influence. Later order refinement may move toward `environment -> spatial/resource rebuild -> sensors -> controller -> actuators/forces -> movement -> interactions -> lifecycle/reproduction -> snapshots`.
 
 ### UI, overlay, persistence, tests, benchmarks
 
-- live debug/performance overlay with runtime, terrain, field, sensor, obstacle, resource, predator/prey, reproduction, world-slot, render, and controller metrics;
+- live debug/performance overlay with runtime, terrain, field, sensor, obstacle, resource, predator/prey, reproduction, world-slot, render, controller, and controller actuator metrics;
 - grouped overlay metrics and panel stack controls;
 - render layer toggles and debug config persistence;
-- field, damping, advection, field-force, and controller control panels with persistence where implemented;
+- field, damping, advection, field-force, controller, and controller actuator control panels with persistence where implemented;
 - Node-based unit, integration, status, UI QA, and benchmark scripts;
 - known Vite chunk-size warning is tracked as a later performance/code-splitting task, not a blocking runtime error.
 
 ## Current limitations and known technical debt
 
-- Controller intent is not yet connected to movement or forces; M49 must introduce an explicit `controllerActuator` or `intentToForce` stage.
 - Ecology pressure is intentionally weak in some demo configs; hunger, scarcity, predation, and reproduction pressure need calibration in M50.
 - The sensor pass is a known hotspot and needs budgeting, cadence control, candidate caps, and better selected-agent visualization in M51.
+- Current M49 actuator demo order uses previous controller output; order refinement remains a future safe step.
 - Render/debug layers can become expensive because terrain, obstacle, field vectors, and agent debug views may redraw too often; throttling/cache belongs to the M57 performance split.
 - Signed-distance field terrain/obstacle response is not implemented yet.
 - Morphology/component compiler and body editor are not implemented yet.
@@ -125,11 +133,10 @@ Important limit: M48 controller output is not yet actuated into movement. The co
 - Renderer-agnostic simulation: render layers visualize snapshots; they do not own simulation state.
 - Behavior neutrality by default: new behavior-changing systems should be default-disabled or no-op until explicitly enabled and tested.
 
-## Roadmap: M49 to M57
+## Roadmap: M50 to M57
 
 | Milestone | Purpose | Required direction |
 |---|---|---|
-| M49 | Controller actuator bridge. | Add explicit `controllerActuator` / `intentToForce`, decide final tick order, expose intent-force metrics and debug vectors, keep default disabled. |
 | M50 | Ecology pressure calibration. | Add presets and runtime controls for hunger, starvation, resource scarcity, reproduction pressure, predator pressure, and pressure readouts. |
 | M51 | Sensor budgeting and perception quality. | Add sensor caps, strides, cadence per channel, dense-cluster benchmarks, and selected-agent sensor wedge visualization. |
 | M52 | Agent inspector and lab tools. | Add selected-agent inspector, sample groups, pause/step/slow motion, and debug-state export. |
@@ -141,4 +148,4 @@ Important limit: M48 controller output is not yet actuated into movement. The co
 
 ## Near-term rule
 
-M48 is closed. The next behavior-changing step is M49, and it must keep controller actuation explicit, measurable, and disabled by default until validated.
+M49 is closed. The next behavior-quality step is M50, focused on ecology pressure calibration rather than new brain complexity.
