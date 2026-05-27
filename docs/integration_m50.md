@@ -2,6 +2,22 @@
 
 M50 starts after the closed M49 controller actuator bridge. M49 made controller intent optionally capable of affecting movement, but behavior quality cannot be evaluated while the demo ecology is too forgiving or too noisy. M50 calibrates hunger, scarcity, reproduction pressure, predator pressure, and population pressure so controller and actuator behavior has measurable consequences.
 
+## Current status
+
+M50-A0 is complete: integration scope document, milestone references, and roadmap/status guard scope exist.
+
+M50-A1 config/readout shape is implemented without demo runtime wiring:
+
+- `src/sim/ecologyPressure.ts` defines the renderer-agnostic ecology pressure surface;
+- `ECOLOGY_PRESSURE_VERSION` is `qubok_evolve.ecology_pressure.m50`;
+- `ECOLOGY_PRESSURE_PRESETS` defines `neutral_lab`, `scarce_food`, `predator_pressure`, `terrain_habitat`, and `field_current_stress` keys;
+- `makeEcologyPressureConfig(...)` resolves bounded config with resource-capacity clamping;
+- `makeEcologyPressureReadout(...)` builds pressure readouts from existing world/resource/energy/reproduction/predator/resource stats;
+- `scripts/test-ecology-pressure.mjs` validates config clamping, preset guards, energy min/max readout, births, blocked births, predator kills, and population pressure;
+- `package.json` exposes `test:ecology-pressure` and includes it in `npm run test`.
+
+No demo runtime, render, UI, panel, persistence, package version, or app version behavior is changed in A1.
+
 ## Goal
 
 M50 makes behavior matter.
@@ -20,8 +36,8 @@ The milestone should expose deterministic ecology pressure without turning it in
 
 ## Planned slices
 
-- M50-A0: integration scope document, roadmap/milestone references, and status guards only; no runtime behavior change.
-- M50-A1: define bounded ecology pressure config/readout shape for demo simulation, no panel yet.
+- M50-A0: integration scope document, roadmap/milestone references, and status guards only; no runtime behavior change. Complete.
+- M50-A1: define bounded ecology pressure config/readout shape for demo simulation, no panel yet. Complete.
 - M50-A2: deterministic pressure scenario tests for resource scarcity, energy loss/gain, starvation death path, births, blocked births, and predator kills.
 - M50-A3: demo preset wiring behind safe defaults: neutral lab, scarce food, predator pressure, terrain habitat, and field-current stress.
 - M50-A4: overlay/readout QA for ecology pressure metrics.
@@ -30,23 +46,22 @@ The milestone should expose deterministic ecology pressure without turning it in
 
 ## Target config surfaces
 
-Initial config should stay small and bounded:
+Initial config stays small and bounded:
 
 - `ecologyPreset`: deterministic preset key;
 - `basalMetabolismScale`;
 - `starvationEnergyThreshold`;
 - `starvationDamagePerSecond`;
 - `resourceTargetCount`;
-- `resourceRespawnPerSecond` or equivalent bounded target/respawn control;
+- `resourceRespawnPerSecond`;
 - `reproductionEnergyThreshold`;
 - `reproductionEnergyCost`;
 - `predatorAttackRadius`;
-- `predatorDamageScale`;
-- optional population/capacity pressure readouts before capacity controls.
+- `predatorDamageScale`.
 
 ## Target metrics
 
-Ecology pressure metrics should be distinct from controller, actuator, field, and sensor metrics:
+Ecology pressure metrics are distinct from controller, actuator, field, and sensor metrics:
 
 - ecology preset id/key;
 - resource target and alive count;
@@ -62,6 +77,17 @@ Ecology pressure metrics should be distinct from controller, actuator, field, an
 - alive count, capacity, reusable slot count, and population pressure ratio.
 
 ## Required tests
+
+A1 coverage:
+
+- ecology pressure version and preset keys;
+- preset guard accepts known presets and rejects unknown values;
+- default neutral config keeps current demo metabolism neutral;
+- resource target clamps to resource capacity;
+- invalid/non-finite numeric config is clamped;
+- readout reports resource counts, pickups, energy range, starvation, births, blocked births, predator kills, reusable slots, and population pressure.
+
+Remaining M50 test coverage:
 
 - deterministic scarce-food scenario changes resource and energy counters;
 - starvation death path uses `killAgent` and therefore free-list reuse;
@@ -87,11 +113,3 @@ Ecology pressure metrics should be distinct from controller, actuator, field, an
 - signed-distance terrain/obstacle response;
 - full scenario editor;
 - workerization, WebGPU, render rewrite, or code-splitting work.
-
-## Acceptance checks for M50-A0
-
-- `docs/integration_m50.md` exists and defines ecology pressure calibration scope;
-- README and milestones point current planning to M50;
-- roadmap keeps M49 closed and makes M50 the active next milestone;
-- status guards check M50 planning document;
-- no runtime, render, UI, package version, or app version behavior is changed in A0.
