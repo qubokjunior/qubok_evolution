@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { EXPECTED_PROJECT_MILESTONE, EXPECTED_PROJECT_MILESTONE_LABEL, EXPECTED_PROJECT_STATUS, EXPECTED_PROJECT_VERSION } from "./project-status.mjs";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const readText = (relativePath) => readFileSync(resolve(projectRoot, relativePath), "utf8");
@@ -24,19 +25,21 @@ const fieldDamping = readText("src/sim/fieldDamping.ts");
 const fieldAdvection = readText("src/sim/fieldAdvection.ts");
 const fieldForce = readText("src/sim/fieldForce.ts");
 const controller = readText("src/sim/controller.ts");
+const demoSimulation = readText("src/sim/demoSimulation.ts");
 
-assert(packageJson.version === "0.1.0-milestone.47", "package.json must expose 0.1.0-milestone.47 until M48-final version close.");
-assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.47\""), "appVersion must expose milestone.47 until M48-final version close.");
-assert(appVersion.includes("PROJECT_MILESTONE = 47"), "appVersion must expose milestone number 47 until M48-final version close.");
-assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m47\""), "appVersion must expose m47 label until M48-final version close.");
-assert(readme.includes("m47 complete"), "README.md must expose current m47 complete status.");
-assert(readme.includes("M48 controller first-pass slices present"), "README.md must expose M48 implemented-slices status.");
+assert(packageJson.version === EXPECTED_PROJECT_VERSION, `package.json must expose ${EXPECTED_PROJECT_VERSION}.`);
+assert(appVersion.includes(`PROJECT_VERSION = "${EXPECTED_PROJECT_VERSION}"`), `appVersion must expose ${EXPECTED_PROJECT_VERSION}.`);
+assert(appVersion.includes(`PROJECT_MILESTONE = ${EXPECTED_PROJECT_MILESTONE}`), `appVersion must expose milestone number ${EXPECTED_PROJECT_MILESTONE}.`);
+assert(appVersion.includes(`PROJECT_MILESTONE_LABEL = "${EXPECTED_PROJECT_MILESTONE_LABEL}"`), `appVersion must expose ${EXPECTED_PROJECT_MILESTONE_LABEL} label.`);
+assert(readme.includes(EXPECTED_PROJECT_STATUS), `README.md must expose ${EXPECTED_PROJECT_STATUS}.`);
+assert(readme.includes("Controller intent is not yet actuated into movement"), "README.md must preserve the M48 behavior-neutral controller limit.");
 assert(readme.includes("docs/project_overview.md"), "README.md must link docs/project_overview.md.");
 
 for (const marker of ["| m32 |", "| m33 |", "| m34 |", "| m35 |", "| m36 |", "| m37 |", "| m38 |", "| m39 |", "| m40 |", "| m41 |", "| m42 |", "| m43 |", "| m44 |", "| m45 |", "| m46 |", "| m47 |", "| m48 |"]) {
   assert(milestones.includes(marker), "docs/milestones.md missing marker: " + marker);
 }
-assert(milestones.includes("implemented slices present / pending final close"), "docs/milestones.md must describe M48 slices as present but not fully closed.");
+assert(milestones.includes("| m48 |") && milestones.includes("| complete |"), "docs/milestones.md must close M48 as complete.");
+assert(!milestones.includes("pending final close"), "docs/milestones.md must not leave M48 in pending-final-close state.");
 
 for (const token of [
   "realtime 2D artificial-life ecosystem simulator",
@@ -59,12 +62,12 @@ for (const token of [
   "field-force",
   "Controller first pass",
   "Controller intent is not yet connected to movement",
-  "M48-final",
   "M49",
   "M57"
 ]) {
   assert(projectOverview.includes(token), "project_overview.md missing required source-material token: " + token);
 }
+assert(!projectOverview.includes("M48 docs/status are partially implemented"), "project_overview.md must not describe M48 as partially implemented after close.");
 
 assert(integrationM40.includes("environmental field render snapshot"), "integration_m40 must describe environmental field render snapshot.");
 assert(integrationM41.includes("render debug controls"), "integration_m41 must describe render debug controls.");
@@ -75,12 +78,16 @@ assert(integrationM45.includes("obstacle/terrain damping sources") && integratio
 assert(integrationM46.includes("environmental field transport") && integrationM46.includes("advection"), "integration_m46 must describe m46 field transport/advection.");
 assert(integrationM46.includes("M46 is closed") && integrationM46.includes("Final validation set"), "integration_m46 must document m46 closed status and validation set.");
 assert(integrationM47.includes("M47 is closed") && integrationM47.includes("Final validation set"), "integration_m47 must document m47 closed status and validation set.");
-assert(integrationM48.includes("controller/brain first-pass") && integrationM48.includes("behavior-neutral by default"), "integration_m48 must preserve controller first-pass scope and default behavior.");
+assert(integrationM48.includes("M48 is closed") && integrationM48.includes("Final validation set"), "integration_m48 must document M48 closed status and validation set.");
+assert(integrationM48.includes("does not actuate controller intent into movement"), "integration_m48 must preserve the M48 actuator limit.");
 
 assert(fieldDamping.includes("FIELD_DAMPING_VERSION") && fieldDamping.includes("applyFieldDamping"), "fieldDamping must expose m45 core damping API.");
 assert(fieldAdvection.includes("FIELD_ADVECTION_VERSION") && fieldAdvection.includes("advectEnvironmentalField"), "fieldAdvection must expose m46 core advection API.");
 assert(fieldForce.includes("FIELD_FORCE_VERSION") && fieldForce.includes("applyFieldForces"), "fieldForce must expose m47 core field-force API.");
 assert(controller.includes("CONTROLLER_VERSION") && controller.includes("stepAgentController"), "controller must expose M48 core controller API.");
+assert(demoSimulation.includes("DEFAULT_ENABLE_CONTROLLER = false"), "M48 controller must remain disabled by default.");
+assert(!demoSimulation.includes("addForce(world, index, controllerOutput"), "M48 must not wire controller output into movement forces.");
+assert(!demoSimulation.includes("stepMovement(world, controllerOutput"), "M48 must not pass controller output into movement.");
 
 for (const scriptName of [
   "test:repo-status",
