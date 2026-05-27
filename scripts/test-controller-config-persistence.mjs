@@ -1,0 +1,12 @@
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const readText = (relativePath) => readFileSync(resolve(projectRoot, relativePath), "utf8");
+const assert = (condition, message) => { if (!condition) throw new Error(message); };
+const packageJson = JSON.parse(readText("package.json"));
+const persistence = readText("src/sim/controllerConfigPersistence.ts");
+assert(packageJson.scripts["test:controller-config-persistence"] === "node scripts/test-controller-config-persistence.mjs", "package.json must expose test:controller-config-persistence.");
+assert(packageJson.scripts.test.includes("test:controller-config-persistence"), "npm run test must include test:controller-config-persistence.");
+for (const token of ["CONTROLLER_CONFIG_STORAGE_KEY", "qubok_evolve.controller_config.v1", "loadStoredControllerConfig", "saveControllerConfig", "clearStoredControllerConfig", "enableController", "controllerStrength", "controllerMaxIntentPerAgent", "controllerFoodWeight", "controllerThreatWeight", "controllerFlowWeight"]) assert(persistence.includes(token), "controllerConfigPersistence missing token: " + token);
+console.log("controller config persistence tests passed");
