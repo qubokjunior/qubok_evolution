@@ -38,6 +38,7 @@ const { applyPredatorPreyInteraction, DIET_MEAT, DIET_PLANT } = await importSimM
 const {
   ECOLOGY_PRESSURE_VERSION,
   ECOLOGY_PRESSURE_PRESETS,
+  ECOLOGY_PRESSURE_PRESET_CONFIGS,
   DEFAULT_ECOLOGY_PRESSURE_CONFIG,
   isEcologyPressurePreset,
   makeEcologyPressureConfig,
@@ -47,13 +48,46 @@ const {
 assertEqual(ECOLOGY_PRESSURE_VERSION, "qubok_evolve.ecology_pressure.m50", "ecology pressure version");
 assert(ECOLOGY_PRESSURE_PRESETS.includes("neutral_lab"), "neutral preset missing");
 assert(ECOLOGY_PRESSURE_PRESETS.includes("scarce_food"), "scarce food preset missing");
+assert(ECOLOGY_PRESSURE_PRESETS.includes("predator_pressure"), "predator pressure preset missing");
+assert(ECOLOGY_PRESSURE_PRESETS.includes("terrain_habitat"), "terrain habitat preset missing");
+assert(ECOLOGY_PRESSURE_PRESETS.includes("field_current_stress"), "field current stress preset missing");
 assertEqual(DEFAULT_ECOLOGY_PRESSURE_CONFIG.ecologyPreset, "neutral_lab", "default preset");
 assertEqual(isEcologyPressurePreset("predator_pressure"), true, "known preset guard");
 assertEqual(isEcologyPressurePreset("unknown"), false, "unknown preset guard");
+assertEqual(Object.keys(ECOLOGY_PRESSURE_PRESET_CONFIGS).length, ECOLOGY_PRESSURE_PRESETS.length, "preset config count");
+assertEqual(ECOLOGY_PRESSURE_PRESET_CONFIGS.neutral_lab.basalMetabolismScale, undefined, "neutral preset should inherit neutral defaults");
 
 const resolvedDefault = makeEcologyPressureConfig({}, { resourceCapacity: 1024 });
+assertEqual(resolvedDefault.ecologyPreset, "neutral_lab", "default resolved preset");
 assertEqual(resolvedDefault.resourceTargetCount, 1024, "resource target clamps to capacity");
 assertEqual(resolvedDefault.basalMetabolismScale, 0, "default basal scale keeps current demo neutral");
+
+const scarceFoodPreset = makeEcologyPressureConfig({ ecologyPreset: "scarce_food" }, { resourceCapacity: 4096 });
+assertEqual(scarceFoodPreset.ecologyPreset, "scarce_food", "scarce preset key");
+assertEqual(scarceFoodPreset.resourceTargetCount, 600, "scarce preset resource target");
+assertEqual(scarceFoodPreset.basalMetabolismScale, 1, "scarce preset metabolism");
+assertEqual(scarceFoodPreset.starvationEnergyThreshold, 4, "scarce preset starvation threshold");
+assertEqual(scarceFoodPreset.reproductionEnergyThreshold, 96, "scarce preset reproduction threshold");
+assertEqual(scarceFoodPreset.reproductionEnergyCost, 52, "scarce preset reproduction cost");
+
+const predatorPreset = makeEcologyPressureConfig({ ecologyPreset: "predator_pressure" }, { resourceCapacity: 4096 });
+assertEqual(predatorPreset.resourceTargetCount, 1800, "predator preset resource target");
+assertAlmostEqual(predatorPreset.basalMetabolismScale, 0.35, 0.000001, "predator preset metabolism");
+assertEqual(predatorPreset.predatorAttackRadius, 36, "predator preset radius");
+assertAlmostEqual(predatorPreset.predatorDamageScale, 1.35, 0.000001, "predator preset damage scale");
+
+const terrainPreset = makeEcologyPressureConfig({ ecologyPreset: "terrain_habitat" }, { resourceCapacity: 4096 });
+assertEqual(terrainPreset.resourceTargetCount, 1600, "terrain preset resource target");
+assertAlmostEqual(terrainPreset.basalMetabolismScale, 0.5, 0.000001, "terrain preset metabolism");
+
+const fieldPreset = makeEcologyPressureConfig({ ecologyPreset: "field_current_stress" }, { resourceCapacity: 4096 });
+assertEqual(fieldPreset.resourceTargetCount, 1800, "field preset resource target");
+assertAlmostEqual(fieldPreset.basalMetabolismScale, 0.75, 0.000001, "field preset metabolism");
+assertEqual(fieldPreset.reproductionEnergyCost, 48, "field preset reproduction cost");
+
+const overriddenPreset = makeEcologyPressureConfig({ ecologyPreset: "scarce_food", resourceTargetCount: 333, basalMetabolismScale: 2.25 }, { resourceCapacity: 4096 });
+assertEqual(overriddenPreset.resourceTargetCount, 333, "explicit resource target overrides preset");
+assertAlmostEqual(overriddenPreset.basalMetabolismScale, 2.25, 0.000001, "explicit metabolism overrides preset");
 
 const resolved = makeEcologyPressureConfig({
   ecologyPreset: "scarce_food",
