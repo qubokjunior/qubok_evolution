@@ -5,6 +5,7 @@ import type { FieldSourceStepMetrics } from "../sim/fieldSources";
 import type { FieldDynamicsStepMetrics } from "../sim/fieldDynamics";
 import type { FieldDampingStepMetrics } from "../sim/fieldDamping";
 import type { FieldAdvectionStepMetrics } from "../sim/fieldAdvection";
+import type { FieldForceStepMetrics } from "../sim/fieldForce";
 import type { ObstacleLifecycleTelemetry } from "../sim/lifecycleTelemetry";
 import type { MovementStepMetrics } from "../sim/movement";
 import type { ObstacleSoftResponseStats } from "../sim/obstacleResponse";
@@ -31,7 +32,9 @@ export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly fieldSourceStats: FieldSourceStepMetrics;
   readonly fieldDampingStats: FieldDampingStepMetrics;
   readonly fieldAdvectionStats: FieldAdvectionStepMetrics;
+  readonly fieldForceStats: FieldForceStepMetrics;
   readonly fieldDampingConfig: FieldDampingConfigReadout;
+  readonly fieldForceConfig: FieldForceConfigReadout;
   readonly snapshotStats: RenderSnapshotStats;
   readonly movementMetrics: MovementStepMetrics;
   readonly obstacleResponseStats: ObstacleSoftResponseStats;
@@ -60,6 +63,7 @@ export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly fieldSourcesMs: number;
   readonly fieldDampingMs: number;
   readonly fieldAdvectionMs: number;
+  readonly fieldForceMs: number;
   readonly simMsPerTick: number;
 };
 
@@ -78,6 +82,13 @@ export type PixiRendererHandle = {
 };
 
 type AgentGlyph = { readonly graphic: Graphics; colorRGBA: number };
+
+type FieldForceConfigReadout = {
+  readonly enableFieldForce: boolean;
+  readonly fieldForceStrength: number;
+  readonly fieldForceMaxForcePerAgent: number;
+  readonly fieldForceMinActiveMagnitude: number;
+};
 
 type FieldDampingConfigReadout = {
   readonly enableObstacleFieldDamping: boolean;
@@ -222,6 +233,17 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("fieldAdvectionMagnitudeBefore", frame.fieldAdvectionStats.totalMagnitudeBefore);
     metrics.record("fieldAdvectionMagnitudeAfter", frame.fieldAdvectionStats.totalMagnitudeAfter);
     metrics.record("fieldAdvectionMagnitudeDelta", frame.fieldAdvectionStats.totalMagnitudeDelta);
+    metrics.record("fieldForceMs", frame.fieldForceMs);
+    metrics.record("fieldForceEnabled", frame.fieldForceConfig.enableFieldForce ? 1 : 0);
+    metrics.record("fieldForceAgentCount", frame.fieldForceStats.agentCount);
+    metrics.record("fieldForceSampleCount", frame.fieldForceStats.sampleCount);
+    metrics.record("fieldForceAffectedAgentCount", frame.fieldForceStats.affectedAgentCount);
+    metrics.record("fieldForceIgnoredDeadCount", frame.fieldForceStats.ignoredDeadCount);
+    metrics.record("fieldForceZeroFieldCount", frame.fieldForceStats.zeroFieldCount);
+    metrics.record("fieldForceClampCount", frame.fieldForceStats.clampCount);
+    metrics.record("fieldForceMagnitudeTotal", frame.fieldForceStats.totalForceMagnitude);
+    metrics.record("fieldForceMaxForceMagnitude", frame.fieldForceStats.maxForceMagnitude);
+    metrics.record("fieldForceFieldMagnitudeSum", frame.fieldForceStats.fieldMagnitudeSum);
     metrics.record("fieldDampingObstacleEnabled", frame.fieldDampingConfig.enableObstacleFieldDamping ? 1 : 0);
     metrics.record("fieldDampingTerrainEnabled", frame.fieldDampingConfig.enableTerrainFieldDamping ? 1 : 0);
     metrics.record("fieldDampingObstaclePerSecond", frame.fieldDampingConfig.obstacleFieldDampingPerSecond);
@@ -394,6 +416,17 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         fieldAdvectionMagnitudeBefore: snapshot.values.fieldAdvectionMagnitudeBefore,
         fieldAdvectionMagnitudeAfter: snapshot.values.fieldAdvectionMagnitudeAfter,
         fieldAdvectionMagnitudeDelta: snapshot.values.fieldAdvectionMagnitudeDelta,
+        fieldForceMs: snapshot.values.fieldForceMs,
+        fieldForceEnabled: snapshot.values.fieldForceEnabled,
+        fieldForceAgentCount: snapshot.values.fieldForceAgentCount,
+        fieldForceSampleCount: snapshot.values.fieldForceSampleCount,
+        fieldForceAffectedAgentCount: snapshot.values.fieldForceAffectedAgentCount,
+        fieldForceIgnoredDeadCount: snapshot.values.fieldForceIgnoredDeadCount,
+        fieldForceZeroFieldCount: snapshot.values.fieldForceZeroFieldCount,
+        fieldForceClampCount: snapshot.values.fieldForceClampCount,
+        fieldForceMagnitudeTotal: snapshot.values.fieldForceMagnitudeTotal,
+        fieldForceMaxForceMagnitude: snapshot.values.fieldForceMaxForceMagnitude,
+        fieldForceFieldMagnitudeSum: snapshot.values.fieldForceFieldMagnitudeSum,
         fieldDampingObstacleEnabled: snapshot.values.fieldDampingObstacleEnabled,
         fieldDampingTerrainEnabled: snapshot.values.fieldDampingTerrainEnabled,
         fieldDampingObstaclePerSecond: snapshot.values.fieldDampingObstaclePerSecond,
