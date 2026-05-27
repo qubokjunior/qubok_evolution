@@ -12,6 +12,7 @@ const readme = readText("README.md");
 const roadmap = readText("docs/roadmap.md");
 const milestones = readText("docs/milestones.md");
 const architectureTracks = readText("docs/architecture_tracks.md");
+const projectOverview = readText("docs/project_overview.md");
 const integrationM40 = readText("docs/integration_m40.md");
 const integrationM41 = readText("docs/integration_m41.md");
 const integrationM42 = readText("docs/integration_m42.md");
@@ -24,27 +25,64 @@ const field = readText("src/sim/field.ts");
 const fieldRenderSnapshot = readText("src/sim/fieldRenderSnapshot.ts");
 const fieldDynamics = readText("src/sim/fieldDynamics.ts");
 const fieldSources = readText("src/sim/fieldSources.ts");
-const fieldDamping = readText("src/sim/fieldDamping.ts");
 const movement = readText("src/sim/movement.ts");
 const debugOverlay = readText("src/render/debugOverlay.ts");
 const perfMetrics = readText("src/shared/perfMetrics.ts");
 const pixiRenderer = readText("src/render/pixiRenderer.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
+const controller = readText("src/sim/controller.ts");
 
-assert(packageJson.version === "0.1.0-milestone.47", "package.json must expose m47 version.");
-assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.47\""), "appVersion must expose milestone.47.");
-assert(appVersion.includes("PROJECT_MILESTONE = 47"), "appVersion must expose milestone number 47.");
-assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m47\""), "appVersion must expose m47 label.");
+assert(packageJson.version === "0.1.0-milestone.47", "package.json must expose m47 version until M48-final version close.");
+assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.47\""), "appVersion must expose milestone.47 until M48-final version close.");
+assert(appVersion.includes("PROJECT_MILESTONE = 47"), "appVersion must expose milestone number 47 until M48-final version close.");
+assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m47\""), "appVersion must expose m47 label until M48-final version close.");
 assert(readme.includes("docs/roadmap.md"), "README.md must link docs/roadmap.md.");
+assert(readme.includes("docs/project_overview.md"), "README.md must link docs/project_overview.md.");
 assert(architectureTracks.includes("renderer must not own authoritative simulation state"), "architecture tracks must preserve sim/render boundary.");
 
-for (const requiredToken of ["m39 shipped: low-resolution environmental flow field sampled by movement", "m40 shipped: environmental field render snapshot and Pixi vector debug layer", "m41 shipped: render debug controls", "m43 shipped: field sources/sinks foundation", "m47 shipped: field-force separation", "m48 planned: controller/brain first pass"]) {
+for (const requiredToken of [
+  "m39 shipped: low-resolution environmental flow field sampled by movement",
+  "m40 shipped: environmental field render snapshot and Pixi vector debug layer",
+  "m41 shipped: render debug controls",
+  "m43 shipped: field sources/sinks foundation",
+  "m47 shipped: field-force separation",
+  "m48 planned: controller/brain first pass",
+  "M48 implemented state, pending final close",
+  "### M48-final: status close and guard cleanup",
+  "### M49: controller actuator bridge",
+  "### M57: performance architecture split"
+]) {
   assert(roadmap.includes(requiredToken), "roadmap missing token: " + requiredToken);
 }
 
 assert(roadmap.includes("m48 planning: controller/brain first pass"), "roadmap must point current milestone to m48 planning.");
 assert(milestones.includes("| m47 | Field-force separation and explicit agent response to environmental fields, with core API, tests, benchmark, demo wiring, overlay/readouts, controls, and persistence. | complete |"), "milestones must list m47 as complete.");
-assert(milestones.includes("| m48 | Controller/brain first-pass planning using existing sensors, terrain, field, and debug readouts. | planned |"), "milestones must list m48 as planned.");
+assert(milestones.includes("| m48 | Controller/brain first-pass slices:"), "milestones must list M48 controller first-pass slices.");
+assert(milestones.includes("implemented slices present / pending final close"), "milestones must preserve M48 pending-final-close status.");
+
+for (const requiredToken of [
+  "qubok_evolve project overview",
+  "src/sim",
+  "src/render",
+  "src/ui",
+  "src/shared",
+  "typed arrays",
+  "debug/performance overlay",
+  "Current limitations and known technical debt",
+  "Controller intent is not yet connected to movement",
+  "M48-final",
+  "M49",
+  "M50",
+  "M51",
+  "M52",
+  "M53",
+  "M54",
+  "M55",
+  "M56",
+  "M57"
+]) {
+  assert(projectOverview.includes(requiredToken), "project_overview.md missing token: " + requiredToken);
+}
 
 assert(field.includes("FIELD_LAYER_VERSION") && field.includes("sampleFieldAtPosition"), "field must expose field layer and sampling API.");
 assert(fieldRenderSnapshot.includes("FIELD_RENDER_SNAPSHOT_VERSION") && fieldRenderSnapshot.includes("makeFieldRenderSnapshot"), "field render snapshot must expose version and builder.");
@@ -54,6 +92,9 @@ assert(debugOverlay.includes("field force"), "debug overlay must expose field fo
 assert(perfMetrics.includes("fieldForceMs"), "perf metrics must expose field force metrics.");
 assert(pixiRenderer.includes("fieldForceMagnitudeTotal"), "pixiRenderer must expose field force overlay readouts.");
 assert(demoSimulation.includes("fieldForceStats") && demoSimulation.includes("updateFieldForceConfig"), "demoSimulation must expose m47 field force wiring and config.");
+assert(controller.includes("CONTROLLER_VERSION") && controller.includes("stepAgentController"), "controller must expose M48 controller API.");
+assert(demoSimulation.includes("DEFAULT_ENABLE_CONTROLLER = false"), "controller must remain disabled by default.");
+assert(!demoSimulation.includes("addForce(world, index, controllerOutput"), "M48 must not wire controller output into movement forces.");
 
 assert(integrationM40.includes("environmental field render snapshot"), "integration_m40 must describe environmental field render snapshot.");
 assert(integrationM41.includes("overlay grouping"), "integration_m41 must describe overlay grouping.");
