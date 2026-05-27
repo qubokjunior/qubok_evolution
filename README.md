@@ -2,7 +2,7 @@
 
 High-performance realtime 2D artificial-life ecosystem simulator.
 
-Current status: m47 complete / field-force separation and explicit agent response shipped.
+Current status: m47 complete / field-force separation and explicit agent response shipped. M48 controller/config/panel/overlay/persistence slices are present and pending final status close before M49 actuator behavior work.
 
 ## What exists now
 
@@ -29,8 +29,9 @@ Implemented runtime foundations:
 - field sources/sinks foundation with deterministic resource-driven vector emission, agent absorption, demo wiring, metrics, overlay labels, tests, and benchmark;
 - field source semantics tuning and visualization QA with resource energy/radius source scaling, agent radius/energy-pressure absorption, runtime visual QA, and overlay/readout guards;
 - m45 complete: obstacle/terrain damping sources, editable debug parameters, panel persistence, render layer controls, and debug config preset import/export UX;
-- m46 complete: deterministic environmental field advection with core tests, benchmark, demo wiring, overlay/readouts, editable controls, and persistence.
-- m47 complete: renderer-agnostic field-force sampling, deterministic tests, benchmark, disabled-by-default demo wiring, overlay/readouts, controls, and persistence.
+- m46 complete: deterministic environmental field advection with core tests, benchmark, demo wiring, overlay/readouts, editable controls, and persistence;
+- m47 complete: renderer-agnostic field-force sampling, deterministic tests, benchmark, disabled-by-default demo wiring, overlay/readouts, controls, and persistence;
+- M48 controller first-pass slices present: renderer-agnostic controller API, deterministic intent buffers, disabled-by-default demo wiring, overlay/readouts, panel controls, persistence, tests, and benchmark. Controller intent is not yet actuated into movement.
 
 ## Commands
 
@@ -58,8 +59,9 @@ http://127.0.0.1:5173/
 
 ## Milestones and docs
 
-- `docs/milestones.md` — compact milestone index through m47.
-- `docs/roadmap.md` — development tracks after m47 field-force completion.
+- `docs/project_overview.md` — technical source-material overview: current architecture, implemented systems, known limits, philosophy, and M48-final -> M57 roadmap.
+- `docs/milestones.md` — compact milestone index through m48.
+- `docs/roadmap.md` — development tracks after m47 field-force completion and M48 controller slice closure.
 - `docs/architecture_tracks.md` — boundary contracts for future work.
 - `docs/world_state.md` — typed-array world state and lifecycle slot contract.
 - `docs/integration_m36.md` — terrain resource-affinity milestone.
@@ -74,6 +76,7 @@ http://127.0.0.1:5173/
 - `docs/integration_m45.md` — completed obstacle/terrain damping sources and editable debug parameters milestone.
 - `docs/integration_m46.md` — completed environmental field transport/advection milestone.
 - `docs/integration_m47.md` — completed field-force separation milestone.
+- `docs/integration_m48.md` — controller/brain first-pass scope and M48 implementation boundary.
 
 ## Boundary rule
 
