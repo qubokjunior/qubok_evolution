@@ -2,7 +2,7 @@
 
 High-performance realtime 2D artificial-life ecosystem simulator.
 
-Current status: m48 complete / controller first pass shipped as behavior-neutral observation and configuration layer. M49 planning is open for the explicit controller actuator bridge. Controller intent is not yet actuated into movement.
+Current status: m49 complete / controller actuator bridge shipped behind explicit disabled-by-default config. Controller intent can now be converted into bounded movement force only when `enableControllerMovementInfluence` is explicitly enabled. M50 is next for ecology pressure calibration.
 
 ## What exists now
 
@@ -31,7 +31,8 @@ Implemented runtime foundations:
 - m45 complete: obstacle/terrain damping sources, editable debug parameters, panel persistence, render layer controls, and debug config preset import/export UX;
 - m46 complete: deterministic environmental field advection with core tests, benchmark, demo wiring, overlay/readouts, editable controls, and persistence;
 - m47 complete: renderer-agnostic field-force sampling, deterministic tests, benchmark, disabled-by-default demo wiring, overlay/readouts, controls, and persistence;
-- m48 complete: renderer-agnostic controller API, deterministic intent buffers, disabled-by-default demo wiring, benchmark, overlay/readouts, panel controls, persistence, source-material overview, and status guards. Controller intent remains behavior-neutral until M49.
+- m48 complete: renderer-agnostic controller API, deterministic intent buffers, disabled-by-default demo wiring, benchmark, overlay/readouts, panel controls, persistence, source-material overview, and status guards;
+- m49 complete: renderer-agnostic controller actuator bridge, disabled-by-default demo wiring, actuator benchmark, overlay/readouts, panel controls, persistence, and status guards.
 
 ## Commands
 
@@ -47,11 +48,11 @@ Targeted current checks:
 ```powershell
 npm run test:repo-status
 npm run test:roadmap-status
-npm run test:controller
-npm run test:controller-panel
-npm run test:controller-config-persistence
+npm run test:controller-actuator
 npm run test:controller-integration
 npm run test:controller-overlay-qa
+npm run test:controller-panel
+npm run test:controller-config-persistence
 npm run test:demo-integration
 npm run build
 ```
@@ -64,9 +65,9 @@ http://127.0.0.1:5173/
 
 ## Milestones and docs
 
-- `docs/project_overview.md` — technical source-material overview: current architecture, implemented systems, known limits, philosophy, and M49 -> M57 roadmap.
+- `docs/project_overview.md` — technical source-material overview: current architecture, implemented systems, known limits, philosophy, and M50 -> M57 roadmap.
 - `docs/milestones.md` — compact milestone index through m49.
-- `docs/roadmap.md` — development tracks after m48 controller first pass and before M49 runtime actuator wiring.
+- `docs/roadmap.md` — development tracks after m49 actuator bridge and before M50 ecology pressure calibration.
 - `docs/architecture_tracks.md` — boundary contracts for future work.
 - `docs/world_state.md` — typed-array world state and lifecycle slot contract.
 - `docs/integration_m36.md` — terrain resource-affinity milestone.
@@ -82,7 +83,7 @@ http://127.0.0.1:5173/
 - `docs/integration_m46.md` — completed environmental field transport/advection milestone.
 - `docs/integration_m47.md` — completed field-force separation milestone.
 - `docs/integration_m48.md` — completed controller/brain first-pass milestone.
-- `docs/integration_m49.md` — controller actuator bridge planning scope.
+- `docs/integration_m49.md` — completed controller actuator bridge milestone.
 
 ## Boundary rule
 
