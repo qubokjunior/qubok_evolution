@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { EXPECTED_PROJECT_MILESTONE, EXPECTED_PROJECT_MILESTONE_LABEL, EXPECTED_PROJECT_STATUS, EXPECTED_PROJECT_VERSION } from "./project-status.mjs";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const readText = (relativePath) => readFileSync(resolve(projectRoot, relativePath), "utf8");
@@ -32,10 +33,11 @@ const pixiRenderer = readText("src/render/pixiRenderer.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
 const controller = readText("src/sim/controller.ts");
 
-assert(packageJson.version === "0.1.0-milestone.47", "package.json must expose m47 version until M48-final version close.");
-assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.47\""), "appVersion must expose milestone.47 until M48-final version close.");
-assert(appVersion.includes("PROJECT_MILESTONE = 47"), "appVersion must expose milestone number 47 until M48-final version close.");
-assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m47\""), "appVersion must expose m47 label until M48-final version close.");
+assert(packageJson.version === EXPECTED_PROJECT_VERSION, `package.json must expose ${EXPECTED_PROJECT_VERSION}.`);
+assert(appVersion.includes(`PROJECT_VERSION = "${EXPECTED_PROJECT_VERSION}"`), `appVersion must expose ${EXPECTED_PROJECT_VERSION}.`);
+assert(appVersion.includes(`PROJECT_MILESTONE = ${EXPECTED_PROJECT_MILESTONE}`), `appVersion must expose milestone number ${EXPECTED_PROJECT_MILESTONE}.`);
+assert(appVersion.includes(`PROJECT_MILESTONE_LABEL = "${EXPECTED_PROJECT_MILESTONE_LABEL}"`), `appVersion must expose ${EXPECTED_PROJECT_MILESTONE_LABEL} label.`);
+assert(readme.includes(EXPECTED_PROJECT_STATUS), `README.md must expose ${EXPECTED_PROJECT_STATUS}.`);
 assert(readme.includes("docs/roadmap.md"), "README.md must link docs/roadmap.md.");
 assert(readme.includes("docs/project_overview.md"), "README.md must link docs/project_overview.md.");
 assert(architectureTracks.includes("renderer must not own authoritative simulation state"), "architecture tracks must preserve sim/render boundary.");
@@ -46,19 +48,20 @@ for (const requiredToken of [
   "m41 shipped: render debug controls",
   "m43 shipped: field sources/sinks foundation",
   "m47 shipped: field-force separation",
-  "m48 planned: controller/brain first pass",
-  "M48 implemented state, pending final close",
-  "### M48-final: status close and guard cleanup",
+  "m48 shipped: controller/brain first pass",
+  "M48 closed state",
   "### M49: controller actuator bridge",
   "### M57: performance architecture split"
 ]) {
   assert(roadmap.includes(requiredToken), "roadmap missing token: " + requiredToken);
 }
+assert(!roadmap.includes("pending final close"), "roadmap must not leave M48 in pending-final-close state.");
+assert(!roadmap.includes("### M48-final"), "roadmap must remove M48-final as a future milestone after close.");
 
-assert(roadmap.includes("m48 planning: controller/brain first pass"), "roadmap must point current milestone to m48 planning.");
+assert(roadmap.includes("m49 planning: controller actuator bridge"), "roadmap must point current milestone to M49 planning.");
 assert(milestones.includes("| m47 | Field-force separation and explicit agent response to environmental fields, with core API, tests, benchmark, demo wiring, overlay/readouts, controls, and persistence. | complete |"), "milestones must list m47 as complete.");
-assert(milestones.includes("| m48 | Controller/brain first-pass slices:"), "milestones must list M48 controller first-pass slices.");
-assert(milestones.includes("implemented slices present / pending final close"), "milestones must preserve M48 pending-final-close status.");
+assert(milestones.includes("| m48 | Controller/brain first pass:"), "milestones must list M48 controller first pass.");
+assert(milestones.includes("Controller intent is not yet actuated into movement. | complete |"), "milestones must close M48 as complete while preserving actuator limit.");
 
 for (const requiredToken of [
   "qubok_evolve project overview",
@@ -70,7 +73,6 @@ for (const requiredToken of [
   "debug/performance overlay",
   "Current limitations and known technical debt",
   "Controller intent is not yet connected to movement",
-  "M48-final",
   "M49",
   "M50",
   "M51",
@@ -83,6 +85,8 @@ for (const requiredToken of [
 ]) {
   assert(projectOverview.includes(requiredToken), "project_overview.md missing token: " + requiredToken);
 }
+assert(!projectOverview.includes("M48 docs/status are partially implemented"), "project_overview.md must not describe M48 as partially implemented after close.");
+assert(projectOverview.includes("M48 is closed"), "project_overview.md must document M48 as closed.");
 
 assert(field.includes("FIELD_LAYER_VERSION") && field.includes("sampleFieldAtPosition"), "field must expose field layer and sampling API.");
 assert(fieldRenderSnapshot.includes("FIELD_RENDER_SNAPSHOT_VERSION") && fieldRenderSnapshot.includes("makeFieldRenderSnapshot"), "field render snapshot must expose version and builder.");
@@ -95,6 +99,7 @@ assert(demoSimulation.includes("fieldForceStats") && demoSimulation.includes("up
 assert(controller.includes("CONTROLLER_VERSION") && controller.includes("stepAgentController"), "controller must expose M48 controller API.");
 assert(demoSimulation.includes("DEFAULT_ENABLE_CONTROLLER = false"), "controller must remain disabled by default.");
 assert(!demoSimulation.includes("addForce(world, index, controllerOutput"), "M48 must not wire controller output into movement forces.");
+assert(!demoSimulation.includes("stepMovement(world, controllerOutput"), "M48 must not pass controller output into movement.");
 
 assert(integrationM40.includes("environmental field render snapshot"), "integration_m40 must describe environmental field render snapshot.");
 assert(integrationM41.includes("overlay grouping"), "integration_m41 must describe overlay grouping.");
@@ -104,10 +109,8 @@ assert(integrationM44.includes("field source semantics tuning") && integrationM4
 assert(integrationM45.includes("## Final status") && integrationM45.includes("M45 is closed"), "integration_m45 must document final closed status.");
 assert(integrationM47.includes("M47 is closed") && integrationM47.includes("Final validation set"), "integration_m47 must document m47 closed status and validation set.");
 assert(integrationM47.includes("controller/brain logic") && integrationM47.includes("WebGPU compute"), "integration_m47 must document out-of-scope items.");
-assert(integrationM48.includes("# Integration m48 - controller/brain first-pass planning"), "integration_m48 must exist and describe controller/brain planning.");
-assert(integrationM48.includes("disabled or behavior-neutral by default"), "integration_m48 must preserve default behavior.");
-assert(integrationM48.includes("M48-A1: core controller/intent API + deterministic no-op tests"), "integration_m48 must define M48-A1 slice.");
-assert(integrationM48.includes("neural-network training") && integrationM48.includes("WebGPU compute"), "integration_m48 must document out-of-scope items.");
+assert(integrationM48.includes("M48 is closed") && integrationM48.includes("Final validation set"), "integration_m48 must document M48 closed status and validation set.");
+assert(integrationM48.includes("does not actuate controller intent into movement"), "integration_m48 must preserve actuator limit.");
 assert(packageJson.scripts.test.includes("test:roadmap-status"), "npm run test must include test:roadmap-status.");
 
 for (const requiredToken of ["FIELD_SOURCES_VERSION", "applyFieldSourcesAndSinks", "FieldSourceStepMetrics", "measureTotalFieldMagnitude"]) assert(fieldSources.includes(requiredToken), "fieldSources missing token: " + requiredToken);
