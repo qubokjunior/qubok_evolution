@@ -51,11 +51,10 @@ Compact milestone index through m48. Older early milestones are summarized at th
 | m45 | Obstacle/terrain damping sources, editable debug parameters, panel persistence, render layer controls, and debug config preset import/export UX. | complete |
 | m46 | Deterministic environmental field transport/advection core, benchmark, demo wiring, overlay/readouts, editable controls, and persistence. | complete |
 | m47 | Field-force separation and explicit agent response to environmental fields, with core API, tests, benchmark, demo wiring, overlay/readouts, controls, and persistence. | complete |
-| m48 | Controller/brain first-pass slices: renderer-agnostic controller API, deterministic intent buffers, disabled-by-default demo wiring, overlay/readouts, panel controls, persistence, tests, and benchmark. Controller intent is not yet actuated into movement. | implemented slices present / pending final close |
+| m48 | Controller/brain first pass: renderer-agnostic controller API, deterministic intent buffers, disabled-by-default demo wiring, benchmark, overlay/readouts, panel controls, persistence, source overview, and status guards. Controller intent is not yet actuated into movement. | complete |
 
 ## Current next-step candidates
 
-- M48-final: close docs/status/version guards around the existing controller slices without changing runtime behavior.
 - M49: controller actuator bridge; connect intent to optional movement influence behind explicit disabled-by-default config.
 - M50: ecology pressure calibration for hunger, scarcity, reproduction, and predation.
 - M51: sensor budgeting and perception quality pass.
