@@ -1,0 +1,17 @@
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const readText = (relativePath) => readFileSync(resolve(projectRoot, relativePath), "utf8");
+const assert = (condition, message) => { if (!condition) throw new Error(message); };
+const packageJson = JSON.parse(readText("package.json"));
+const app = readText("src/ui/App.ts");
+const panel = readText("src/ui/controllerPanel.ts");
+const demoSimulation = readText("src/sim/demoSimulation.ts");
+assert(packageJson.scripts["test:controller-panel"] === "node scripts/test-controller-panel.mjs", "package.json must expose test:controller-panel.");
+assert(packageJson.scripts.test.includes("test:controller-panel"), "npm run test must include test:controller-panel.");
+for (const token of ["createControllerControlPanel", "enable controller", "controllerStrength", "controllerMaxIntentPerAgent", "controllerFoodWeight", "controllerThreatWeight", "controllerFlowWeight", "defaultCollapsed: true", "disabled by default", "onConfigChange"]) assert(panel.includes(token), "controllerPanel missing token: " + token);
+for (const token of ["loadStoredControllerConfig", "saveControllerConfig", "initialControllerConfig", "createControllerControlPanel", "controllerPanel.destroy()"] ) assert(app.includes(token), "App missing controller control token: " + token);
+assert(demoSimulation.includes("DEFAULT_ENABLE_CONTROLLER = false"), "controller must remain disabled by default.");
+assert(!demoSimulation.includes("addForce(world, index, controllerOutput"), "A5 must not wire controller output into movement forces.");
+console.log("controller panel tests passed");
