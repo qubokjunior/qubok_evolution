@@ -2,7 +2,7 @@
 
 High-performance realtime 2D artificial-life ecosystem simulator.
 
-Current status: m48 complete / controller first pass shipped as behavior-neutral observation and configuration layer. Controller intent is not yet actuated into movement; M49 owns the actuator bridge.
+Current status: m48 complete / controller first pass shipped as behavior-neutral observation and configuration layer. M49 planning is open for the explicit controller actuator bridge. Controller intent is not yet actuated into movement.
 
 ## What exists now
 
@@ -65,8 +65,8 @@ http://127.0.0.1:5173/
 ## Milestones and docs
 
 - `docs/project_overview.md` — technical source-material overview: current architecture, implemented systems, known limits, philosophy, and M49 -> M57 roadmap.
-- `docs/milestones.md` — compact milestone index through m48.
-- `docs/roadmap.md` — development tracks after m48 controller first pass and before M49 actuator bridge.
+- `docs/milestones.md` — compact milestone index through m49.
+- `docs/roadmap.md` — development tracks after m48 controller first pass and before M49 runtime actuator wiring.
 - `docs/architecture_tracks.md` — boundary contracts for future work.
 - `docs/world_state.md` — typed-array world state and lifecycle slot contract.
 - `docs/integration_m36.md` — terrain resource-affinity milestone.
@@ -82,6 +82,7 @@ http://127.0.0.1:5173/
 - `docs/integration_m46.md` — completed environmental field transport/advection milestone.
 - `docs/integration_m47.md` — completed field-force separation milestone.
 - `docs/integration_m48.md` — completed controller/brain first-pass milestone.
+- `docs/integration_m49.md` — controller actuator bridge planning scope.
 
 ## Boundary rule
 
