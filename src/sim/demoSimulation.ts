@@ -5,6 +5,7 @@ import { applyFieldDamping, type FieldDampingStepMetrics } from "./fieldDamping"
 import { advectEnvironmentalField, createFieldAdvectionScratch, type FieldAdvectionStepMetrics } from "./fieldAdvection";
 import { applyFieldForces, type FieldForceStepMetrics } from "./fieldForce";
 import { createFieldDynamicsScratch, stepEnvironmentalFieldDynamics, type FieldDynamicsStepMetrics } from "./fieldDynamics";
+import { createAgentControllerOutput, stepAgentController, type AgentControllerOutput, type AgentControllerStepMetrics } from "./controller";
 import { makeFieldRenderSnapshot, type FieldRenderSnapshot } from "./fieldRenderSnapshot";
 import { createRng, type DeterministicRng, type RngSeed } from "./rng";
 import { addForce, stepMovement, type MovementStepMetrics } from "./movement";
@@ -99,6 +100,12 @@ export type DemoSimulationConfig = {
   readonly fieldForceStrength?: number;
   readonly fieldForceMaxForcePerAgent?: number;
   readonly fieldForceMinActiveMagnitude?: number;
+  readonly enableController?: boolean;
+  readonly controllerStrength?: number;
+  readonly controllerMaxIntentPerAgent?: number;
+  readonly controllerFoodWeight?: number;
+  readonly controllerThreatWeight?: number;
+  readonly controllerFlowWeight?: number;
   readonly spawnMaxAttempts?: number;
   readonly spawnClearanceRadius?: number;
   readonly sensorRadiusScale?: number;
@@ -140,6 +147,17 @@ export type DemoSimulationFieldForceConfig = {
 
 export type DemoSimulationFieldForceConfigPatch = Partial<DemoSimulationFieldForceConfig>;
 
+export type DemoSimulationControllerConfig = {
+  readonly enableController: boolean;
+  readonly controllerStrength: number;
+  readonly controllerMaxIntentPerAgent: number;
+  readonly controllerFoodWeight: number;
+  readonly controllerThreatWeight: number;
+  readonly controllerFlowWeight: number;
+};
+
+export type DemoSimulationControllerConfigPatch = Partial<DemoSimulationControllerConfig>;
+
 export type DemoSimulationStepResult = {
   readonly snapshot: RenderSnapshot;
   readonly obstacleMaskSnapshot: ObstacleMaskRenderSnapshot;
@@ -150,6 +168,8 @@ export type DemoSimulationStepResult = {
   readonly fieldDampingStats: FieldDampingStepMetrics;
   readonly fieldAdvectionStats: FieldAdvectionStepMetrics;
   readonly fieldForceStats: FieldForceStepMetrics;
+  readonly controllerStats: AgentControllerStepMetrics;
+  readonly controllerConfig: DemoSimulationControllerConfig;
   readonly fieldDampingConfig: DemoSimulationFieldDampingConfig;
   readonly fieldForceConfig: DemoSimulationFieldForceConfig;
   readonly snapshotStats: RenderSnapshotStats;
@@ -181,6 +201,7 @@ export type DemoSimulationStepResult = {
   readonly fieldDampingMs: number;
   readonly fieldAdvectionMs: number;
   readonly fieldForceMs: number;
+  readonly controllerMs: number;
   readonly simMsPerTick: number;
 };
 
@@ -191,6 +212,7 @@ export type DemoSimulationHandle = {
   readonly obstacleMask: ObstacleMask;
   readonly terrain: TerrainLayer;
   readonly field: EnvironmentalFieldLayer;
+  readonly controllerOutput: AgentControllerOutput;
   readonly initialAgentSpawnStats: SpawnValidationStats;
   readonly initialResourceSpawnStats: SpawnValidationStats;
   readonly step: (deltaSeconds: number) => DemoSimulationStepResult;
@@ -201,6 +223,8 @@ export type DemoSimulationHandle = {
   readonly updateFieldAdvectionConfig: (patch: DemoSimulationFieldAdvectionConfigPatch) => DemoSimulationFieldAdvectionConfig;
   readonly getFieldForceConfig: () => DemoSimulationFieldForceConfig;
   readonly updateFieldForceConfig: (patch: DemoSimulationFieldForceConfigPatch) => DemoSimulationFieldForceConfig;
+  readonly getControllerConfig: () => DemoSimulationControllerConfig;
+  readonly updateControllerConfig: (patch: DemoSimulationControllerConfigPatch) => DemoSimulationControllerConfig;
 };
 
 const DEFAULT_CAPACITY = 1536;
@@ -238,6 +262,12 @@ const DEFAULT_ENABLE_FIELD_FORCE = false;
 const DEFAULT_FIELD_FORCE_STRENGTH = 1;
 const DEFAULT_FIELD_FORCE_MAX_FORCE_PER_AGENT = 120;
 const DEFAULT_FIELD_FORCE_MIN_ACTIVE_MAGNITUDE = 0.0001;
+const DEFAULT_ENABLE_CONTROLLER = false;
+const DEFAULT_CONTROLLER_STRENGTH = 1;
+const DEFAULT_CONTROLLER_MAX_INTENT_PER_AGENT = 1;
+const DEFAULT_CONTROLLER_FOOD_WEIGHT = 1;
+const DEFAULT_CONTROLLER_THREAT_WEIGHT = 1;
+const DEFAULT_CONTROLLER_FLOW_WEIGHT = 1;
 const DEFAULT_OBSTACLE_RESPONSE_RADIUS = 42;
 const DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE = 140;
 const DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE = 220;
@@ -289,6 +319,12 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   let fieldForceStrength = clampFinite(config.fieldForceStrength ?? DEFAULT_FIELD_FORCE_STRENGTH, 0, 16);
   let fieldForceMaxForcePerAgent = clampFinite(config.fieldForceMaxForcePerAgent ?? DEFAULT_FIELD_FORCE_MAX_FORCE_PER_AGENT, 0, 10_000);
   let fieldForceMinActiveMagnitude = clampFinite(config.fieldForceMinActiveMagnitude ?? DEFAULT_FIELD_FORCE_MIN_ACTIVE_MAGNITUDE, 0, Number.MAX_SAFE_INTEGER);
+  let enableController = config.enableController ?? DEFAULT_ENABLE_CONTROLLER;
+  let controllerStrength = clampFinite(config.controllerStrength ?? DEFAULT_CONTROLLER_STRENGTH, 0, 16);
+  let controllerMaxIntentPerAgent = clampFinite(config.controllerMaxIntentPerAgent ?? DEFAULT_CONTROLLER_MAX_INTENT_PER_AGENT, 0, 10_000);
+  let controllerFoodWeight = clampFinite(config.controllerFoodWeight ?? DEFAULT_CONTROLLER_FOOD_WEIGHT, -16, 16);
+  let controllerThreatWeight = clampFinite(config.controllerThreatWeight ?? DEFAULT_CONTROLLER_THREAT_WEIGHT, -16, 16);
+  let controllerFlowWeight = clampFinite(config.controllerFlowWeight ?? DEFAULT_CONTROLLER_FLOW_WEIGHT, -16, 16);
   const obstacleResponseRadius = config.obstacleResponseRadius ?? DEFAULT_OBSTACLE_RESPONSE_RADIUS;
   const obstacleResponseForceScale = config.obstacleResponseForceScale ?? DEFAULT_OBSTACLE_RESPONSE_FORCE_SCALE;
   const obstacleResponseMaxForce = config.obstacleResponseMaxForce ?? DEFAULT_OBSTACLE_RESPONSE_MAX_FORCE;
@@ -314,6 +350,7 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
   const field = createEnvironmentalFieldLayer({ worldWidth, worldHeight, cellSize: config.fieldCellSize ?? DEFAULT_FIELD_CELL_SIZE });
   const fieldDynamicsScratch = createFieldDynamicsScratch(field);
   const fieldAdvectionScratch = createFieldAdvectionScratch(field);
+  const controllerOutput = createAgentControllerOutput(capacity);
   const fieldSourceBuffer: FieldPointSource[] = [];
   const fieldSinkBuffer: FieldPointSink[] = [];
 
@@ -378,6 +415,25 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     if (patch.fieldForceMaxForcePerAgent !== undefined) fieldForceMaxForcePerAgent = clampFinite(patch.fieldForceMaxForcePerAgent, 0, 10_000);
     if (patch.fieldForceMinActiveMagnitude !== undefined) fieldForceMinActiveMagnitude = clampFinite(patch.fieldForceMinActiveMagnitude, 0, Number.MAX_SAFE_INTEGER);
     return getFieldForceConfig();
+  };
+
+  const getControllerConfig = (): DemoSimulationControllerConfig => Object.freeze({
+    enableController,
+    controllerStrength,
+    controllerMaxIntentPerAgent,
+    controllerFoodWeight,
+    controllerThreatWeight,
+    controllerFlowWeight
+  });
+
+  const updateControllerConfig = (patch: DemoSimulationControllerConfigPatch): DemoSimulationControllerConfig => {
+    if (typeof patch.enableController === "boolean") enableController = patch.enableController;
+    if (patch.controllerStrength !== undefined) controllerStrength = clampFinite(patch.controllerStrength, 0, 16);
+    if (patch.controllerMaxIntentPerAgent !== undefined) controllerMaxIntentPerAgent = clampFinite(patch.controllerMaxIntentPerAgent, 0, 10_000);
+    if (patch.controllerFoodWeight !== undefined) controllerFoodWeight = clampFinite(patch.controllerFoodWeight, -16, 16);
+    if (patch.controllerThreatWeight !== undefined) controllerThreatWeight = clampFinite(patch.controllerThreatWeight, -16, 16);
+    if (patch.controllerFlowWeight !== undefined) controllerFlowWeight = clampFinite(patch.controllerFlowWeight, -16, 16);
+    return getControllerConfig();
   };
 
   const step = (deltaSeconds: number): DemoSimulationStepResult => {
@@ -448,6 +504,10 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     });
     const sensorMs = performance.now() - sensorStart;
 
+    const controllerStart = performance.now();
+    const controllerStats = stepAgentController(world, controllerOutput, { enabled: enableController, strength: controllerStrength, maxIntentPerAgent: controllerMaxIntentPerAgent, foodWeight: controllerFoodWeight, threatWeight: controllerThreatWeight, flowWeight: controllerFlowWeight });
+    const controllerMs = performance.now() - controllerStart;
+
     const predatorPreyStart = performance.now();
     const predatorPreyStats = applyPredatorPreyInteraction(world, spatialGrid, { attackRadius: predatorAttackRadius, maxAttacksPerPredator: 1, sameSpeciesProtection: true, damageScale: 0.85, actionEnergyCost: 0.2, energyGainPerDamage: 0.35, preyEnergyHarvestRatio: 0.25 });
     const predatorPreyMs = performance.now() - predatorPreyStart;
@@ -473,10 +533,10 @@ export function createDemoSimulation(config: DemoSimulationConfig = {}): DemoSim
     const snapshotStats = analyzeRenderSnapshot(snapshot);
     const simMsPerTick = performance.now() - start;
 
-    return { snapshot, obstacleMaskSnapshot, terrainRenderSnapshot, fieldRenderSnapshot, fieldDynamicsStats, fieldSourceStats, fieldDampingStats, fieldAdvectionStats, fieldForceStats, fieldDampingConfig: getFieldDampingConfig(), fieldForceConfig: getFieldForceConfig(), snapshotStats, movementMetrics, obstacleResponseStats, obstacleLifecycleTelemetry, energyStats, spatialBuildStats, neighborQueryStats, sensorStats, predatorPreyStats, reproductionStats, resourceBuildStats, resourcePickupStats, resourceRespawnStats, resourceAliveCount: resources.aliveCount, resourceTargetCount, resourceRespawnedCount, gridBuildMs, neighborQueryMs, sensorMs, obstacleResponseMs, predatorPreyMs, resourceMs, energyMs, reproductionMs, fieldDynamicsMs, fieldSourcesMs, fieldDampingMs, fieldAdvectionMs, fieldForceMs, simMsPerTick };
+    return { snapshot, obstacleMaskSnapshot, terrainRenderSnapshot, fieldRenderSnapshot, fieldDynamicsStats, fieldSourceStats, fieldDampingStats, fieldAdvectionStats, fieldForceStats, controllerStats, controllerConfig: getControllerConfig(), fieldDampingConfig: getFieldDampingConfig(), fieldForceConfig: getFieldForceConfig(), snapshotStats, movementMetrics, obstacleResponseStats, obstacleLifecycleTelemetry, energyStats, spatialBuildStats, neighborQueryStats, sensorStats, predatorPreyStats, reproductionStats, resourceBuildStats, resourcePickupStats, resourceRespawnStats, resourceAliveCount: resources.aliveCount, resourceTargetCount, resourceRespawnedCount, gridBuildMs, neighborQueryMs, sensorMs, obstacleResponseMs, predatorPreyMs, resourceMs, energyMs, reproductionMs, fieldDynamicsMs, fieldSourcesMs, fieldDampingMs, fieldAdvectionMs, fieldForceMs, controllerMs, simMsPerTick };
   };
 
-  return { world, spatialGrid, resources, obstacleMask, terrain, field, initialAgentSpawnStats, initialResourceSpawnStats, step, getSnapshot: () => makeRenderSnapshot(world), getFieldDampingConfig, updateFieldDampingConfig, getFieldAdvectionConfig, updateFieldAdvectionConfig, getFieldForceConfig, updateFieldForceConfig };
+  return { world, spatialGrid, resources, obstacleMask, terrain, field, controllerOutput, initialAgentSpawnStats, initialResourceSpawnStats, step, getSnapshot: () => makeRenderSnapshot(world), getFieldDampingConfig, updateFieldDampingConfig, getFieldAdvectionConfig, updateFieldAdvectionConfig, getFieldForceConfig, updateFieldForceConfig, getControllerConfig, updateControllerConfig };
 }
 
 
