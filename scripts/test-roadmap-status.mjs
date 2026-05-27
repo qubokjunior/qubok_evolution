@@ -10,6 +10,7 @@ const packageJson = JSON.parse(readText("package.json"));
 const appVersion = readText("src/shared/appVersion.ts");
 const readme = readText("README.md");
 const roadmap = readText("docs/roadmap.md");
+const milestones = readText("docs/milestones.md");
 const architectureTracks = readText("docs/architecture_tracks.md");
 const integrationM40 = readText("docs/integration_m40.md");
 const integrationM41 = readText("docs/integration_m41.md");
@@ -17,6 +18,7 @@ const integrationM42 = readText("docs/integration_m42.md");
 const integrationM43 = readText("docs/integration_m43.md");
 const integrationM44 = readText("docs/integration_m44.md");
 const integrationM45 = readText("docs/integration_m45.md");
+const integrationM47 = readText("docs/integration_m47.md");
 const field = readText("src/sim/field.ts");
 const fieldRenderSnapshot = readText("src/sim/fieldRenderSnapshot.ts");
 const fieldDynamics = readText("src/sim/fieldDynamics.ts");
@@ -28,10 +30,10 @@ const perfMetrics = readText("src/shared/perfMetrics.ts");
 const pixiRenderer = readText("src/render/pixiRenderer.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
 
-assert(packageJson.version === "0.1.0-milestone.46", "package.json must expose m46 version.");
-assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.46\""), "appVersion must expose milestone.46.");
-assert(appVersion.includes("PROJECT_MILESTONE = 46"), "appVersion must expose milestone number 46.");
-assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m46\""), "appVersion must expose m46 label.");
+assert(packageJson.version === "0.1.0-milestone.46", "package.json must expose m46 version until m47 runtime work bumps it.");
+assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.46\""), "appVersion must expose milestone.46 until m47 runtime work bumps it.");
+assert(appVersion.includes("PROJECT_MILESTONE = 46"), "appVersion must expose milestone number 46 until m47 runtime work bumps it.");
+assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m46\""), "appVersion must expose m46 label until m47 runtime work bumps it.");
 assert(readme.includes("docs/roadmap.md"), "README.md must link docs/roadmap.md.");
 assert(roadmap.includes("m39 shipped: low-resolution environmental flow field sampled by movement"), "roadmap must include m39 field milestone.");
 assert(roadmap.includes("m40 shipped: environmental field render snapshot and Pixi vector debug layer"), "roadmap must include m40 field render milestone.");
@@ -92,10 +94,18 @@ for (const requiredToken of ["field damp", "field damp obst samples", "field dam
 for (const requiredToken of ["FieldDampingStepMetrics", "fieldDampingStats", "fieldDampingMs"]) assert(pixiRenderer.includes(requiredToken), "pixiRenderer missing m45 damping token: " + requiredToken);
 assert(integrationM45.includes("fieldDampingStats") && integrationM45.includes("fieldDampingMs"), "integration_m45 must document m45 damping runtime outputs.");
 
-console.log("roadmap status tests passed");
-
 const integrationM46 = readText("docs/integration_m46.md");
 assert(roadmap.includes("m46 shipped: deterministic environmental field advection"), "roadmap must include m46 shipped milestone.");
 assert(integrationM46.includes("## Final status") && integrationM46.includes("M46 is closed"), "integration_m46 must document final closed status.");
 assert(integrationM46.includes("## Final validation set") && integrationM46.includes("npm run bench:field-advection") && integrationM46.includes("npm run build"), "integration_m46 must document final validation set.");
 
+assert(roadmap.includes("m47 planned: field-force separation"), "roadmap must include m47 planned milestone.");
+assert(roadmap.includes("m47 planning: field-force separation after advection behavior is stable"), "roadmap must point current field milestone to m47 planning.");
+assert(milestones.includes("| m47 | Field-force separation and explicit agent response to environmental fields. | planned |"), "milestones must list m47 as planned.");
+assert(integrationM47.includes("# Integration m47 - field-force separation planning"), "integration_m47 must exist and describe field-force planning.");
+assert(integrationM47.includes("Field force is not advection. It must not mutate field buffers."), "integration_m47 must separate field force from advection and field mutation.");
+assert(integrationM47.includes("Default behavior must remain unchanged unless field force is explicitly enabled"), "integration_m47 must preserve default movement semantics.");
+assert(integrationM47.includes("M47-A1: core field-force API + deterministic unit tests, no demo wiring"), "integration_m47 must define M47-A1 slice.");
+assert(integrationM47.includes("controller/brain logic") && integrationM47.includes("WebGPU compute"), "integration_m47 must document out-of-scope items.");
+
+console.log("roadmap status tests passed");
