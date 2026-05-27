@@ -73,7 +73,7 @@ Target final M49 conceptual order remains:
 - M49-A1: core `controllerActuator` / `intentToForce` API with deterministic no-op tests, no demo wiring. Complete.
 - M49-A2: actuator metrics and benchmark for controller + actuator cost. Complete.
 - M49-A3: demo wiring behind disabled/default-neutral config. Complete.
-- M49-A4: overlay/readout QA for actuator metrics.
+- M49-A4: overlay/readout QA for actuator metrics. Complete.
 - M49-A5: optional panel controls and persistence after behavior and metrics are stable.
 - M49-final: version/status/docs close and full validation.
 

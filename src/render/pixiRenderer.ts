@@ -7,6 +7,7 @@ import type { FieldDampingStepMetrics } from "../sim/fieldDamping";
 import type { FieldAdvectionStepMetrics } from "../sim/fieldAdvection";
 import type { FieldForceStepMetrics } from "../sim/fieldForce";
 import type { AgentControllerStepMetrics } from "../sim/controller";
+import type { ControllerActuatorStepMetrics } from "../sim/controllerActuator";
 import type { ObstacleLifecycleTelemetry } from "../sim/lifecycleTelemetry";
 import type { MovementStepMetrics } from "../sim/movement";
 import type { ObstacleSoftResponseStats } from "../sim/obstacleResponse";
@@ -35,7 +36,9 @@ export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly fieldAdvectionStats: FieldAdvectionStepMetrics;
   readonly fieldForceStats: FieldForceStepMetrics;
   readonly controllerStats: AgentControllerStepMetrics;
+  readonly controllerActuatorStats: ControllerActuatorStepMetrics;
   readonly controllerConfig: ControllerConfigReadout;
+  readonly controllerActuatorConfig: ControllerActuatorConfigReadout;
   readonly fieldDampingConfig: FieldDampingConfigReadout;
   readonly fieldForceConfig: FieldForceConfigReadout;
   readonly snapshotStats: RenderSnapshotStats;
@@ -68,6 +71,7 @@ export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly fieldAdvectionMs: number;
   readonly fieldForceMs: number;
   readonly controllerMs: number;
+  readonly controllerActuatorMs: number;
   readonly simMsPerTick: number;
 };
 
@@ -89,6 +93,10 @@ type AgentGlyph = { readonly graphic: Graphics; colorRGBA: number };
 
 type ControllerConfigReadout = {
   readonly enableController: boolean;
+};
+
+type ControllerActuatorConfigReadout = {
+  readonly enableControllerMovementInfluence: boolean;
 };
 
 type FieldForceConfigReadout = {
@@ -262,6 +270,17 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("controllerClampCount", frame.controllerStats.clampCount);
     metrics.record("controllerIntentMagnitudeTotal", frame.controllerStats.totalIntentMagnitude);
     metrics.record("controllerMaxIntentMagnitude", frame.controllerStats.maxIntentMagnitude);
+    metrics.record("controllerActuatorMs", frame.controllerActuatorMs);
+    metrics.record("controllerActuatorEnabled", frame.controllerActuatorConfig.enableControllerMovementInfluence ? 1 : 0);
+    metrics.record("controllerActuatorAgentCount", frame.controllerActuatorStats.agentCount);
+    metrics.record("controllerActuatorSampleCount", frame.controllerActuatorStats.sampleCount);
+    metrics.record("controllerActuatorAffectedAgentCount", frame.controllerActuatorStats.affectedAgentCount);
+    metrics.record("controllerActuatorIgnoredDeadCount", frame.controllerActuatorStats.ignoredDeadCount);
+    metrics.record("controllerActuatorZeroIntentCount", frame.controllerActuatorStats.zeroIntentCount);
+    metrics.record("controllerActuatorClampCount", frame.controllerActuatorStats.clampCount);
+    metrics.record("controllerActuatorForceMagnitudeTotal", frame.controllerActuatorStats.totalForceMagnitude);
+    metrics.record("controllerActuatorMaxForceMagnitude", frame.controllerActuatorStats.maxForceMagnitude);
+    metrics.record("controllerActuatorIntentMagnitudeTotal", frame.controllerActuatorStats.totalIntentMagnitude);
     metrics.record("fieldDampingObstacleEnabled", frame.fieldDampingConfig.enableObstacleFieldDamping ? 1 : 0);
     metrics.record("fieldDampingTerrainEnabled", frame.fieldDampingConfig.enableTerrainFieldDamping ? 1 : 0);
     metrics.record("fieldDampingObstaclePerSecond", frame.fieldDampingConfig.obstacleFieldDampingPerSecond);
@@ -455,6 +474,17 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         controllerClampCount: snapshot.values.controllerClampCount,
         controllerIntentMagnitudeTotal: snapshot.values.controllerIntentMagnitudeTotal,
         controllerMaxIntentMagnitude: snapshot.values.controllerMaxIntentMagnitude,
+        controllerActuatorMs: snapshot.values.controllerActuatorMs,
+        controllerActuatorEnabled: snapshot.values.controllerActuatorEnabled,
+        controllerActuatorAgentCount: snapshot.values.controllerActuatorAgentCount,
+        controllerActuatorSampleCount: snapshot.values.controllerActuatorSampleCount,
+        controllerActuatorAffectedAgentCount: snapshot.values.controllerActuatorAffectedAgentCount,
+        controllerActuatorIgnoredDeadCount: snapshot.values.controllerActuatorIgnoredDeadCount,
+        controllerActuatorZeroIntentCount: snapshot.values.controllerActuatorZeroIntentCount,
+        controllerActuatorClampCount: snapshot.values.controllerActuatorClampCount,
+        controllerActuatorForceMagnitudeTotal: snapshot.values.controllerActuatorForceMagnitudeTotal,
+        controllerActuatorMaxForceMagnitude: snapshot.values.controllerActuatorMaxForceMagnitude,
+        controllerActuatorIntentMagnitudeTotal: snapshot.values.controllerActuatorIntentMagnitudeTotal,
         fieldDampingObstacleEnabled: snapshot.values.fieldDampingObstacleEnabled,
         fieldDampingTerrainEnabled: snapshot.values.fieldDampingTerrainEnabled,
         fieldDampingObstaclePerSecond: snapshot.values.fieldDampingObstaclePerSecond,
