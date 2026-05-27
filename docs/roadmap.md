@@ -1,6 +1,6 @@
 # qubok_evolve roadmap
 
-Current status: m47 complete / field-force separation shipped; m48 planning opened for controller/brain first pass. M48 implementation slices are now present in code and should be closed with a status/version/docs-only pass before M49 runtime behavior work.
+Current status: m48 complete / controller first pass shipped as a behavior-neutral observation and configuration layer. Controller intent is not yet actuated into movement; M49 owns the actuator bridge.
 
 m34 shipped: terrain Pixi debug render layer.
 
@@ -30,7 +30,7 @@ m46 shipped: deterministic environmental field advection with tests, benchmark, 
 
 m47 shipped: field-force separation and explicit agent response to environmental fields.
 
-m48 planned: controller/brain first pass using existing sensors, terrain, field, and debug readouts.
+m48 shipped: controller/brain first pass with renderer-agnostic controller API, deterministic intent buffers, disabled-by-default demo wiring, benchmark, overlay/readouts, panel controls, persistence, source overview, and status guards.
 
 ## terrain/material track
 
@@ -66,7 +66,7 @@ Shipped sequence:
 - field-force separation with renderer-agnostic sim API, deterministic tests, benchmark, disabled-by-default demo wiring, overlay/readouts, controls, and persisted config.
 
 Current milestone:
-- m48 planning: controller/brain first pass after sensing, terrain, and field response foundations.
+- m49 planning: controller actuator bridge after M48 controller intent observability is closed.
 
 M46 shipped scope:
 - define advection separately from diffusion, sources/sinks, damping, and field force;
@@ -84,11 +84,7 @@ M47 shipped scope:
 - keep controller/brain, pathfinding, full fluid solver, hard collision, WebGPU, and large UI panels out of scope.
 
 Follow-up candidates:
-- M48-A1 core controller/intent API + deterministic no-op tests, no demo wiring;
-- M48-A2 metrics and benchmark;
-- M48-A3 demo wiring behind disabled/default-light config;
-- M48-A4 overlay/readout QA;
-- M48-A5 optional controls/persistence after behavior is stable;
+- M49 controller actuator bridge;
 - signed-distance-field correction if the next track returns to terrain/material response;
 - render/code-splitting follow-up for the current Vite warning.
 
@@ -97,33 +93,23 @@ Follow-up candidates:
 Goal: introduce decision logic after sensing, field, terrain, and debug foundations are stable.
 
 Current planning:
-- m48 controller/brain first pass using existing fixed-width sensors and current observability surfaces.
+- m49 actuator bridge: convert existing M48 intent into optional movement influence without changing default behavior.
 
-M48 implemented state, pending final close:
+M48 closed state:
 - renderer-agnostic controller API under `src/sim/controller.ts`;
 - deterministic intent output arrays: `intentX`, `intentY`, `intentMagnitude`;
 - bounded controller config: enable, strength, max intent, food/threat/flow weights;
 - disabled/default-neutral demo wiring;
 - benchmark and tests;
 - controller overlay/readouts;
-- controller panel and persisted config.
+- controller panel and persisted config;
+- `docs/project_overview.md` source overview;
+- status guards closed on `0.1.0-milestone.48`.
+
+Known M48 limit:
+- controller output is not actuated into movement or forces. This remains M49 scope.
 
 ## post-M48 milestone roadmap
-
-### M48-final: status close and guard cleanup
-
-Purpose: close current implementation debt before adding behavior. This should not change runtime behavior.
-
-Required work:
-- bump `package.json` and `src/shared/appVersion.ts` to `0.1.0-milestone.48`;
-- update README, roadmap, milestones, and `docs/integration_m48.md` with final status and validation set;
-- fix stale status guard messages and hard-coded milestone labels;
-- make status guards use shared expected milestone constants where practical;
-- run status, demo, controller, overlay, panel, persistence, benchmark, and build verification.
-
-Debug/monitoring requirement:
-- preserve all current controller, field, terrain, sensor, resource, reproduction, world-slot, and render readouts;
-- do not hide the fact that controller remains behavior-neutral by default.
 
 ### M49: controller actuator bridge
 
