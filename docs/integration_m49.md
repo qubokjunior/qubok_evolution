@@ -1,65 +1,32 @@
 # Integration m49 - controller actuator bridge
 
-M49 starts after the closed M48 controller first pass. M48 writes deterministic intent buffers and exposes controller config, metrics, overlay/readouts, panel controls, persistence, and guards, but it intentionally does not change movement. M49 is the first behavior-changing controller milestone, so every behavior path must remain explicit, measurable, and disabled by default.
+## Final status
 
-## Current status
+M49 is closed.
 
-M49-A0 is complete: planning document, roadmap/milestone references, and guard scope exist.
+M49 turns M48 controller intent into an optional movement influence through a separate renderer-agnostic actuator stage. The actuator remains disabled by default and behavior-changing only when `enableControllerMovementInfluence` is explicitly enabled.
 
-M49-A1 core API is complete without demo wiring:
+## Implemented scope
 
 - `src/sim/controllerActuator.ts` defines the renderer-agnostic actuator boundary;
 - `CONTROLLER_ACTUATOR_VERSION` is `qubok_evolve.controller_actuator.m49`;
-- `applyControllerActuator(...)` converts controller intent arrays into bounded force writes;
+- `applyControllerActuator(...)` converts `intentX`, `intentY`, and `intentMagnitude` into bounded force writes;
 - default config keeps movement influence disabled;
 - `scripts/test-controller-actuator.mjs` covers disabled no-op, config clamping, alive-only application, force clamping, determinism, output capacity guard, non-finite intent guard, and intent-buffer non-mutation;
-- `package.json` exposes `test:controller-actuator` and includes it in `npm run test`.
-
-M49-A2 benchmark exposure is complete without demo wiring:
-
 - `scripts/bench-controller-actuator.mjs` benchmarks actuator-only cost at 1k/5k/10k agents;
-- `package.json` exposes `bench:controller-actuator`;
-- benchmark output reports average step time, agent count, sample count, affected count, zero intent count, clamp count, total force magnitude, and max force magnitude.
-
-M49-A3 demo wiring is implemented behind disabled/default-neutral config:
-
-- `src/sim/demoSimulation.ts` imports and calls `applyControllerActuator(...)`;
-- `DEFAULT_ENABLE_CONTROLLER_MOVEMENT_INFLUENCE = false` keeps default behavior neutral;
+- demo wiring exists behind `DEFAULT_ENABLE_CONTROLLER_MOVEMENT_INFLUENCE = false`;
 - demo result exposes `controllerActuatorStats`, `controllerActuatorConfig`, and `controllerActuatorMs`;
-- demo handle exposes `getControllerActuatorConfig()` and `updateControllerActuatorConfig(...)` for later UI/persistence slices;
-- `scripts/test-controller-integration.mjs` guards actuator ordering, default-disabled state, and no direct controller-output-to-movement wiring.
-
-M49-A4 overlay/readout QA is complete:
-
+- demo handle exposes `getControllerActuatorConfig()` and `updateControllerActuatorConfig(...)`;
 - Pixi renderer records controller actuator metrics into the shared performance bus;
 - debug overlay groups and labels `controllerActuator*` metrics under controller;
-- `scripts/test-controller-overlay-qa.mjs` guards perf metrics, renderer readouts, and overlay labels.
-
-M49-A5 panel controls and persistence are implemented:
-
 - `src/ui/controllerActuatorPanel.ts` exposes a collapsed-by-default actuator panel;
 - `src/sim/controllerActuatorConfigPersistence.ts` stores actuator config under `qubok_evolve.controller_actuator_config.v1`;
 - `src/ui/App.ts` loads, applies, saves, and destroys the actuator panel/persistence path;
-- `scripts/test-controller-panel.mjs` and `scripts/test-controller-config-persistence.mjs` guard actuator panel and storage tokens.
-
-## Goal
-
-M49 turns controller intent into an optional movement influence through a separate actuator stage.
-
-The actuator bridge converts `intentX`, `intentY`, and `intentMagnitude` into bounded force data without merging controller logic into `movement.ts`, field force, obstacle response, or demo-force setup.
-
-## Required boundary
-
-- keep `src/sim/controller.ts` responsible only for reading observations and writing intent;
-- keep `src/sim/controllerActuator.ts` responsible only for converting intent to bounded force influence;
-- keep simulation renderer-agnostic;
-- keep default behavior unchanged unless controller actuation is explicitly enabled;
-- preserve all M48 controller overlay/readout and persistence surfaces;
-- expose actuator metrics separately from controller metrics and field-force metrics.
+- status guards close M49 on `0.1.0-milestone.49`.
 
 ## Runtime order
 
-Current A3/A5 demo order keeps the existing pipeline shape for low-risk integration:
+Current M49 demo order keeps the existing pipeline shape for low-risk integration:
 
 1. apply demo forces;
 2. apply obstacle response;
@@ -72,25 +39,11 @@ Current A3/A5 demo order keeps the existing pipeline shape for low-risk integrat
 9. run predator/prey, resources, energy, reproduction;
 10. publish snapshots and read-only debug/render data.
 
-Important implication: until a later order-refinement slice changes this, controller actuation uses the previous available controller output. The default-disabled actuator keeps baseline behavior unchanged.
-
-Target final M49 conceptual order remains:
+Important implication: M49 demo actuation uses the previous available controller output. The default-disabled actuator keeps baseline behavior unchanged. A later order-refinement slice may move toward:
 
 `environment -> spatial/resource rebuild -> sensors -> controller -> actuators/forces -> movement -> interactions -> lifecycle/reproduction -> snapshots`.
 
-## Planned slices
-
-- M49-A0: integration scope document and guard updates, no runtime behavior change. Complete.
-- M49-A1: core `controllerActuator` / `intentToForce` API with deterministic no-op tests, no demo wiring. Complete.
-- M49-A2: actuator metrics and benchmark for controller + actuator cost. Complete.
-- M49-A3: demo wiring behind disabled/default-neutral config. Complete.
-- M49-A4: overlay/readout QA for actuator metrics. Complete.
-- M49-A5: optional panel controls and persistence after behavior and metrics are stable. Complete.
-- M49-final: version/status/docs close and full validation.
-
 ## Config shape
-
-Initial config is small and bounded:
 
 - `enableControllerMovementInfluence`: default `false`;
 - `controllerForceScale`: finite non-negative force multiplier;
@@ -98,8 +51,6 @@ Initial config is small and bounded:
 - `controllerMinActiveIntentMagnitude`: finite non-negative threshold for ignoring tiny intent.
 
 ## Actuator metrics
-
-Core actuator metrics are distinct from controller metrics:
 
 - enabled flag;
 - world tick;
@@ -114,52 +65,30 @@ Core actuator metrics are distinct from controller metrics:
 - max force magnitude;
 - total input intent magnitude.
 
-Benchmark-visible metrics:
+## Final validation set
 
-- average step milliseconds;
-- agent count;
-- sample count;
-- affected agent count;
-- zero-intent count;
-- clamp count;
-- total force magnitude;
-- max force magnitude.
+```powershell
+npm run test:repo-status
+npm run test:roadmap-status
+npm run test:controller
+npm run test:controller-actuator
+npm run bench:controller-actuator
+npm run test:controller-integration
+npm run test:controller-overlay-qa
+npm run test:controller-panel
+npm run test:controller-config-persistence
+npm run test:demo-integration
+npm run build
+```
 
-## Required tests
+## Known limits after close
 
-A1 test coverage:
-
-- disabled actuator is no-op;
-- zero scale is no-op;
-- non-finite config is rejected;
-- output capacity smaller than world count is rejected;
-- non-finite intent is rejected;
-- force output is finite and clamped;
-- only alive agents are affected;
-- small intent can be ignored through threshold;
-- controller intent buffers are not mutated;
-- deterministic repeat with identical world/controller output/config.
-
-A3/A4/A5 guard coverage:
-
-- demo integration includes controller actuator config/readout surfaces;
-- controller actuator runs after field force and before movement;
-- controller actuator remains disabled by default;
-- controller output is not passed directly into movement;
-- overlay exposes controller actuator metrics;
-- panel controls and persistence exist but remain collapsed/default-disabled.
-
-Remaining M49 tests for final close:
-
-- full M49 validation set;
-- version/status/docs close to `0.1.0-milestone.49`.
-
-## Required debug and UI
-
-- overlay labels for actuator milliseconds, affected count, clamp count, total force magnitude, and max force magnitude;
-- actuator panel for enable, force scale, max force, and minimum active intent;
-- persistence for actuator config under a dedicated storage key;
-- default remains disabled.
+- actuator is default-disabled and must be explicitly enabled to affect motion;
+- current demo order uses the previous available controller output;
+- ecology pressure still needs calibration before behavior quality can be evaluated;
+- sensor pass remains a known hotspot;
+- debug render layers still need throttling/cache in later performance work;
+- Vite chunk warning is known and belongs to the M57 code-splitting/performance split.
 
 ## Out of scope
 
@@ -168,6 +97,6 @@ Remaining M49 tests for final close:
 - behavior tree editor;
 - morphology/component editor;
 - pathfinding;
-- ecology pressure calibration, except for preserving metrics needed by later M50;
-- sensor budgeting, except for preserving controller compatibility with existing sensor buffers;
+- ecology pressure calibration;
+- sensor budgeting;
 - render rewrite, workerization, WebGPU, or full fluid solver.
