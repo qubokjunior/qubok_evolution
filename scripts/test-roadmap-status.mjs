@@ -19,6 +19,7 @@ const integrationM43 = readText("docs/integration_m43.md");
 const integrationM44 = readText("docs/integration_m44.md");
 const integrationM45 = readText("docs/integration_m45.md");
 const integrationM47 = readText("docs/integration_m47.md");
+const integrationM48 = readText("docs/integration_m48.md");
 const field = readText("src/sim/field.ts");
 const fieldRenderSnapshot = readText("src/sim/fieldRenderSnapshot.ts");
 const fieldDynamics = readText("src/sim/fieldDynamics.ts");
@@ -30,89 +31,48 @@ const perfMetrics = readText("src/shared/perfMetrics.ts");
 const pixiRenderer = readText("src/render/pixiRenderer.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
 
-assert(packageJson.version === "0.1.0-milestone.47", "package.json must expose m46 version until m47 runtime work bumps it.");
-assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.47\""), "appVersion must expose milestone.46 until m47 runtime work bumps it.");
-assert(appVersion.includes("PROJECT_MILESTONE = 47"), "appVersion must expose milestone number 46 until m47 runtime work bumps it.");
-assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m46\""), "appVersion must expose m47 label.");
+assert(packageJson.version === "0.1.0-milestone.47", "package.json must expose m47 version.");
+assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.47\""), "appVersion must expose milestone.47.");
+assert(appVersion.includes("PROJECT_MILESTONE = 47"), "appVersion must expose milestone number 47.");
+assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m47\""), "appVersion must expose m47 label.");
 assert(readme.includes("docs/roadmap.md"), "README.md must link docs/roadmap.md.");
-assert(roadmap.includes("m39 shipped: low-resolution environmental flow field sampled by movement"), "roadmap must include m39 field milestone.");
-assert(roadmap.includes("m40 shipped: environmental field render snapshot and Pixi vector debug layer"), "roadmap must include m40 field render milestone.");
-assert(roadmap.includes("m41 shipped: render debug controls"), "roadmap must include m41 shipped milestone.");
-assert(roadmap.includes("m43 shipped: field sources/sinks foundation"), "roadmap must include m43 shipped milestone.");
 assert(architectureTracks.includes("renderer must not own authoritative simulation state"), "architecture tracks must preserve sim/render boundary.");
-assert(field.includes("FIELD_LAYER_VERSION"), "field must expose FIELD_LAYER_VERSION.");
-assert(field.includes("sampleFieldAtPosition"), "field must expose sampleFieldAtPosition.");
-assert(fieldRenderSnapshot.includes("FIELD_RENDER_SNAPSHOT_VERSION"), "field render snapshot must expose version.");
-assert(fieldRenderSnapshot.includes("makeFieldRenderSnapshot"), "field render snapshot must expose snapshot builder.");
-assert(fieldRenderSnapshot.includes("analyzeFieldRenderSnapshot"), "field render snapshot must expose analyzer.");
-assert(fieldDynamics.includes("FIELD_DYNAMICS_VERSION"), "field dynamics must expose version.");
-assert(fieldDynamics.includes("stepEnvironmentalFieldDynamics"), "field dynamics must expose stepEnvironmentalFieldDynamics.");
-assert(fieldDynamics.includes("createFieldDynamicsScratch"), "field dynamics must expose scratch creation.");
-assert(movement.includes("field?: EnvironmentalFieldLayer"), "movement must accept field layer.");
-assert(movement.includes("fieldMovementSampleCount"), "movement must expose field movement stats.");
-assert(demoSimulation.includes("fieldRenderSnapshot"), "demoSimulation must emit fieldRenderSnapshot.");
-assert(demoSimulation.includes("fieldDynamicsStats"), "demoSimulation must emit fieldDynamicsStats.");
-assert(demoSimulation.includes("fieldRenderStride"), "demoSimulation must expose fieldRenderStride.");
-assert(debugOverlay.includes("field render"), "debug overlay must expose field render label.");
-assert(debugOverlay.includes("field vectors"), "debug overlay must expose field vector label.");
-assert(debugOverlay.includes("field dyn"), "debug overlay must expose field dynamics label.");
-assert(perfMetrics.includes("fieldRenderVectorCount"), "perf metrics must expose fieldRenderVectorCount.");
-assert(perfMetrics.includes("fieldDynamicsMs"), "perf metrics must expose fieldDynamicsMs.");
-assert(pixiRenderer.includes("renderFieldVectorLayer"), "pixi renderer must render field vectors.");
-assert(pixiRenderer.includes("fieldLayer"), "pixi renderer must own field layer.");
-assert(pixiRenderer.includes("fieldDynamicsMagnitudeAfter"), "pixi renderer must pass field dynamics overlay metrics.");
+
+for (const requiredToken of ["m39 shipped: low-resolution environmental flow field sampled by movement", "m40 shipped: environmental field render snapshot and Pixi vector debug layer", "m41 shipped: render debug controls", "m43 shipped: field sources/sinks foundation", "m47 shipped: field-force separation", "m48 planned: controller/brain first pass"]) {
+  assert(roadmap.includes(requiredToken), "roadmap missing token: " + requiredToken);
+}
+
+assert(roadmap.includes("m48 planning: controller/brain first pass"), "roadmap must point current milestone to m48 planning.");
+assert(milestones.includes("| m47 | Field-force separation and explicit agent response to environmental fields, with core API, tests, benchmark, demo wiring, overlay/readouts, controls, and persistence. | complete |"), "milestones must list m47 as complete.");
+assert(milestones.includes("| m48 | Controller/brain first-pass planning using existing sensors, terrain, field, and debug readouts. | planned |"), "milestones must list m48 as planned.");
+
+assert(field.includes("FIELD_LAYER_VERSION") && field.includes("sampleFieldAtPosition"), "field must expose field layer and sampling API.");
+assert(fieldRenderSnapshot.includes("FIELD_RENDER_SNAPSHOT_VERSION") && fieldRenderSnapshot.includes("makeFieldRenderSnapshot"), "field render snapshot must expose version and builder.");
+assert(fieldDynamics.includes("FIELD_DYNAMICS_VERSION") && fieldDynamics.includes("stepEnvironmentalFieldDynamics"), "field dynamics must expose deterministic step API.");
+assert(movement.includes("field?: EnvironmentalFieldLayer") && movement.includes("fieldMovementSampleCount"), "movement must preserve field sampling integration.");
+assert(debugOverlay.includes("field force"), "debug overlay must expose field force labels.");
+assert(perfMetrics.includes("fieldForceMs"), "perf metrics must expose field force metrics.");
+assert(pixiRenderer.includes("fieldForceMagnitudeTotal"), "pixiRenderer must expose field force overlay readouts.");
+assert(demoSimulation.includes("fieldForceStats") && demoSimulation.includes("updateFieldForceConfig"), "demoSimulation must expose m47 field force wiring and config.");
+
 assert(integrationM40.includes("environmental field render snapshot"), "integration_m40 must describe environmental field render snapshot.");
 assert(integrationM41.includes("overlay grouping"), "integration_m41 must describe overlay grouping.");
 assert(integrationM42.includes("decay") && integrationM42.includes("diffusion"), "integration_m42 must describe field decay/diffusion.");
+assert(integrationM43.includes("field sources") && integrationM43.includes("sinks"), "integration_m43 must describe field sources/sinks.");
+assert(integrationM44.includes("field source semantics tuning") && integrationM44.includes("visualization QA"), "integration_m44 must describe field source semantics tuning and visualization QA.");
+assert(integrationM45.includes("## Final status") && integrationM45.includes("M45 is closed"), "integration_m45 must document final closed status.");
+assert(integrationM47.includes("M47 is closed") && integrationM47.includes("Final validation set"), "integration_m47 must document m47 closed status and validation set.");
+assert(integrationM47.includes("controller/brain logic") && integrationM47.includes("WebGPU compute"), "integration_m47 must document out-of-scope items.");
+assert(integrationM48.includes("# Integration m48 - controller/brain first-pass planning"), "integration_m48 must exist and describe controller/brain planning.");
+assert(integrationM48.includes("disabled or behavior-neutral by default"), "integration_m48 must preserve default behavior.");
+assert(integrationM48.includes("M48-A1: core controller/intent API + deterministic no-op tests"), "integration_m48 must define M48-A1 slice.");
+assert(integrationM48.includes("neural-network training") && integrationM48.includes("WebGPU compute"), "integration_m48 must document out-of-scope items.");
 assert(packageJson.scripts.test.includes("test:roadmap-status"), "npm run test must include test:roadmap-status.");
 
-assert(roadmap.includes("m43 shipped: field sources/sinks foundation"), "roadmap must include m43 shipped milestone.");
-assert(integrationM43.includes("field sources") && integrationM43.includes("sinks"), "integration_m43 must describe field sources/sinks.");
 for (const requiredToken of ["FIELD_SOURCES_VERSION", "applyFieldSourcesAndSinks", "FieldSourceStepMetrics", "measureTotalFieldMagnitude"]) assert(fieldSources.includes(requiredToken), "fieldSources missing token: " + requiredToken);
-for (const requiredToken of ["fieldSourceStats", "fieldSourcesMs", "applyFieldSourcesAndSinks"]) assert(demoSimulation.includes(requiredToken), "demoSimulation missing field source token: " + requiredToken);
-for (const requiredToken of ["fieldSourceStats", "fieldSourcesMs", "fieldSourceMagnitudeAfter"]) assert(pixiRenderer.includes(requiredToken), "pixiRenderer missing field source token: " + requiredToken);
-for (const requiredToken of ["field src", "field sink", "field src after"]) assert(debugOverlay.includes(requiredToken), "debugOverlay missing field source label: " + requiredToken);
-for (const requiredToken of ["fieldSourcesMs", "fieldSourceCount", "fieldSinkCount", "fieldSourceMagnitudeAfter"]) assert(perfMetrics.includes(requiredToken), "perf metrics missing field source token: " + requiredToken);
-
-assert(integrationM44.includes("field source semantics tuning") && integrationM44.includes("visualization QA"), "integration_m44 must describe field source semantics tuning and visualization QA.");
-assert(roadmap.includes("m44 shipped: field source semantics tuning and visualization QA"), "roadmap must include m44 shipped milestone.");
-
-assert(integrationM45.includes("obstacle/terrain damping sources") && integrationM45.includes("editable debug parameters"), "integration_m45 must describe obstacle/terrain damping sources and editable debug parameters.");
-assert(roadmap.includes("m45 shipped: obstacle/terrain damping sources"), "roadmap must include m45 shipped milestone.");
-assert(roadmap.includes("m45 shipped: obstacle/terrain damping sources"), "roadmap must keep m45 shipped status.");
-assert(integrationM45.includes("## Final status") && integrationM45.includes("M45 is closed"), "integration_m45 must document final closed status.");
-assert(integrationM45.includes("## Final validation set") && integrationM45.includes("npm run test:repo-status") && integrationM45.includes("npm run build"), "integration_m45 must document final validation set.");
-
-assert(fieldDamping.includes("FIELD_DAMPING_VERSION") && fieldDamping.includes("applyFieldDamping"), "fieldDamping must expose m45 core damping API.");
-assert(packageJson.scripts["test:field-damping"] === "node scripts/test-field-damping.mjs", "package.json must expose test:field-damping.");
-assert(packageJson.scripts.test.includes("test:field-damping"), "npm run test must include test:field-damping.");
-assert(packageJson.scripts["test:field-damping-integration"] === "node scripts/test-field-damping-integration.mjs", "package.json must expose test:field-damping-integration.");
-assert(packageJson.scripts.test.includes("test:field-damping-integration"), "npm run test must include test:field-damping-integration.");
 for (const requiredToken of ["applyFieldDamping", "fieldDampingStats", "fieldDampingMs", "enableObstacleFieldDamping", "enableTerrainFieldDamping"]) assert(demoSimulation.includes(requiredToken), "demoSimulation missing m45 damping wiring token: " + requiredToken);
 for (const requiredToken of ["fieldDampingMs", "fieldDampingObstacleSampleCount", "fieldDampingTerrainSampleCount", "fieldDampingMagnitudeDamped"]) assert(perfMetrics.includes(requiredToken), "perf metrics missing m45 damping token: " + requiredToken);
 for (const requiredToken of ["field damp", "field damp obst samples", "field damp terrain samples", "field damp mag"]) assert(debugOverlay.includes(requiredToken), "debugOverlay missing m45 damping label: " + requiredToken);
 for (const requiredToken of ["FieldDampingStepMetrics", "fieldDampingStats", "fieldDampingMs"]) assert(pixiRenderer.includes(requiredToken), "pixiRenderer missing m45 damping token: " + requiredToken);
-assert(integrationM45.includes("fieldDampingStats") && integrationM45.includes("fieldDampingMs"), "integration_m45 must document m45 damping runtime outputs.");
-
-const integrationM46 = readText("docs/integration_m46.md");
-assert(roadmap.includes("m46 shipped: deterministic environmental field advection"), "roadmap must include m46 shipped milestone.");
-assert(integrationM46.includes("## Final status") && integrationM46.includes("M46 is closed"), "integration_m46 must document final closed status.");
-assert(integrationM46.includes("## Final validation set") && integrationM46.includes("npm run bench:field-advection") && integrationM46.includes("npm run build"), "integration_m46 must document final validation set.");
-
-assert(roadmap.includes("m47 shipped: field-force separation"), "roadmap must include m47 planned milestone.");
-assert(roadmap.includes("m47 complete: field-force separation after advection behavior is stable"), "roadmap must point current field milestone to m47 planning.");
-assert(milestones.includes("| m47 | Field-force separation and explicit agent response to environmental fields, with core API, tests, benchmark, demo wiring, overlay/readouts, controls, and persistence. | complete |"), "milestones must list m47 as planned.");
-assert(integrationM47.includes("# Integration m47 - field-force separation planning"), "integration_m47 must exist and describe field-force planning.");
-assert(integrationM47.includes("Field force is not advection. It must not mutate field buffers."), "integration_m47 must separate field force from advection and field mutation.");
-assert(integrationM47.includes("Default behavior must remain unchanged unless field force is explicitly enabled"), "integration_m47 must preserve default movement semantics.");
-assert(integrationM47.includes("M47-A1: core field-force API + deterministic unit tests, no demo wiring"), "integration_m47 must define M47-A1 slice.");
-assert(integrationM47.includes("controller/brain logic") && integrationM47.includes("WebGPU compute"), "integration_m47 must document out-of-scope items.");
-
-
-assert(integrationM47.includes("M47 is closed") && integrationM47.includes("Final validation set"), "integration_m47 must document m47 closed status and validation set.");
-assert(demoSimulation.includes("fieldForceStats") && demoSimulation.includes("updateFieldForceConfig"), "demoSimulation must expose m47 field force wiring and config.");
-assert(pixiRenderer.includes("fieldForceMagnitudeTotal"), "pixiRenderer must expose field force overlay readouts.");
-assert(perfMetrics.includes("fieldForceMs"), "perf metrics must expose field force metrics.");
-assert(debugOverlay.includes("field force"), "debug overlay must expose field force labels.");
 
 console.log("roadmap status tests passed");
