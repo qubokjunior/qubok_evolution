@@ -1,6 +1,6 @@
 # qubok_evolve milestones
 
-Compact milestone index through m48. Older early milestones are summarized at the system level; recent lifecycle, terrain, field, render-debug, and controller-observability milestones are listed with stricter implementation detail.
+Compact milestone index through m49. Older early milestones are summarized at the system level; recent lifecycle, terrain, field, render-debug, controller-observability, and actuator-planning milestones are listed with stricter implementation detail.
 
 | Milestone | Focus | Status |
 |---|---|---|
@@ -52,10 +52,15 @@ Compact milestone index through m48. Older early milestones are summarized at th
 | m46 | Deterministic environmental field transport/advection core, benchmark, demo wiring, overlay/readouts, editable controls, and persistence. | complete |
 | m47 | Field-force separation and explicit agent response to environmental fields, with core API, tests, benchmark, demo wiring, overlay/readouts, controls, and persistence. | complete |
 | m48 | Controller/brain first pass: renderer-agnostic controller API, deterministic intent buffers, disabled-by-default demo wiring, benchmark, overlay/readouts, panel controls, persistence, source overview, and status guards. Controller intent is not yet actuated into movement. | complete |
+| m49 | Controller actuator bridge planning: explicit intent-to-force boundary, disabled-by-default behavior-change rule, separate actuator metrics, and guard scope before runtime wiring. | planned |
 
 ## Current next-step candidates
 
-- M49: controller actuator bridge; connect intent to optional movement influence behind explicit disabled-by-default config.
+- M49-A1: core controller actuator / intent-to-force API with deterministic no-op tests, no demo wiring.
+- M49-A2: actuator metrics and benchmark for controller + actuator cost.
+- M49-A3: demo wiring behind disabled/default-neutral config.
+- M49-A4: overlay/readout QA for actuator metrics.
+- M49-A5: optional panel controls and persistence after behavior and metrics are stable.
 - M50: ecology pressure calibration for hunger, scarcity, reproduction, and predation.
 - M51: sensor budgeting and perception quality pass.
 - M52: agent inspector and lab tools.
