@@ -91,21 +91,51 @@ export const DEFAULT_ECOLOGY_PRESSURE_CONFIG: ResolvedEcologyPressureConfig = {
   predatorDamageScale: 0.85
 } as const;
 
+export const ECOLOGY_PRESSURE_PRESET_CONFIGS: Readonly<Record<EcologyPressurePresetKey, EcologyPressureConfig>> = Object.freeze({
+  neutral_lab: {},
+  scarce_food: {
+    resourceTargetCount: 600,
+    basalMetabolismScale: 1,
+    starvationEnergyThreshold: 4,
+    starvationDamagePerSecond: 22,
+    reproductionEnergyThreshold: 96,
+    reproductionEnergyCost: 52
+  },
+  predator_pressure: {
+    resourceTargetCount: 1800,
+    basalMetabolismScale: 0.35,
+    predatorAttackRadius: 36,
+    predatorDamageScale: 1.35
+  },
+  terrain_habitat: {
+    resourceTargetCount: 1600,
+    basalMetabolismScale: 0.5,
+    reproductionEnergyThreshold: 92
+  },
+  field_current_stress: {
+    resourceTargetCount: 1800,
+    basalMetabolismScale: 0.75,
+    reproductionEnergyThreshold: 90,
+    reproductionEnergyCost: 48
+  }
+});
+
 export function makeEcologyPressureConfig(config: EcologyPressureConfig = {}, limits: { readonly resourceCapacity?: number } = {}): ResolvedEcologyPressureConfig {
   const ecologyPreset = isEcologyPressurePreset(config.ecologyPreset) ? config.ecologyPreset : DEFAULT_ECOLOGY_PRESSURE_CONFIG.ecologyPreset;
+  const preset = ECOLOGY_PRESSURE_PRESET_CONFIGS[ecologyPreset];
   const maxResourceTarget = Math.max(0, Math.floor(limits.resourceCapacity ?? Number.MAX_SAFE_INTEGER));
 
   return {
     ecologyPreset,
-    basalMetabolismScale: clampFinite(config.basalMetabolismScale ?? DEFAULT_ECOLOGY_PRESSURE_CONFIG.basalMetabolismScale, 0, 16),
-    starvationEnergyThreshold: clampFinite(config.starvationEnergyThreshold ?? DEFAULT_ECOLOGY_PRESSURE_CONFIG.starvationEnergyThreshold, 0, 100000),
-    starvationDamagePerSecond: clampFinite(config.starvationDamagePerSecond ?? DEFAULT_ECOLOGY_PRESSURE_CONFIG.starvationDamagePerSecond, 0, 10000),
-    resourceTargetCount: clampInteger(config.resourceTargetCount ?? DEFAULT_ECOLOGY_PRESSURE_CONFIG.resourceTargetCount, 0, maxResourceTarget),
-    resourceRespawnPerSecond: clampFinite(config.resourceRespawnPerSecond ?? DEFAULT_ECOLOGY_PRESSURE_CONFIG.resourceRespawnPerSecond, 0, 100000),
-    reproductionEnergyThreshold: clampFinite(config.reproductionEnergyThreshold ?? DEFAULT_ECOLOGY_PRESSURE_CONFIG.reproductionEnergyThreshold, 0, 100000),
-    reproductionEnergyCost: clampFinite(config.reproductionEnergyCost ?? DEFAULT_ECOLOGY_PRESSURE_CONFIG.reproductionEnergyCost, 0, 100000),
-    predatorAttackRadius: clampFinite(config.predatorAttackRadius ?? DEFAULT_ECOLOGY_PRESSURE_CONFIG.predatorAttackRadius, 0, 100000),
-    predatorDamageScale: clampFinite(config.predatorDamageScale ?? DEFAULT_ECOLOGY_PRESSURE_CONFIG.predatorDamageScale, 0, 1000)
+    basalMetabolismScale: clampFinite(config.basalMetabolismScale ?? preset.basalMetabolismScale ?? DEFAULT_ECOLOGY_PRESSURE_CONFIG.basalMetabolismScale, 0, 16),
+    starvationEnergyThreshold: clampFinite(config.starvationEnergyThreshold ?? preset.starvationEnergyThreshold ?? DEFAULT_ECOLOGY_PRESSURE_CONFIG.starvationEnergyThreshold, 0, 100000),
+    starvationDamagePerSecond: clampFinite(config.starvationDamagePerSecond ?? preset.starvationDamagePerSecond ?? DEFAULT_ECOLOGY_PRESSURE_CONFIG.starvationDamagePerSecond, 0, 10000),
+    resourceTargetCount: clampInteger(config.resourceTargetCount ?? preset.resourceTargetCount ?? DEFAULT_ECOLOGY_PRESSURE_CONFIG.resourceTargetCount, 0, maxResourceTarget),
+    resourceRespawnPerSecond: clampFinite(config.resourceRespawnPerSecond ?? preset.resourceRespawnPerSecond ?? DEFAULT_ECOLOGY_PRESSURE_CONFIG.resourceRespawnPerSecond, 0, 100000),
+    reproductionEnergyThreshold: clampFinite(config.reproductionEnergyThreshold ?? preset.reproductionEnergyThreshold ?? DEFAULT_ECOLOGY_PRESSURE_CONFIG.reproductionEnergyThreshold, 0, 100000),
+    reproductionEnergyCost: clampFinite(config.reproductionEnergyCost ?? preset.reproductionEnergyCost ?? DEFAULT_ECOLOGY_PRESSURE_CONFIG.reproductionEnergyCost, 0, 100000),
+    predatorAttackRadius: clampFinite(config.predatorAttackRadius ?? preset.predatorAttackRadius ?? DEFAULT_ECOLOGY_PRESSURE_CONFIG.predatorAttackRadius, 0, 100000),
+    predatorDamageScale: clampFinite(config.predatorDamageScale ?? preset.predatorDamageScale ?? DEFAULT_ECOLOGY_PRESSURE_CONFIG.predatorDamageScale, 0, 1000)
   };
 }
 
