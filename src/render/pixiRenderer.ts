@@ -6,6 +6,7 @@ import type { FieldDynamicsStepMetrics } from "../sim/fieldDynamics";
 import type { FieldDampingStepMetrics } from "../sim/fieldDamping";
 import type { FieldAdvectionStepMetrics } from "../sim/fieldAdvection";
 import type { FieldForceStepMetrics } from "../sim/fieldForce";
+import type { AgentControllerStepMetrics } from "../sim/controller";
 import type { ObstacleLifecycleTelemetry } from "../sim/lifecycleTelemetry";
 import type { MovementStepMetrics } from "../sim/movement";
 import type { ObstacleSoftResponseStats } from "../sim/obstacleResponse";
@@ -33,6 +34,8 @@ export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly fieldDampingStats: FieldDampingStepMetrics;
   readonly fieldAdvectionStats: FieldAdvectionStepMetrics;
   readonly fieldForceStats: FieldForceStepMetrics;
+  readonly controllerStats: AgentControllerStepMetrics;
+  readonly controllerConfig: ControllerConfigReadout;
   readonly fieldDampingConfig: FieldDampingConfigReadout;
   readonly fieldForceConfig: FieldForceConfigReadout;
   readonly snapshotStats: RenderSnapshotStats;
@@ -64,6 +67,7 @@ export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly fieldDampingMs: number;
   readonly fieldAdvectionMs: number;
   readonly fieldForceMs: number;
+  readonly controllerMs: number;
   readonly simMsPerTick: number;
 };
 
@@ -82,6 +86,10 @@ export type PixiRendererHandle = {
 };
 
 type AgentGlyph = { readonly graphic: Graphics; colorRGBA: number };
+
+type ControllerConfigReadout = {
+  readonly enableController: boolean;
+};
 
 type FieldForceConfigReadout = {
   readonly enableFieldForce: boolean;
@@ -244,6 +252,16 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("fieldForceMagnitudeTotal", frame.fieldForceStats.totalForceMagnitude);
     metrics.record("fieldForceMaxForceMagnitude", frame.fieldForceStats.maxForceMagnitude);
     metrics.record("fieldForceFieldMagnitudeSum", frame.fieldForceStats.fieldMagnitudeSum);
+    metrics.record("controllerMs", frame.controllerMs);
+    metrics.record("controllerEnabled", frame.controllerConfig.enableController ? 1 : 0);
+    metrics.record("controllerAgentCount", frame.controllerStats.agentCount);
+    metrics.record("controllerSampleCount", frame.controllerStats.sampleCount);
+    metrics.record("controllerAffectedAgentCount", frame.controllerStats.affectedAgentCount);
+    metrics.record("controllerIgnoredDeadCount", frame.controllerStats.ignoredDeadCount);
+    metrics.record("controllerZeroIntentCount", frame.controllerStats.zeroIntentCount);
+    metrics.record("controllerClampCount", frame.controllerStats.clampCount);
+    metrics.record("controllerIntentMagnitudeTotal", frame.controllerStats.totalIntentMagnitude);
+    metrics.record("controllerMaxIntentMagnitude", frame.controllerStats.maxIntentMagnitude);
     metrics.record("fieldDampingObstacleEnabled", frame.fieldDampingConfig.enableObstacleFieldDamping ? 1 : 0);
     metrics.record("fieldDampingTerrainEnabled", frame.fieldDampingConfig.enableTerrainFieldDamping ? 1 : 0);
     metrics.record("fieldDampingObstaclePerSecond", frame.fieldDampingConfig.obstacleFieldDampingPerSecond);
@@ -427,6 +445,16 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         fieldForceMagnitudeTotal: snapshot.values.fieldForceMagnitudeTotal,
         fieldForceMaxForceMagnitude: snapshot.values.fieldForceMaxForceMagnitude,
         fieldForceFieldMagnitudeSum: snapshot.values.fieldForceFieldMagnitudeSum,
+        controllerMs: snapshot.values.controllerMs,
+        controllerEnabled: snapshot.values.controllerEnabled,
+        controllerAgentCount: snapshot.values.controllerAgentCount,
+        controllerSampleCount: snapshot.values.controllerSampleCount,
+        controllerAffectedAgentCount: snapshot.values.controllerAffectedAgentCount,
+        controllerIgnoredDeadCount: snapshot.values.controllerIgnoredDeadCount,
+        controllerZeroIntentCount: snapshot.values.controllerZeroIntentCount,
+        controllerClampCount: snapshot.values.controllerClampCount,
+        controllerIntentMagnitudeTotal: snapshot.values.controllerIntentMagnitudeTotal,
+        controllerMaxIntentMagnitude: snapshot.values.controllerMaxIntentMagnitude,
         fieldDampingObstacleEnabled: snapshot.values.fieldDampingObstacleEnabled,
         fieldDampingTerrainEnabled: snapshot.values.fieldDampingTerrainEnabled,
         fieldDampingObstaclePerSecond: snapshot.values.fieldDampingObstaclePerSecond,

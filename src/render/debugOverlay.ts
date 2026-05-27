@@ -11,7 +11,7 @@ export type PerfOverlaySink = {
   destroy: () => void;
 };
 
-type OverlayGroupId = "runtime" | "field" | "terrain" | "obstacle" | "movement" | "spatial" | "sensors" | "combat" | "resources" | "reproduction" | "worldSlots" | "other";
+type OverlayGroupId = "runtime" | "field" | "controller" | "terrain" | "obstacle" | "movement" | "spatial" | "sensors" | "combat" | "resources" | "reproduction" | "worldSlots" | "other";
 
 const PERF_OVERLAY_WIDTH_STORAGE_KEY = "qubok_evolve.perf_overlay_width";
 const PERF_OVERLAY_MIN_WIDTH = 196;
@@ -25,6 +25,7 @@ const DISPLAY_ORDER = [
   "fieldDampingMs", "fieldDampingObstacleSampleCount", "fieldDampingObstacleDampedCellCount", "fieldDampingTerrainSampleCount", "fieldDampingTerrainDampedCellCount", "fieldDampingMagnitudeBefore", "fieldDampingMagnitudeAfter", "fieldDampingMagnitudeDamped",
   "fieldAdvectionMs", "fieldAdvectionSampleCount", "fieldAdvectionAdvectedCellCount", "fieldAdvectionMaxBacktraceDistanceCells", "fieldAdvectionMagnitudeBefore", "fieldAdvectionMagnitudeAfter", "fieldAdvectionMagnitudeDelta",
   "fieldForceMs", "fieldForceEnabled", "fieldForceAgentCount", "fieldForceSampleCount", "fieldForceAffectedAgentCount", "fieldForceIgnoredDeadCount", "fieldForceZeroFieldCount", "fieldForceClampCount", "fieldForceMagnitudeTotal", "fieldForceMaxForceMagnitude", "fieldForceFieldMagnitudeSum",
+  "controllerMs", "controllerEnabled", "controllerAgentCount", "controllerSampleCount", "controllerAffectedAgentCount", "controllerIgnoredDeadCount", "controllerZeroIntentCount", "controllerClampCount", "controllerIntentMagnitudeTotal", "controllerMaxIntentMagnitude",
   "fieldDampingObstacleEnabled", "fieldDampingTerrainEnabled", "fieldDampingObstaclePerSecond", "fieldDampingTerrainScalePerSecond", "fieldDampingMaxObstacleCells", "fieldDampingMaxTerrainCells",
   "fieldRenderMs", "fieldRenderVectorCount", "fieldRenderTruncated",
   "terrainSensorSampleCount", "terrainSensorMovementCostSum", "terrainSensorFrictionSum", "terrainSensorDragSum", "terrainSensorResourceAffinitySum", "terrainSensorScheduled", "terrainSensorSkippedByCadence",
@@ -48,6 +49,7 @@ const GROUP_LABELS: Record<OverlayGroupId, string> = Object.freeze({
 
   runtime: "runtime",
   field: "field",
+  controller: "controller",
   terrain: "terrain",
   obstacle: "obstacle",
   movement: "movement",
@@ -130,6 +132,17 @@ const KEY_GROUPS: Record<string, OverlayGroupId> = Object.freeze({
   fieldForceMagnitudeTotal: "field",
   fieldForceMaxForceMagnitude: "field",
   fieldForceFieldMagnitudeSum: "field",
+
+  controllerMs: "controller",
+  controllerEnabled: "controller",
+  controllerAgentCount: "controller",
+  controllerSampleCount: "controller",
+  controllerAffectedAgentCount: "controller",
+  controllerIgnoredDeadCount: "controller",
+  controllerZeroIntentCount: "controller",
+  controllerClampCount: "controller",
+  controllerIntentMagnitudeTotal: "controller",
+  controllerMaxIntentMagnitude: "controller",
 
   terrainSensorSampleCount: "terrain",
   terrainSensorMovementCostSum: "terrain",
@@ -278,6 +291,16 @@ const LABELS: Record<string, string> = {
   fieldForceMagnitudeTotal: "field force mag",
   fieldForceMaxForceMagnitude: "field force max",
   fieldForceFieldMagnitudeSum: "field force field mag",
+  controllerMs: "controller",
+  controllerEnabled: "ctrl on",
+  controllerAgentCount: "ctrl agents",
+  controllerSampleCount: "ctrl samples",
+  controllerAffectedAgentCount: "ctrl affected",
+  controllerIgnoredDeadCount: "ctrl dead ignored",
+  controllerZeroIntentCount: "ctrl zero intent",
+  controllerClampCount: "ctrl clamps",
+  controllerIntentMagnitudeTotal: "ctrl intent mag",
+  controllerMaxIntentMagnitude: "ctrl max intent",
   terrainSensorSampleCount: "terrain sensor samples",
   terrainSensorMovementCostSum: "terrain sensor cost",
   terrainSensorFrictionSum: "terrain sensor friction",
