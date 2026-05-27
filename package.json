@@ -21,6 +21,7 @@
     "bench:field-sources": "node scripts/bench-field-sources.mjs",
     "bench:field-advection": "node scripts/bench-field-advection.mjs",
     "bench:field-force": "node scripts/bench-field-force.mjs",
+    "bench:controller": "node scripts/bench-controller.mjs",
     "dev": "vite --host 127.0.0.1",
     "build": "tsc && vite build",
     "check:boundaries": "node scripts/check-boundaries.mjs",
