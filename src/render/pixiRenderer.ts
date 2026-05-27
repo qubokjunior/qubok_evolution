@@ -8,6 +8,7 @@ import type { FieldAdvectionStepMetrics } from "../sim/fieldAdvection";
 import type { FieldForceStepMetrics } from "../sim/fieldForce";
 import type { AgentControllerStepMetrics } from "../sim/controller";
 import type { ControllerActuatorStepMetrics } from "../sim/controllerActuator";
+import type { EcologyPressureReadout } from "../sim/ecologyPressure";
 import type { ObstacleLifecycleTelemetry } from "../sim/lifecycleTelemetry";
 import type { MovementStepMetrics } from "../sim/movement";
 import type { ObstacleSoftResponseStats } from "../sim/obstacleResponse";
@@ -39,6 +40,7 @@ export type SimulationFrameSource = (deltaSeconds: number) => {
   readonly controllerActuatorStats: ControllerActuatorStepMetrics;
   readonly controllerConfig: ControllerConfigReadout;
   readonly controllerActuatorConfig: ControllerActuatorConfigReadout;
+  readonly ecologyPressureReadout: EcologyPressureReadout;
   readonly fieldDampingConfig: FieldDampingConfigReadout;
   readonly fieldForceConfig: FieldForceConfigReadout;
   readonly snapshotStats: RenderSnapshotStats;
@@ -281,6 +283,26 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
     metrics.record("controllerActuatorForceMagnitudeTotal", frame.controllerActuatorStats.totalForceMagnitude);
     metrics.record("controllerActuatorMaxForceMagnitude", frame.controllerActuatorStats.maxForceMagnitude);
     metrics.record("controllerActuatorIntentMagnitudeTotal", frame.controllerActuatorStats.totalIntentMagnitude);
+    metrics.record("ecologyPressurePresetId", ecologyPressurePresetId(frame.ecologyPressureReadout.ecologyPreset));
+    metrics.record("ecologyPressureResourceTargetCount", frame.ecologyPressureReadout.resourceTargetCount);
+    metrics.record("ecologyPressureResourceAliveCount", frame.ecologyPressureReadout.resourceAliveCount);
+    metrics.record("ecologyPressureResourceRespawnedCount", frame.ecologyPressureReadout.resourceRespawnedCount);
+    metrics.record("ecologyPressureFoodPickupCount", frame.ecologyPressureReadout.foodPickupCount);
+    metrics.record("ecologyPressureFoodEnergyTransferred", frame.ecologyPressureReadout.foodEnergyTransferred);
+    metrics.record("ecologyPressureAverageEnergy01", frame.ecologyPressureReadout.averageEnergy01);
+    metrics.record("ecologyPressureMinimumEnergy01", frame.ecologyPressureReadout.minimumEnergy01);
+    metrics.record("ecologyPressureMaximumEnergy01", frame.ecologyPressureReadout.maximumEnergy01);
+    metrics.record("ecologyPressureStarvingCount", frame.ecologyPressureReadout.starvingCount);
+    metrics.record("ecologyPressureStarvationDamage", frame.ecologyPressureReadout.starvationDamage);
+    metrics.record("ecologyPressureDeathsThisStep", frame.ecologyPressureReadout.deathsThisStep);
+    metrics.record("ecologyPressureBirthsThisStep", frame.ecologyPressureReadout.birthsThisStep);
+    metrics.record("ecologyPressureBlockedBirthsByCapacity", frame.ecologyPressureReadout.blockedBirthsByCapacity);
+    metrics.record("ecologyPressurePredatorAttacksThisStep", frame.ecologyPressureReadout.predatorAttacksThisStep);
+    metrics.record("ecologyPressurePredatorKillsThisStep", frame.ecologyPressureReadout.predatorKillsThisStep);
+    metrics.record("ecologyPressureAliveCount", frame.ecologyPressureReadout.aliveCount);
+    metrics.record("ecologyPressureCapacityCount", frame.ecologyPressureReadout.capacity);
+    metrics.record("ecologyPressureReusableSlotCount", frame.ecologyPressureReadout.reusableSlotCount);
+    metrics.record("ecologyPressurePopulationPressure01", frame.ecologyPressureReadout.populationPressure01);
     metrics.record("fieldDampingObstacleEnabled", frame.fieldDampingConfig.enableObstacleFieldDamping ? 1 : 0);
     metrics.record("fieldDampingTerrainEnabled", frame.fieldDampingConfig.enableTerrainFieldDamping ? 1 : 0);
     metrics.record("fieldDampingObstaclePerSecond", frame.fieldDampingConfig.obstacleFieldDampingPerSecond);
@@ -485,6 +507,26 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
         controllerActuatorForceMagnitudeTotal: snapshot.values.controllerActuatorForceMagnitudeTotal,
         controllerActuatorMaxForceMagnitude: snapshot.values.controllerActuatorMaxForceMagnitude,
         controllerActuatorIntentMagnitudeTotal: snapshot.values.controllerActuatorIntentMagnitudeTotal,
+        ecologyPressurePresetId: snapshot.values.ecologyPressurePresetId,
+        ecologyPressureResourceTargetCount: snapshot.values.ecologyPressureResourceTargetCount,
+        ecologyPressureResourceAliveCount: snapshot.values.ecologyPressureResourceAliveCount,
+        ecologyPressureResourceRespawnedCount: snapshot.values.ecologyPressureResourceRespawnedCount,
+        ecologyPressureFoodPickupCount: snapshot.values.ecologyPressureFoodPickupCount,
+        ecologyPressureFoodEnergyTransferred: snapshot.values.ecologyPressureFoodEnergyTransferred,
+        ecologyPressureAverageEnergy01: snapshot.values.ecologyPressureAverageEnergy01,
+        ecologyPressureMinimumEnergy01: snapshot.values.ecologyPressureMinimumEnergy01,
+        ecologyPressureMaximumEnergy01: snapshot.values.ecologyPressureMaximumEnergy01,
+        ecologyPressureStarvingCount: snapshot.values.ecologyPressureStarvingCount,
+        ecologyPressureStarvationDamage: snapshot.values.ecologyPressureStarvationDamage,
+        ecologyPressureDeathsThisStep: snapshot.values.ecologyPressureDeathsThisStep,
+        ecologyPressureBirthsThisStep: snapshot.values.ecologyPressureBirthsThisStep,
+        ecologyPressureBlockedBirthsByCapacity: snapshot.values.ecologyPressureBlockedBirthsByCapacity,
+        ecologyPressurePredatorAttacksThisStep: snapshot.values.ecologyPressurePredatorAttacksThisStep,
+        ecologyPressurePredatorKillsThisStep: snapshot.values.ecologyPressurePredatorKillsThisStep,
+        ecologyPressureAliveCount: snapshot.values.ecologyPressureAliveCount,
+        ecologyPressureCapacityCount: snapshot.values.ecologyPressureCapacityCount,
+        ecologyPressureReusableSlotCount: snapshot.values.ecologyPressureReusableSlotCount,
+        ecologyPressurePopulationPressure01: snapshot.values.ecologyPressurePopulationPressure01,
         fieldDampingObstacleEnabled: snapshot.values.fieldDampingObstacleEnabled,
         fieldDampingTerrainEnabled: snapshot.values.fieldDampingTerrainEnabled,
         fieldDampingObstaclePerSecond: snapshot.values.fieldDampingObstaclePerSecond,
@@ -558,6 +600,17 @@ export async function mountPixiRenderer(options: PixiRendererOptions): Promise<P
 }
 
 function applyRenderDebugVisibility(config: RenderDebugConfig, gridLayer: Graphics, terrainLayer: Graphics, fieldLayer: Graphics, obstacleLayer: Graphics, agentLayer: Container): void {
+function ecologyPressurePresetId(preset: string): number {
+  switch (preset) {
+    case "neutral_lab": return 0;
+    case "scarce_food": return 1;
+    case "predator_pressure": return 2;
+    case "terrain_habitat": return 3;
+    case "field_current_stress": return 4;
+    default: return -1;
+  }
+}
+
   gridLayer.visible = config.showGrid;
   terrainLayer.visible = config.showTerrainLayer;
   fieldLayer.visible = config.showFieldVectorLayer;

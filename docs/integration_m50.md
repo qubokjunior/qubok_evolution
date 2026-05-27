@@ -47,7 +47,14 @@ M50-A3b demo ecology wiring is implemented behind safe defaults:
 - predator/prey reads attack radius and damage scale from the bounded ecology config;
 - controller and actuator algorithms remain unchanged.
 
-No render overlay, panel, persistence, package version, or app version behavior is changed in A3b.
+M50-A4 overlay/readout QA is implemented:
+
+- ecology pressure metrics are registered in `src/shared/perfMetrics.ts`;
+- Pixi renderer records `ecologyPressure*` values from `ecologyPressureReadout`;
+- debug overlay exposes ecology pressure metrics under a dedicated `ecology` group;
+- `scripts/test-ecology-pressure-overlay-qa.mjs` guards metric registration, renderer readouts, overlay grouping, labels, and no panel/persistence scope creep.
+
+No panel, persistence, package version, or app version behavior is changed in A4.
 
 ## Goal
 
@@ -72,7 +79,7 @@ The milestone should expose deterministic ecology pressure without turning it in
 - M50-A2: deterministic pressure scenario tests for resource scarcity, energy loss/gain, starvation death path, births, blocked births, and predator kills. Complete.
 - M50-A3a: preset definitions and guarded config merge, no demo wiring. Complete.
 - M50-A3b: demo preset wiring behind safe defaults: neutral lab, scarce food, predator pressure, terrain habitat, and field-current stress. Complete.
-- M50-A4: overlay/readout QA for ecology pressure metrics.
+- M50-A4: overlay/readout QA for ecology pressure metrics. Complete.
 - M50-A5: compact ecology panel and persistence after metrics/presets are stable.
 - M50-final: version/status/docs close and full validation.
 
