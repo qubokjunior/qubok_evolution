@@ -16,7 +16,16 @@ M50-A1 config/readout shape is implemented without demo runtime wiring:
 - `scripts/test-ecology-pressure.mjs` validates config clamping, preset guards, energy min/max readout, births, blocked births, predator kills, and population pressure;
 - `package.json` exposes `test:ecology-pressure` and includes it in `npm run test`.
 
-No demo runtime, render, UI, panel, persistence, package version, or app version behavior is changed in A1.
+M50-A2 deterministic pressure scenario tests are implemented without demo preset wiring:
+
+- scarce-food scenario validates resource consumption, food energy transfer, resource depletion, and basal energy spend;
+- starvation scenario validates `killAgent` death path and reusable-slot reuse;
+- reproduction scenario validates eligible parent, birth count, world count, and parent energy spend;
+- capacity-pressure scenario validates blocked births by capacity;
+- predator-pressure scenario validates deterministic attack, kill, and reusable-slot creation;
+- combined readout scenario validates finite ecology metrics across food, birth, blocked-birth, and predator counters.
+
+No demo runtime, render, UI, panel, persistence, package version, or app version behavior is changed in A2.
 
 ## Goal
 
@@ -38,7 +47,7 @@ The milestone should expose deterministic ecology pressure without turning it in
 
 - M50-A0: integration scope document, roadmap/milestone references, and status guards only; no runtime behavior change. Complete.
 - M50-A1: define bounded ecology pressure config/readout shape for demo simulation, no panel yet. Complete.
-- M50-A2: deterministic pressure scenario tests for resource scarcity, energy loss/gain, starvation death path, births, blocked births, and predator kills.
+- M50-A2: deterministic pressure scenario tests for resource scarcity, energy loss/gain, starvation death path, births, blocked births, and predator kills. Complete.
 - M50-A3: demo preset wiring behind safe defaults: neutral lab, scarce food, predator pressure, terrain habitat, and field-current stress.
 - M50-A4: overlay/readout QA for ecology pressure metrics.
 - M50-A5: compact ecology panel and persistence after metrics and presets are stable.
@@ -87,15 +96,20 @@ A1 coverage:
 - invalid/non-finite numeric config is clamped;
 - readout reports resource counts, pickups, energy range, starvation, births, blocked births, predator kills, reusable slots, and population pressure.
 
-Remaining M50 test coverage:
+A2 coverage:
 
 - deterministic scarce-food scenario changes resource and energy counters;
 - starvation death path uses `killAgent` and therefore free-list reuse;
 - reproduction can produce births when pressure allows it;
 - capacity-blocked births remain visible as metrics;
 - predator/prey kills remain deterministic and visible;
+- ecology readout stays finite and distinct from controller/actuator metrics.
+
+Remaining M50 test coverage:
+
 - neutral/default preset preserves current safe demo behavior unless a pressure preset is selected;
-- ecology metrics are finite and grouped separately from controller/actuator metrics.
+- demo preset wiring exposes pressure configs without changing controller/actuator algorithms;
+- ecology metrics are routed to overlay after runtime readout wiring.
 
 ## Required debug and UI
 
