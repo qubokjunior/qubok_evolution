@@ -1,6 +1,6 @@
 # qubok_evolve roadmap
 
-Current status: m46 complete / field transport-advection shipped; m47 planning opened for field-force separation.
+Current status: m47 complete / field-force separation and explicit agent response shipped.
 
 m34 shipped: terrain Pixi debug render layer.
 
@@ -28,7 +28,7 @@ m45 shipped: obstacle/terrain damping sources, editable debug parameters, panel 
 
 m46 shipped: deterministic environmental field advection with tests, benchmark, demo wiring, overlay/readouts, editable controls, and persistence.
 
-m47 planned: field-force separation and explicit agent response to environmental fields.
+m47 shipped: field-force separation and explicit agent response to environmental fields.
 
 ## terrain/material track
 
@@ -58,7 +58,8 @@ Shipped sequence:
 - deterministic field sources/sinks with resource-driven vector emission, agent absorption, demo wiring, metrics, benchmark, and overlay labels;
 - field source semantics tuning with resource energy/radius scaling, agent radius/energy-pressure absorption, runtime visual QA, and overlay/readout guards;
 - obstacle/terrain damping sources with runtime metrics, editable damping controls, persisted debug config, render layer/vector controls, and preset import/export UX;
-- deterministic environmental field advection with core tests, benchmark, demo wiring, overlay/readouts, editable controls, and persisted config.
+- deterministic environmental field advection with core tests, benchmark, demo wiring, overlay/readouts, editable controls, and persisted config;
+- field-force separation with renderer-agnostic sim API, deterministic tests, benchmark, disabled-by-default demo wiring, overlay/readouts, controls, and persisted config.
 
 Current milestone:
 - m47 planning: field-force separation after advection behavior is stable.
