@@ -84,13 +84,14 @@ Current field-stage order is intentionally separated into sources/sinks, damping
 
 ### Controller first pass
 
-M48 controller slices are present as an observation/configuration layer:
+M48 is closed. The controller first pass exists as an observation/configuration layer:
 
 - `src/sim/controller.ts` defines a renderer-agnostic controller API;
 - controller output uses deterministic intent arrays: `intentX`, `intentY`, and `intentMagnitude`;
 - config is bounded and includes enable, strength, max intent, food weight, threat weight, and flow weight;
 - demo wiring exists behind disabled/default-neutral config;
-- overlay/readouts, benchmark, panel controls, persistence, and exposure tests exist.
+- overlay/readouts, benchmark, panel controls, persistence, and exposure tests exist;
+- repo status, roadmap status, milestone, integration, package version, and app version now report `0.1.0-milestone.48` / `m48`.
 
 Important limit: M48 controller output is not yet actuated into movement. The controller is observable and configurable, but it does not currently apply force or change agent locomotion. The actuator bridge belongs to M49.
 
@@ -106,7 +107,6 @@ Important limit: M48 controller output is not yet actuated into movement. The co
 ## Current limitations and known technical debt
 
 - Controller intent is not yet connected to movement or forces; M49 must introduce an explicit `controllerActuator` or `intentToForce` stage.
-- M48 docs/status are partially implemented but need final close before behavior-changing work.
 - Ecology pressure is intentionally weak in some demo configs; hunger, scarcity, predation, and reproduction pressure need calibration in M50.
 - The sensor pass is a known hotspot and needs budgeting, cadence control, candidate caps, and better selected-agent visualization in M51.
 - Render/debug layers can become expensive because terrain, obstacle, field vectors, and agent debug views may redraw too often; throttling/cache belongs to the M57 performance split.
@@ -125,11 +125,10 @@ Important limit: M48 controller output is not yet actuated into movement. The co
 - Renderer-agnostic simulation: render layers visualize snapshots; they do not own simulation state.
 - Behavior neutrality by default: new behavior-changing systems should be default-disabled or no-op until explicitly enabled and tested.
 
-## Roadmap: M48-final to M57
+## Roadmap: M49 to M57
 
 | Milestone | Purpose | Required direction |
 |---|---|---|
-| M48-final | Status close and guard cleanup. | Finalize docs/version/status for the existing controller/config/panel/overlay/persistence slices. Preserve behavior-neutral default. |
 | M49 | Controller actuator bridge. | Add explicit `controllerActuator` / `intentToForce`, decide final tick order, expose intent-force metrics and debug vectors, keep default disabled. |
 | M50 | Ecology pressure calibration. | Add presets and runtime controls for hunger, starvation, resource scarcity, reproduction pressure, predator pressure, and pressure readouts. |
 | M51 | Sensor budgeting and perception quality. | Add sensor caps, strides, cadence per channel, dense-cluster benchmarks, and selected-agent sensor wedge visualization. |
@@ -142,4 +141,4 @@ Important limit: M48 controller output is not yet actuated into movement. The co
 
 ## Near-term rule
 
-Do not add new runtime behavior before M48-final documentation/status consistency is closed. In particular, do not wire controller output into movement until M49.
+M48 is closed. The next behavior-changing step is M49, and it must keep controller actuation explicit, measurable, and disabled by default until validated.
