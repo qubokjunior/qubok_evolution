@@ -1,6 +1,6 @@
 # qubok_evolve roadmap
 
-Current status: m47 complete / field-force separation and explicit agent response shipped.
+Current status: m47 complete / field-force separation shipped; m48 planning opened for controller/brain first pass.
 
 m34 shipped: terrain Pixi debug render layer.
 
@@ -29,6 +29,8 @@ m45 shipped: obstacle/terrain damping sources, editable debug parameters, panel 
 m46 shipped: deterministic environmental field advection with tests, benchmark, demo wiring, overlay/readouts, editable controls, and persistence.
 
 m47 shipped: field-force separation and explicit agent response to environmental fields.
+
+m48 planned: controller/brain first pass using existing sensors, terrain, field, and debug readouts.
 
 ## terrain/material track
 
@@ -62,7 +64,7 @@ Shipped sequence:
 - field-force separation with renderer-agnostic sim API, deterministic tests, benchmark, disabled-by-default demo wiring, overlay/readouts, controls, and persisted config.
 
 Current milestone:
-- m47 planning: field-force separation after advection behavior is stable.
+- m48 planning: controller/brain first pass after sensing, terrain, and field response foundations.
 
 M46 shipped scope:
 - define advection separately from diffusion, sources/sinks, damping, and field force;
@@ -80,20 +82,20 @@ M47 shipped scope:
 - keep controller/brain, pathfinding, full fluid solver, hard collision, WebGPU, and large UI panels out of scope.
 
 Follow-up candidates:
-- M47-A1 core field-force API + deterministic unit tests, no demo wiring;
-- M47-A2 metrics and benchmark;
-- M47-A3 demo wiring behind conservative disabled/default-light config;
-- M47-A4 overlay/readout QA;
-- M47-A5 optional controls/persistence after behavior is stable;
+- M48-A1 core controller/intent API + deterministic no-op tests, no demo wiring;
+- M48-A2 metrics and benchmark;
+- M48-A3 demo wiring behind disabled/default-light config;
+- M48-A4 overlay/readout QA;
+- M48-A5 optional controls/persistence after behavior is stable;
 - signed-distance-field correction if the next track returns to terrain/material response;
-- controller/brain first pass after field response remains understandable and measurable.
+- render/code-splitting follow-up for the current Vite warning.
 
 ## controller/brain track
 
 Goal: introduce decision logic after sensing, field, terrain, and debug foundations are stable.
 
-Candidate:
-- controller/brain first pass using existing fixed-width sensors and current observability surfaces.
+Current planning:
+- m48 controller/brain first pass using existing fixed-width sensors and current observability surfaces.
 
 ## render/performance track
 
