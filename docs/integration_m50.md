@@ -25,7 +25,17 @@ M50-A2 deterministic pressure scenario tests are implemented without demo preset
 - predator-pressure scenario validates deterministic attack, kill, and reusable-slot creation;
 - combined readout scenario validates finite ecology metrics across food, birth, blocked-birth, and predator counters.
 
-No demo runtime, render, UI, panel, persistence, package version, or app version behavior is changed in A2.
+M50-A3a preset definitions are implemented without demo runtime wiring:
+
+- `ECOLOGY_PRESSURE_PRESET_CONFIGS` defines bounded config defaults for all M50 preset keys;
+- `neutral_lab` inherits current neutral defaults;
+- `scarce_food` introduces lower food target, enabled metabolism, starvation threshold, and higher reproduction pressure;
+- `predator_pressure` increases predator attack range/damage while keeping bounded pressure knobs;
+- `terrain_habitat` and `field_current_stress` define distinct preset config defaults for later demo wiring;
+- `makeEcologyPressureConfig(...)` now merges explicit patch values over preset defaults over neutral defaults;
+- `scripts/test-ecology-pressure.mjs` guards preset existence, preset config resolution, explicit override precedence, and existing pressure scenario behavior.
+
+No demo runtime, render, UI, panel, persistence, package version, or app version behavior is changed in A3a.
 
 ## Goal
 
@@ -48,7 +58,8 @@ The milestone should expose deterministic ecology pressure without turning it in
 - M50-A0: integration scope document, roadmap/milestone references, and status guards only; no runtime behavior change. Complete.
 - M50-A1: define bounded ecology pressure config/readout shape for demo simulation, no panel yet. Complete.
 - M50-A2: deterministic pressure scenario tests for resource scarcity, energy loss/gain, starvation death path, births, blocked births, and predator kills. Complete.
-- M50-A3: demo preset wiring behind safe defaults: neutral lab, scarce food, predator pressure, terrain habitat, and field-current stress.
+- M50-A3a: preset definitions and guarded config merge, no demo wiring. Complete.
+- M50-A3b: demo preset wiring behind safe defaults: neutral lab, scarce food, predator pressure, terrain habitat, and field-current stress.
 - M50-A4: overlay/readout QA for ecology pressure metrics.
 - M50-A5: compact ecology panel and persistence after metrics and presets are stable.
 - M50-final: version/status/docs close and full validation.
@@ -104,6 +115,14 @@ A2 coverage:
 - capacity-blocked births remain visible as metrics;
 - predator/prey kills remain deterministic and visible;
 - ecology readout stays finite and distinct from controller/actuator metrics.
+
+A3a coverage:
+
+- all preset keys have matching preset configs;
+- neutral preset inherits neutral defaults;
+- scarce-food, predator-pressure, terrain-habitat, and field-current-stress presets resolve expected bounded values;
+- explicit config values override preset defaults;
+- existing scenario tests remain valid after preset merge logic.
 
 Remaining M50 test coverage:
 
