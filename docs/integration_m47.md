@@ -111,3 +111,33 @@ Add a focused benchmark after the core API exists:
 - `docs/milestones.md` lists m47 as planned;
 - status guard checks the m47 planning document if consistent with existing repo style;
 - no runtime, render, or UI behavior is changed in A0.
+
+
+## Final status
+
+M47 is closed.
+
+Implemented scope:
+
+- `src/sim/fieldForce.ts` provides the renderer-agnostic field-force API;
+- field force is disabled by default and only affects agents through explicit configuration;
+- field force samples finished field state after sources/sinks, damping, advection, and dynamics;
+- field force does not mutate field buffers;
+- deterministic tests cover disabled/zero-strength/zero-field no-op, deterministic repeat, finite/clamped output, alive-only behavior, dead-agent ignore, and field immutability;
+- benchmark coverage reports 1k/5k/10k agent sampling cases;
+- demo wiring exposes field-force stats while preserving default behavior;
+- overlay/readouts expose `fieldForce*` metrics;
+- debug controls and localStorage persistence exist behind disabled-by-default configuration.
+
+## Final validation set
+
+- `npm run test:field-force`
+- `npm run test:field-force-integration`
+- `npm run test:field-force-overlay-qa`
+- `npm run test:field-force-config-persistence`
+- `npm run test:field-force-panel`
+- `npm run bench:field-force`
+- `npm run test:demo-integration`
+- `npm run test:repo-status`
+- `npm run test:roadmap-status`
+- `npm run build`

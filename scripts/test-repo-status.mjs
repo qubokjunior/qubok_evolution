@@ -20,12 +20,12 @@ const integrationM46 = readText("docs/integration_m46.md");
 const fieldDamping = readText("src/sim/fieldDamping.ts");
 const fieldAdvection = readText("src/sim/fieldAdvection.ts");
 
-assert(packageJson.version === "0.1.0-milestone.46", "package.json must expose 0.1.0-milestone.46.");
-assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.46\""), "appVersion must expose milestone.46.");
-assert(appVersion.includes("PROJECT_MILESTONE = 46"), "appVersion must expose milestone number 46.");
+assert(packageJson.version === "0.1.0-milestone.47", "package.json must expose 0.1.0-milestone.47.");
+assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.47\""), "appVersion must expose milestone.46.");
+assert(appVersion.includes("PROJECT_MILESTONE = 47"), "appVersion must expose milestone number 46.");
 assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m46\""), "appVersion must expose m46 label.");
-assert(readme.includes("m46 complete"), "README.md must expose current m46 complete status.");
-assert(readme.includes("environmental field transport/advection"), "README.md must expose current field advection track.");
+assert(readme.includes("m47 complete"), "README.md must expose current m47 complete status.");
+assert(readme.includes("field-force separation"), "README.md must expose current field advection track.");
 for (const marker of ["| m32 |", "| m33 |", "| m34 |", "| m35 |", "| m36 |", "| m37 |", "| m38 |", "| m39 |", "| m40 |", "| m41 |", "| m42 |", "| m43 |", "| m44 |", "| m45 |", "| m46 |"]) assert(milestones.includes(marker), "docs/milestones.md missing marker: " + marker);
 assert(integrationM40.includes("environmental field render snapshot"), "integration_m40 must describe environmental field render snapshot.");
 assert(integrationM41.includes("render debug controls"), "integration_m41 must describe render debug controls.");

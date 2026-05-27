@@ -1,4 +1,4 @@
-﻿import { readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -30,9 +30,9 @@ const perfMetrics = readText("src/shared/perfMetrics.ts");
 const pixiRenderer = readText("src/render/pixiRenderer.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
 
-assert(packageJson.version === "0.1.0-milestone.46", "package.json must expose m46 version until m47 runtime work bumps it.");
-assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.46\""), "appVersion must expose milestone.46 until m47 runtime work bumps it.");
-assert(appVersion.includes("PROJECT_MILESTONE = 46"), "appVersion must expose milestone number 46 until m47 runtime work bumps it.");
+assert(packageJson.version === "0.1.0-milestone.47", "package.json must expose m46 version until m47 runtime work bumps it.");
+assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.47\""), "appVersion must expose milestone.46 until m47 runtime work bumps it.");
+assert(appVersion.includes("PROJECT_MILESTONE = 47"), "appVersion must expose milestone number 46 until m47 runtime work bumps it.");
 assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m46\""), "appVersion must expose m46 label until m47 runtime work bumps it.");
 assert(readme.includes("docs/roadmap.md"), "README.md must link docs/roadmap.md.");
 assert(roadmap.includes("m39 shipped: low-resolution environmental flow field sampled by movement"), "roadmap must include m39 field milestone.");

@@ -50,7 +50,7 @@ Compact milestone index through m47. Older early milestones are summarized at th
 | m44 | Field source semantics tuning and visualization QA with runtime visual and overlay/readout guards. | complete |
 | m45 | Obstacle/terrain damping sources, editable debug parameters, panel persistence, render layer controls, and debug config preset import/export UX. | complete |
 | m46 | Deterministic environmental field transport/advection core, benchmark, demo wiring, overlay/readouts, editable controls, and persistence. | complete |
-| m47 | Field-force separation and explicit agent response to environmental fields. | planned |
+| m47 | Field-force separation and explicit agent response to environmental fields, with core API, tests, benchmark, demo wiring, overlay/readouts, controls, and persistence. | complete |
 
 ## Current next-step candidates
 
