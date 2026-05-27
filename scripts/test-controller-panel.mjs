@@ -7,11 +7,15 @@ const assert = (condition, message) => { if (!condition) throw new Error(message
 const packageJson = JSON.parse(readText("package.json"));
 const app = readText("src/ui/App.ts");
 const panel = readText("src/ui/controllerPanel.ts");
+const actuatorPanel = readText("src/ui/controllerActuatorPanel.ts");
 const demoSimulation = readText("src/sim/demoSimulation.ts");
 assert(packageJson.scripts["test:controller-panel"] === "node scripts/test-controller-panel.mjs", "package.json must expose test:controller-panel.");
 assert(packageJson.scripts.test.includes("test:controller-panel"), "npm run test must include test:controller-panel.");
 for (const token of ["createControllerControlPanel", "enable controller", "controllerStrength", "controllerMaxIntentPerAgent", "controllerFoodWeight", "controllerThreatWeight", "controllerFlowWeight", "defaultCollapsed: true", "disabled by default", "onConfigChange"]) assert(panel.includes(token), "controllerPanel missing token: " + token);
+for (const token of ["createControllerActuatorControlPanel", "enable movement influence", "controllerForceScale", "controllerMaxForce", "controllerMinActiveIntentMagnitude", "defaultCollapsed: true", "disabled by default", "onConfigChange"]) assert(actuatorPanel.includes(token), "controllerActuatorPanel missing token: " + token);
 for (const token of ["loadStoredControllerConfig", "saveControllerConfig", "initialControllerConfig", "createControllerControlPanel", "controllerPanel.destroy()"] ) assert(app.includes(token), "App missing controller control token: " + token);
+for (const token of ["loadStoredControllerActuatorConfig", "saveControllerActuatorConfig", "initialControllerActuatorConfig", "createControllerActuatorControlPanel", "controllerActuatorPanel.destroy()"] ) assert(app.includes(token), "App missing controller actuator control token: " + token);
 assert(demoSimulation.includes("DEFAULT_ENABLE_CONTROLLER = false"), "controller must remain disabled by default.");
-assert(!demoSimulation.includes("addForce(world, index, controllerOutput"), "A5 must not wire controller output into movement forces.");
+assert(demoSimulation.includes("DEFAULT_ENABLE_CONTROLLER_MOVEMENT_INFLUENCE = false"), "controller actuator must remain disabled by default.");
+assert(!demoSimulation.includes("addForce(world, index, controllerOutput"), "A5 must not wire controller output directly into movement forces.");
 console.log("controller panel tests passed");
