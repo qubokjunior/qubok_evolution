@@ -23,10 +23,10 @@ const fieldAdvection = readText("src/sim/fieldAdvection.ts");
 assert(packageJson.version === "0.1.0-milestone.47", "package.json must expose 0.1.0-milestone.47.");
 assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.47\""), "appVersion must expose milestone.46.");
 assert(appVersion.includes("PROJECT_MILESTONE = 47"), "appVersion must expose milestone number 46.");
-assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m46\""), "appVersion must expose m46 label.");
+assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m46\""), "appVersion must expose m47 label.");
 assert(readme.includes("m47 complete"), "README.md must expose current m47 complete status.");
 assert(readme.includes("field-force separation"), "README.md must expose current field advection track.");
-for (const marker of ["| m32 |", "| m33 |", "| m34 |", "| m35 |", "| m36 |", "| m37 |", "| m38 |", "| m39 |", "| m40 |", "| m41 |", "| m42 |", "| m43 |", "| m44 |", "| m45 |", "| m46 |"]) assert(milestones.includes(marker), "docs/milestones.md missing marker: " + marker);
+for (const marker of ["| m32 |", "| m33 |", "| m34 |", "| m35 |", "| m36 |", "| m37 |", "| m38 |", "| m39 |", "| m40 |", "| m41 |", "| m42 |", "| m43 |", "| m44 |", "| m45 |", "| m46 |", "| m47 |"]) assert(milestones.includes(marker), "docs/milestones.md missing marker: " + marker);
 assert(integrationM40.includes("environmental field render snapshot"), "integration_m40 must describe environmental field render snapshot.");
 assert(integrationM41.includes("render debug controls"), "integration_m41 must describe render debug controls.");
 assert(integrationM42.includes("decay") && integrationM42.includes("diffusion"), "integration_m42 must describe field decay/diffusion.");
@@ -62,5 +62,15 @@ assert(packageJson.scripts["test:field-advection-overlay-qa"] === "node scripts/
 assert(packageJson.scripts["test:field-advection-panel"] === "node scripts/test-field-advection-panel.mjs", "package.json must expose test:field-advection-panel.");
 assert(packageJson.scripts["test:field-advection-config-persistence"] === "node scripts/test-field-advection-config-persistence.mjs", "package.json must expose test:field-advection-config-persistence.");
 assert(integrationM46.includes("M46 is closed") && integrationM46.includes("Final validation set"), "integration_m46 must document m46 closed status and validation set.");
+
+
+assert(integrationM47.includes("M47 is closed") && integrationM47.includes("Final validation set"), "integration_m47 must document m47 closed status and validation set.");
+assert(fieldForce.includes("FIELD_FORCE_VERSION") && fieldForce.includes("applyFieldForces"), "fieldForce must expose m47 core field-force API.");
+assert(packageJson.scripts["test:field-force"] === "node scripts/test-field-force.mjs", "package.json must expose test:field-force.");
+assert(packageJson.scripts["bench:field-force"] === "node scripts/bench-field-force.mjs", "package.json must expose bench:field-force.");
+assert(packageJson.scripts["test:field-force-integration"] === "node scripts/test-field-force-integration.mjs", "package.json must expose test:field-force-integration.");
+assert(packageJson.scripts["test:field-force-overlay-qa"] === "node scripts/test-field-force-overlay-qa.mjs", "package.json must expose test:field-force-overlay-qa.");
+assert(packageJson.scripts["test:field-force-config-persistence"] === "node scripts/test-field-force-config-persistence.mjs", "package.json must expose test:field-force-config-persistence.");
+assert(packageJson.scripts["test:field-force-panel"] === "node scripts/test-field-force-panel.mjs", "package.json must expose test:field-force-panel.");
 
 console.log("repo status tests passed");

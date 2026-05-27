@@ -33,7 +33,7 @@ const demoSimulation = readText("src/sim/demoSimulation.ts");
 assert(packageJson.version === "0.1.0-milestone.47", "package.json must expose m46 version until m47 runtime work bumps it.");
 assert(appVersion.includes("PROJECT_VERSION = \"0.1.0-milestone.47\""), "appVersion must expose milestone.46 until m47 runtime work bumps it.");
 assert(appVersion.includes("PROJECT_MILESTONE = 47"), "appVersion must expose milestone number 46 until m47 runtime work bumps it.");
-assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m46\""), "appVersion must expose m46 label until m47 runtime work bumps it.");
+assert(appVersion.includes("PROJECT_MILESTONE_LABEL = \"m46\""), "appVersion must expose m47 label.");
 assert(readme.includes("docs/roadmap.md"), "README.md must link docs/roadmap.md.");
 assert(roadmap.includes("m39 shipped: low-resolution environmental flow field sampled by movement"), "roadmap must include m39 field milestone.");
 assert(roadmap.includes("m40 shipped: environmental field render snapshot and Pixi vector debug layer"), "roadmap must include m40 field render milestone.");
@@ -99,13 +99,20 @@ assert(roadmap.includes("m46 shipped: deterministic environmental field advectio
 assert(integrationM46.includes("## Final status") && integrationM46.includes("M46 is closed"), "integration_m46 must document final closed status.");
 assert(integrationM46.includes("## Final validation set") && integrationM46.includes("npm run bench:field-advection") && integrationM46.includes("npm run build"), "integration_m46 must document final validation set.");
 
-assert(roadmap.includes("m47 planned: field-force separation"), "roadmap must include m47 planned milestone.");
-assert(roadmap.includes("m47 planning: field-force separation after advection behavior is stable"), "roadmap must point current field milestone to m47 planning.");
-assert(milestones.includes("| m47 | Field-force separation and explicit agent response to environmental fields. | planned |"), "milestones must list m47 as planned.");
+assert(roadmap.includes("m47 shipped: field-force separation"), "roadmap must include m47 planned milestone.");
+assert(roadmap.includes("m47 complete: field-force separation after advection behavior is stable"), "roadmap must point current field milestone to m47 planning.");
+assert(milestones.includes("| m47 | Field-force separation and explicit agent response to environmental fields, with core API, tests, benchmark, demo wiring, overlay/readouts, controls, and persistence. | complete |"), "milestones must list m47 as planned.");
 assert(integrationM47.includes("# Integration m47 - field-force separation planning"), "integration_m47 must exist and describe field-force planning.");
 assert(integrationM47.includes("Field force is not advection. It must not mutate field buffers."), "integration_m47 must separate field force from advection and field mutation.");
 assert(integrationM47.includes("Default behavior must remain unchanged unless field force is explicitly enabled"), "integration_m47 must preserve default movement semantics.");
 assert(integrationM47.includes("M47-A1: core field-force API + deterministic unit tests, no demo wiring"), "integration_m47 must define M47-A1 slice.");
 assert(integrationM47.includes("controller/brain logic") && integrationM47.includes("WebGPU compute"), "integration_m47 must document out-of-scope items.");
+
+
+assert(integrationM47.includes("M47 is closed") && integrationM47.includes("Final validation set"), "integration_m47 must document m47 closed status and validation set.");
+assert(demoSimulation.includes("fieldForceStats") && demoSimulation.includes("updateFieldForceConfig"), "demoSimulation must expose m47 field force wiring and config.");
+assert(pixiRenderer.includes("fieldForceMagnitudeTotal"), "pixiRenderer must expose field force overlay readouts.");
+assert(perfMetrics.includes("fieldForceMs"), "perf metrics must expose field force metrics.");
+assert(debugOverlay.includes("field force"), "debug overlay must expose field force labels.");
 
 console.log("roadmap status tests passed");

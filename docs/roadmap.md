@@ -71,7 +71,7 @@ M46 shipped scope:
 - benchmark field sizes and substep counts before UI controls;
 - keep Stable Fluids pressure solve, WebGPU, controller/brain, and render rewrite out of scope.
 
-M47 planned scope:
+M47 shipped scope:
 - define field force as a separate stage after sources/sinks, damping, advection, and dynamics;
 - keep field-force sampling simulation-only and renderer-agnostic;
 - ensure field force reads fields without mutating field buffers;
