@@ -1,0 +1,12 @@
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const readText = (relativePath) => readFileSync(resolve(projectRoot, relativePath), "utf8");
+const assert = (condition, message) => { if (!condition) throw new Error(message); };
+const packageJson = JSON.parse(readText("package.json"));
+const persistence = readText("src/sim/fieldForceConfigPersistence.ts");
+assert(packageJson.scripts["test:field-force-config-persistence"] === "node scripts/test-field-force-config-persistence.mjs", "package.json must expose test:field-force-config-persistence.");
+assert(packageJson.scripts.test.includes("test:field-force-config-persistence"), "npm run test must include test:field-force-config-persistence.");
+for (const token of ["FIELD_FORCE_CONFIG_STORAGE_KEY", "qubok_evolve.field_force_config.v1", "loadStoredFieldForceConfig", "saveFieldForceConfig", "clearStoredFieldForceConfig", "enableFieldForce", "fieldForceStrength", "fieldForceMaxForcePerAgent", "fieldForceMinActiveMagnitude"]) assert(persistence.includes(token), "fieldForceConfigPersistence missing token: " + token);
+console.log("field force config persistence tests passed");

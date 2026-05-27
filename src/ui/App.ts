@@ -3,6 +3,7 @@ import { createPerfOverlay } from "../render/debugOverlay";
 import { mountPixiRenderer } from "../render/pixiRenderer";
 import { createFieldDampingControlPanel } from "./fieldDampingPanel";
 import { createFieldAdvectionControlPanel } from "./fieldAdvectionPanel";
+import { createFieldForceControlPanel } from "./fieldForcePanel";
 import { createFieldVisualDebugPanel } from "./fieldVisualDebugPanel";
 import { createDebugLayoutPanel } from "./debugLayoutPanel";
 import { createRenderLayersPanel } from "./renderLayersPanel";
@@ -11,6 +12,7 @@ import { toggleRenderDebugLayer, type RenderDebugConfig } from "../render/render
 import { loadStoredRenderDebugConfig, saveRenderDebugConfig } from "../render/renderDebugConfigPersistence";
 import { loadStoredFieldDampingConfig, saveFieldDampingConfig } from "../sim/fieldDampingConfigPersistence";
 import { loadStoredFieldAdvectionConfig, saveFieldAdvectionConfig } from "../sim/fieldAdvectionConfigPersistence";
+import { loadStoredFieldForceConfig, saveFieldForceConfig } from "../sim/fieldForceConfigPersistence";
 
 export type QubokEvolveAppHandle = {
   destroy: () => void;
@@ -43,6 +45,7 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
 
   const initialFieldDampingConfig = loadStoredFieldDampingConfig();
   const initialFieldAdvectionConfig = loadStoredFieldAdvectionConfig();
+  const initialFieldForceConfig = loadStoredFieldForceConfig();
 
   const shell = document.createElement("div");
   shell.className = "qubok_evolve-shell";
@@ -65,11 +68,13 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
     worldWidth: 2048,
     worldHeight: 2048,
     ...initialFieldDampingConfig,
-    ...initialFieldAdvectionConfig
+    ...initialFieldAdvectionConfig,
+    ...initialFieldForceConfig
   });
 
   const fieldDampingPanel = createFieldDampingControlPanel(controlStack, simulation, { onConfigChange: saveFieldDampingConfig });
   const fieldAdvectionPanel = createFieldAdvectionControlPanel(controlStack, simulation, { onConfigChange: saveFieldAdvectionConfig });
+  const fieldForcePanel = createFieldForceControlPanel(controlStack, simulation, { onConfigChange: saveFieldForceConfig });
 
   const perfOverlay = createPerfOverlay(overlayHost);
   const initialRenderDebugConfig = loadStoredRenderDebugConfig();
@@ -116,6 +121,7 @@ export async function mountQubokEvolveApp(root: HTMLElement): Promise<QubokEvolv
       perfOverlay.destroy();
       fieldDampingPanel.destroy();
       fieldAdvectionPanel.destroy();
+      fieldForcePanel.destroy();
       renderLayersPanel.destroy();
       fieldVectorDebugPanel.destroy();
       fieldVisualDebugPanel.destroy();

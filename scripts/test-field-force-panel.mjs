@@ -1,0 +1,16 @@
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const readText = (relativePath) => readFileSync(resolve(projectRoot, relativePath), "utf8");
+const assert = (condition, message) => { if (!condition) throw new Error(message); };
+const packageJson = JSON.parse(readText("package.json"));
+const app = readText("src/ui/App.ts");
+const panel = readText("src/ui/fieldForcePanel.ts");
+const demoSimulation = readText("src/sim/demoSimulation.ts");
+assert(packageJson.scripts["test:field-force-panel"] === "node scripts/test-field-force-panel.mjs", "package.json must expose test:field-force-panel.");
+assert(packageJson.scripts.test.includes("test:field-force-panel"), "npm run test must include test:field-force-panel.");
+for (const token of ["createFieldForceControlPanel", "enable force", "fieldForceStrength", "fieldForceMaxForcePerAgent", "fieldForceMinActiveMagnitude", "defaultCollapsed: true", "disabled by default", "onConfigChange"]) assert(panel.includes(token), "fieldForcePanel missing token: " + token);
+for (const token of ["loadStoredFieldForceConfig", "saveFieldForceConfig", "initialFieldForceConfig", "createFieldForceControlPanel", "fieldForcePanel.destroy()"]) assert(app.includes(token), "App missing field force control token: " + token);
+assert(demoSimulation.includes("DEFAULT_ENABLE_FIELD_FORCE = false"), "field force must remain disabled by default.");
+console.log("field force panel tests passed");
