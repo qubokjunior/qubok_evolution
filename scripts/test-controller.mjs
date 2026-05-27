@@ -102,7 +102,10 @@ assertAlmostEqual(metricsA.totalIntentMagnitude, metricsB.totalIntentMagnitude, 
 assertAlmostEqual(firstOutput.intentX[0], secondOutput.intentX[0], 0.000001, "deterministic intent x");
 assertAlmostEqual(firstOutput.intentY[0], secondOutput.intentY[0], 0.000001, "deterministic intent y");
 
-assertThrows(() => stepAgentController(first, createAgentControllerOutput(1), { enabled: true }), "small output capacity throws");
+const capacityWorld = createWorldState({ capacity: 2, worldWidth: 20, worldHeight: 20, sectorCount: 4 });
+spawnAgent(capacityWorld, { x: 5, y: 5 });
+spawnAgent(capacityWorld, { x: 10, y: 5 });
+assertThrows(() => stepAgentController(capacityWorld, createAgentControllerOutput(1), { enabled: true }), "small output capacity throws");
 first.flowSampleX[0] = Number.NaN;
 assertThrows(() => stepAgentController(first, firstOutput, { enabled: true }), "non-finite intent throws");
 
