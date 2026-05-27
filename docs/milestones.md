@@ -51,12 +51,13 @@ Compact milestone index through m48. Older early milestones are summarized at th
 | m45 | Obstacle/terrain damping sources, editable debug parameters, panel persistence, render layer controls, and debug config preset import/export UX. | complete |
 | m46 | Deterministic environmental field transport/advection core, benchmark, demo wiring, overlay/readouts, editable controls, and persistence. | complete |
 | m47 | Field-force separation and explicit agent response to environmental fields, with core API, tests, benchmark, demo wiring, overlay/readouts, controls, and persistence. | complete |
+| m48 | Controller/brain first-pass planning using existing sensors, terrain, field, and debug readouts. | planned |
 
 ## Current next-step candidates
 
-- m47-A1: core field-force API + deterministic unit tests, no demo wiring.
-- m47-A2: metrics and benchmark.
-- m47-A3: demo wiring behind conservative disabled/default-light config.
-- m47-A4: overlay/readout QA.
-- m47-A5: optional controls/persistence only after behavior is stable.
+- m48-A1: core controller/intent API + deterministic no-op tests, no demo wiring.
+- m48-A2: metrics and benchmark.
+- m48-A3: demo wiring behind disabled/default-light config.
+- m48-A4: overlay/readout QA.
+- m48-A5: optional controls/persistence after behavior is stable.
 - Later: signed-distance-field correction, controller/brain layer, terrain editor tools, morphology compiler/editor, workerization, and WebGPU experiments.

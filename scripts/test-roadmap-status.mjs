@@ -75,4 +75,5 @@ for (const requiredToken of ["fieldDampingMs", "fieldDampingObstacleSampleCount"
 for (const requiredToken of ["field damp", "field damp obst samples", "field damp terrain samples", "field damp mag"]) assert(debugOverlay.includes(requiredToken), "debugOverlay missing m45 damping label: " + requiredToken);
 for (const requiredToken of ["FieldDampingStepMetrics", "fieldDampingStats", "fieldDampingMs"]) assert(pixiRenderer.includes(requiredToken), "pixiRenderer missing m45 damping token: " + requiredToken);
 
+assert(perfMetrics.includes("fieldRenderVectorCount"), "perf metrics must preserve field render vector count assertion.");
 console.log("roadmap status tests passed");
